@@ -1,4 +1,4 @@
-import { COFFEES, CoffeeItem } from "@/data/coffee";
+import { COFFEES, CoffeeItem } from "@/data/coffees";
 import { TimeOfDay, defaultEnergyForTime } from "@/hooks/useTimeOfDay";
 
 export type EnergyLevel = "high" | "medium" | "low";
