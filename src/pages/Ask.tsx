@@ -14,6 +14,8 @@ import { getMilestones } from "@/lib/caffeine";
 import { Input } from "@/components/ui/input";
 import BedtimeControl from "@/components/BedtimeControl";
 import { getSleepVerdict } from "@/lib/sleepVerdict";
+import ServingControl from "@/components/ServingControl";
+import { adjustedMg, SizeOz } from "@/lib/serving";
 
 const categoryLabels: Record<CoffeeCategory, string> = {
   espresso: "Espresso",
@@ -43,6 +45,8 @@ const Ask = () => {
   const [selected, setSelected] = useState<CoffeeItem | null>(null);
   const [bedtime, setBedtime] = useState<string>("23:00");
   const [query, setQuery] = useState<string>("");
+  const [sizeOz, setSizeOz] = useState<SizeOz>(16);
+  const [shots, setShots] = useState<1 | 2>(1);
 
   const best = useMemo(() => bestPicksForTime(time, energy), [time, energy]);
   const hoursUntilBed = useMemo(() => hoursUntil(bedtime), [bedtime]);
@@ -63,7 +67,8 @@ const Ask = () => {
   }, []);
 
   const renderCard = (c: CoffeeItem) => {
-    const v = getSleepVerdict(c.caffeineMg, hoursUntilBed, HALF_LIFE_HOURS);
+    const mgAdj = adjustedMg(c, sizeOz, shots);
+    const v = getSleepVerdict(mgAdj, hoursUntilBed, HALF_LIFE_HOURS);
     return (
       <Card key={c.id} className="hover-scale cursor-pointer" onClick={() => setSelected(c)}>
         <CardContent className="py-3">
@@ -72,7 +77,7 @@ const Ask = () => {
               <div className="font-medium text-foreground">{c.name}</div>
               <div className="text-xs text-muted-foreground">{c.description}</div>
             </div>
-            <div className="text-sm text-muted-foreground">{c.caffeineMg} mg</div>
+            <div className="text-sm text-muted-foreground">~{mgAdj} mg</div>
           </div>
           <div className="mt-2 flex items-center gap-2">
             <Badge variant="secondary">{v.chip}</Badge>
@@ -101,7 +106,7 @@ const Ask = () => {
           </div>
         </header>
 
-        <section className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <section className="mb-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
           <div>
             <label className="block text-sm mb-1 text-muted-foreground">Time of day</label>
             <Select value={time} onValueChange={(v: TimeOfDay) => { setTime(v); setEnergy(defaultEnergyForTime[v]); }}>
@@ -126,6 +131,9 @@ const Ask = () => {
             </Select>
           </div>
           <BedtimeControl value={bedtime} onChange={setBedtime} />
+          <div>
+            <ServingControl sizeOz={sizeOz} onSizeChange={setSizeOz} shots={shots} onShotsChange={setShots} />
+          </div>
         </section>
 
         <article className="mb-8">
@@ -135,13 +143,14 @@ const Ask = () => {
           </div>
           <div className="grid sm:grid-cols-3 grid-cols-1 gap-3">
             {best.map((c) => {
-              const v = getSleepVerdict(c.caffeineMg, hoursUntilBed, HALF_LIFE_HOURS);
+              const mgAdj = adjustedMg(c, sizeOz, shots);
+              const v = getSleepVerdict(mgAdj, hoursUntilBed, HALF_LIFE_HOURS);
               return (
                 <Card key={c.id} className="animate-enter hover-scale cursor-pointer" onClick={() => setSelected(c)}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base flex items-center justify-between">
                       <span>{c.name}</span>
-                      <span className="text-sm text-muted-foreground">{c.caffeineMg} mg</span>
+                      <span className="text-sm text-muted-foreground">~{mgAdj} mg</span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="text-sm text-muted-foreground">
@@ -218,12 +227,13 @@ const Ask = () => {
                 <DialogHeader>
                   <DialogTitle className="flex items-center justify-between">
                     <span>{selected.name}</span>
-                    <Badge variant="outline">{selected.caffeineMg} mg</Badge>
+                    <Badge variant="outline">~{adjustedMg(selected, sizeOz, shots)} mg</Badge>
                   </DialogTitle>
                 </DialogHeader>
                 <p className="text-sm text-muted-foreground">{selected.description}</p>
                 {(() => {
-                  const v = getSleepVerdict(selected.caffeineMg, hoursUntilBed, HALF_LIFE_HOURS);
+                  const mgAdj = adjustedMg(selected, sizeOz, shots);
+                  const v = getSleepVerdict(mgAdj, hoursUntilBed, HALF_LIFE_HOURS);
                   return (
                     <div className="mt-2">
                       <div className="flex flex-wrap items-center gap-2">
@@ -238,9 +248,9 @@ const Ask = () => {
                 })()}
                 <div className="mt-3">
                   <h3 className="text-sm font-medium mb-2">Caffeine decay (t½ {HALF_LIFE_HOURS}h)</h3>
-                  <DecayChart mg={selected.caffeineMg} halfLife={HALF_LIFE_HOURS} />
+                  <DecayChart mg={adjustedMg(selected, sizeOz, shots)} halfLife={HALF_LIFE_HOURS} />
                   <ul className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                    {getMilestones(selected.caffeineMg, HALF_LIFE_HOURS).map((m) => (
+                    {getMilestones(adjustedMg(selected, sizeOz, shots), HALF_LIFE_HOURS).map((m) => (
                       <li key={m.label} className="rounded-md border p-2">
                         <div className="font-medium">{m.label}</div>
                         <div className="text-muted-foreground">~{m.hours}h · {m.remaining} mg</div>
