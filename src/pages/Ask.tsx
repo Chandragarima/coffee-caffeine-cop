@@ -11,6 +11,9 @@ import { COFFEES, CoffeeCategory, CoffeeItem, byCategory, HALF_LIFE_HOURS } from
 import { TimeOfDay, getTimeOfDay, defaultEnergyForTime } from "@/hooks/useTimeOfDay";
 import { EnergyLevel, bestPicksForTime } from "@/lib/recommendation";
 import { getMilestones } from "@/lib/caffeine";
+import { Input } from "@/components/ui/input";
+import BedtimeControl from "@/components/BedtimeControl";
+import { getSleepVerdict } from "@/lib/sleepVerdict";
 
 const categoryLabels: Record<CoffeeCategory, string> = {
   espresso: "Espresso",
@@ -21,33 +24,64 @@ const categoryLabels: Record<CoffeeCategory, string> = {
   specialty: "Specialty",
 };
 
+// hoursUntil: compute hours from now until a given HH:mm bedtime (today or tomorrow)
+const hoursUntil = (timeStr: string, now: Date = new Date()): number => {
+  const [hh, mm] = timeStr.split(":").map(Number);
+  const bed = new Date(now);
+  bed.setHours(hh ?? 23, mm ?? 0, 0, 0);
+  if (bed.getTime() <= now.getTime()) {
+    bed.setDate(bed.getDate() + 1);
+  }
+  const ms = bed.getTime() - now.getTime();
+  return Math.max(0, ms / 36e5);
+};
+
 const Ask = () => {
   const [time, setTime] = useState<TimeOfDay>(getTimeOfDay());
   const [energy, setEnergy] = useState<EnergyLevel>(defaultEnergyForTime[time]);
   const [activeTab, setActiveTab] = useState<string>("all");
   const [selected, setSelected] = useState<CoffeeItem | null>(null);
+  const [bedtime, setBedtime] = useState<string>("23:00");
+  const [query, setQuery] = useState<string>("");
 
   const best = useMemo(() => bestPicksForTime(time, energy), [time, energy]);
+  const hoursUntilBed = useMemo(() => hoursUntil(bedtime), [bedtime]);
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [] as CoffeeItem[];
+    return COFFEES.filter((c) =>
+      c.name.toLowerCase().includes(q) ||
+      c.description.toLowerCase().includes(q) ||
+      (c.tags?.some((t) => t.includes(q)) ?? false)
+    );
+  }, [query]);
   useEffect(() => {
     document.title = "Ask CoffeePolice – Smart coffee picks";
     const meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute("content", "Browse coffees, see half-life charts, and get time-smart picks.");
   }, []);
 
-  const renderCard = (c: CoffeeItem) => (
-    <Card key={c.id} className="hover-scale cursor-pointer" onClick={() => setSelected(c)}>
-      <CardContent className="py-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="font-medium text-foreground">{c.name}</div>
-            <div className="text-xs text-muted-foreground">{c.description}</div>
+  const renderCard = (c: CoffeeItem) => {
+    const v = getSleepVerdict(c.caffeineMg, hoursUntilBed, HALF_LIFE_HOURS);
+    return (
+      <Card key={c.id} className="hover-scale cursor-pointer" onClick={() => setSelected(c)}>
+        <CardContent className="py-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium text-foreground">{c.name}</div>
+              <div className="text-xs text-muted-foreground">{c.description}</div>
+            </div>
+            <div className="text-sm text-muted-foreground">{c.caffeineMg} mg</div>
           </div>
-          <div className="text-sm text-muted-foreground">{c.caffeineMg} mg</div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+          <div className="mt-2 flex items-center gap-2">
+            <Badge variant="secondary">{v.chip}</Badge>
+            <span className="text-sm font-medium text-foreground">{v.headline}</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <main className="min-h-screen bg-background">
@@ -67,7 +101,7 @@ const Ask = () => {
           </div>
         </header>
 
-        <section className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <section className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label className="block text-sm mb-1 text-muted-foreground">Time of day</label>
             <Select value={time} onValueChange={(v: TimeOfDay) => { setTime(v); setEnergy(defaultEnergyForTime[v]); }}>
@@ -91,6 +125,7 @@ const Ask = () => {
               </SelectContent>
             </Select>
           </div>
+          <BedtimeControl value={bedtime} onChange={setBedtime} />
         </section>
 
         <article className="mb-8">
@@ -99,42 +134,75 @@ const Ask = () => {
             <Badge variant="secondary" className="hover-scale">{time.replace("_", " ")} · {energy}</Badge>
           </div>
           <div className="grid sm:grid-cols-3 grid-cols-1 gap-3">
-            {best.map((c) => (
-              <Card key={c.id} className="animate-enter hover-scale cursor-pointer" onClick={() => setSelected(c)}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center justify-between">
-                    <span>{c.name}</span>
-                    <span className="text-sm text-muted-foreground">{c.caffeineMg} mg</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-muted-foreground">{c.description}</CardContent>
-              </Card>
-            ))}
+            {best.map((c) => {
+              const v = getSleepVerdict(c.caffeineMg, hoursUntilBed, HALF_LIFE_HOURS);
+              return (
+                <Card key={c.id} className="animate-enter hover-scale cursor-pointer" onClick={() => setSelected(c)}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center justify-between">
+                      <span>{c.name}</span>
+                      <span className="text-sm text-muted-foreground">{c.caffeineMg} mg</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="text-sm text-muted-foreground">
+                    {c.description}
+                    <div className="mt-2 flex items-center gap-2">
+                      <Badge variant="secondary">{v.chip}</Badge>
+                      <span className="text-xs font-medium text-foreground">{v.headline}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </article>
 
         <article>
-          <h2 className="text-lg font-semibold text-foreground mb-3">Browse by category</h2>
-          <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="all" className="w-full">
-            <TabsList className="flex flex-wrap">
-              <TabsTrigger value="all">All</TabsTrigger>
-              {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
-                <TabsTrigger key={cat} value={cat}>{categoryLabels[cat]}</TabsTrigger>
-              ))}
-            </TabsList>
-            <TabsContent value="all" className="mt-4">
-              <div className="grid sm:grid-cols-2 gap-3">
-                {COFFEES.map(renderCard)}
-              </div>
-            </TabsContent>
-            {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
-              <TabsContent key={cat} value={cat} className="mt-4">
+          <div className="mb-3">
+            <label className="block text-sm mb-1 text-muted-foreground">Search</label>
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search coffees (e.g., latte, decaf, tea)"
+            />
+          </div>
+
+          {query ? (
+            <>
+              <h2 className="text-lg font-semibold text-foreground mb-3">Results for "{query}"</h2>
+              {filtered.length > 0 ? (
                 <div className="grid sm:grid-cols-2 gap-3">
-                  {byCategory(cat).map(renderCard)}
+                  {filtered.map(renderCard)}
                 </div>
-              </TabsContent>
-            ))}
-          </Tabs>
+              ) : (
+                <p className="text-sm text-muted-foreground">No matches. Try decaf, tea, latte, or espresso.</p>
+              )}
+            </>
+          ) : (
+            <>
+              <h2 className="text-lg font-semibold text-foreground mb-3">Browse by category</h2>
+              <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="all" className="w-full">
+                <TabsList className="flex flex-wrap">
+                  <TabsTrigger value="all">All</TabsTrigger>
+                  {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
+                    <TabsTrigger key={cat} value={cat}>{categoryLabels[cat]}</TabsTrigger>
+                  ))}
+                </TabsList>
+                <TabsContent value="all" className="mt-4">
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {COFFEES.map(renderCard)}
+                  </div>
+                </TabsContent>
+                {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
+                  <TabsContent key={cat} value={cat} className="mt-4">
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {byCategory(cat).map(renderCard)}
+                    </div>
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </>
+          )}
         </article>
 
         <div className="mt-8 text-center">
@@ -154,6 +222,20 @@ const Ask = () => {
                   </DialogTitle>
                 </DialogHeader>
                 <p className="text-sm text-muted-foreground">{selected.description}</p>
+                {(() => {
+                  const v = getSleepVerdict(selected.caffeineMg, hoursUntilBed, HALF_LIFE_HOURS);
+                  return (
+                    <div className="mt-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="secondary">{v.chip}</Badge>
+                        <span className="text-sm font-medium text-foreground">{v.headline}</span>
+                        <span className="text-xs text-muted-foreground">~{v.remainingMg} mg by bedtime</span>
+                      </div>
+                      <p className="mt-2 text-sm text-foreground">{v.detail}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{v.suggestion}</p>
+                    </div>
+                  );
+                })()}
                 <div className="mt-3">
                   <h3 className="text-sm font-medium mb-2">Caffeine decay (t½ {HALF_LIFE_HOURS}h)</h3>
                   <DecayChart mg={selected.caffeineMg} halfLife={HALF_LIFE_HOURS} />
