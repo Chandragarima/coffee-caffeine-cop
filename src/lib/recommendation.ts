@@ -1,6 +1,7 @@
 import { COFFEES, CoffeeItem } from "@/data/coffees";
 import { TimeOfDay, defaultEnergyForTime } from "@/hooks/useTimeOfDay";
 import { caffeineRemaining } from "@/lib/caffeine";
+import { adjustedMg, SizeOz } from "@/lib/serving";
 
 export type EnergyLevel = "high" | "medium" | "low";
 
@@ -39,7 +40,9 @@ export const bestPicksForTime = (
   time: TimeOfDay,
   energy: EnergyLevel = defaultEnergyForTime[time],
   hoursUntilBed?: number,
-  halfLife = 5
+  halfLife = 5,
+  sizeOz = 16,
+  shots = 1
 ): CoffeeItem[] => {
   // Step 1: Filter by energy level (existing logic)
   let pool: CoffeeItem[] = [];
@@ -55,8 +58,16 @@ export const bestPicksForTime = (
   
   // Step 2: Apply sleep filter if bedtime is provided
   if (hoursUntilBed !== undefined && hoursUntilBed > 0) {
+    // Special handling for late night + high energy requests near bedtime
+    if (time === "late_night" && energy === "high" && hoursUntilBed < 3) {
+      // Force to low energy for very short time to bed during late night
+      energy = "low";
+      pool = COFFEES.filter((c) => c.caffeineMg <= 60 || c.tags?.includes("low_caffeine"));
+    }
+    
     pool = pool.filter((coffee) => {
-      const remainingAtBed = caffeineRemaining(coffee.caffeineMg, hoursUntilBed, halfLife);
+      const adjustedCaffeine = adjustedMg(coffee, sizeOz as SizeOz, shots as 1 | 2);
+      const remainingAtBed = caffeineRemaining(adjustedCaffeine, hoursUntilBed, halfLife);
       return remainingAtBed <= SAFE_SLEEP_THRESHOLD_MG;
     });
     
@@ -66,7 +77,8 @@ export const bestPicksForTime = (
         // Try medium energy options
         pool = COFFEES.filter((c) => inRange(c.caffeineMg, 60, 130))
           .filter((coffee) => {
-            const remainingAtBed = caffeineRemaining(coffee.caffeineMg, hoursUntilBed, halfLife);
+            const adjustedCaffeine = adjustedMg(coffee, sizeOz as SizeOz, shots as 1 | 2);
+            const remainingAtBed = caffeineRemaining(adjustedCaffeine, hoursUntilBed, halfLife);
             return remainingAtBed <= SAFE_SLEEP_THRESHOLD_MG;
           });
       }
@@ -75,7 +87,8 @@ export const bestPicksForTime = (
       if (pool.length === 0) {
         pool = COFFEES.filter((c) => c.caffeineMg <= 60 || c.tags?.includes("low_caffeine"))
           .filter((coffee) => {
-            const remainingAtBed = caffeineRemaining(coffee.caffeineMg, hoursUntilBed, halfLife);
+            const adjustedCaffeine = adjustedMg(coffee, sizeOz as SizeOz, shots as 1 | 2);
+            const remainingAtBed = caffeineRemaining(adjustedCaffeine, hoursUntilBed, halfLife);
             return remainingAtBed <= SAFE_SLEEP_THRESHOLD_MG;
           });
       }
