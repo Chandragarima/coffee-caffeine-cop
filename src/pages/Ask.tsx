@@ -48,8 +48,8 @@ const Ask = () => {
   const [sizeOz, setSizeOz] = useState<SizeOz>(16);
   const [shots, setShots] = useState<1 | 2>(1);
 
-  const best = useMemo(() => bestPicksForTime(time, energy), [time, energy]);
   const hoursUntilBed = useMemo(() => hoursUntil(bedtime), [bedtime]);
+  const best = useMemo(() => bestPicksForTime(time, energy, hoursUntilBed, HALF_LIFE_HOURS), [time, energy, hoursUntilBed]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
