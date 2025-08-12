@@ -48,6 +48,7 @@ export const COFFEES: CoffeeItem[] = [
   { id: "black_tea", name: "Black Tea", category: "tea", caffeineMg: 47, description: "Bold and robust.", },
   { id: "earl_grey", name: "Earl Grey", category: "tea", caffeineMg: 40, description: "Black tea with bergamot.", tags: ["low_caffeine"] },
   { id: "oolong_tea", name: "Oolong Tea", category: "tea", caffeineMg: 38, description: "Semi-oxidized tea with floral notes.", tags: ["low_caffeine"] },
+  { id: "herbal_tea", name: "Herbal Tea", category: "tea", caffeineMg: 0, description: "Caffeine-free herbal infusion.", tags: ["low_caffeine"] },
 
   // Cold category
   { id: "cold_brew", name: "Cold Brew", category: "cold", caffeineMg: 200, description: "Slow-steeped, super smooth.", },

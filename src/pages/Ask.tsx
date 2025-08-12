@@ -10,7 +10,7 @@ import DecayChart from "@/components/DecayChart";
 import { COFFEES, CoffeeCategory, CoffeeItem, byCategory, HALF_LIFE_HOURS } from "@/data/coffees";
 import { TimeOfDay, getTimeOfDay, defaultEnergyForTime } from "@/hooks/useTimeOfDay";
 import { EnergyLevel, bestPicksForTime } from "@/lib/recommendation";
-import { getMilestones } from "@/lib/caffeine";
+import { getMilestones, caffeineRemaining } from "@/lib/caffeine";
 import { Input } from "@/components/ui/input";
 import BedtimeControl from "@/components/BedtimeControl";
 import { getSleepVerdict } from "@/lib/sleepVerdict";
@@ -38,6 +38,25 @@ const hoursUntil = (timeStr: string, now: Date = new Date()): number => {
   return Math.max(0, ms / 36e5);
 };
 
+// Map time-of-day to anchor HH:mm used as "virtual now"
+const anchorForTime: Record<TimeOfDay, string> = {
+  morning: "09:00",
+  afternoon: "15:00",
+  evening: "19:00",
+  late_night: "22:00",
+};
+
+// Compute hours from an anchor HH:mm to a bedtime HH:mm within 24h window
+const hoursBetween = (bedHHMM: string, anchorHHMM: string): number => {
+  const [bh, bm] = bedHHMM.split(":").map(Number);
+  const [ah, am] = anchorHHMM.split(":").map(Number);
+  const bedMin = (bh ?? 23) * 60 + (bm ?? 0);
+  const anchorMin = (ah ?? 0) * 60 + (am ?? 0);
+  let diff = bedMin - anchorMin;
+  if (diff < 0) diff += 24 * 60; // wrap to next day
+  return diff / 60;
+};
+
 const Ask = () => {
   const [time, setTime] = useState<TimeOfDay>(getTimeOfDay());
   const [energy, setEnergy] = useState<EnergyLevel>(defaultEnergyForTime[time]);
@@ -48,8 +67,8 @@ const Ask = () => {
   const [sizeOz, setSizeOz] = useState<SizeOz>(16);
   const [shots, setShots] = useState<1 | 2>(1);
 
-  const hoursUntilBed = useMemo(() => hoursUntil(bedtime), [bedtime]);
-  const best = useMemo(() => bestPicksForTime(time, energy, hoursUntilBed, HALF_LIFE_HOURS, sizeOz, shots), [time, energy, hoursUntilBed, sizeOz, shots]);
+  const virtualHoursUntilBed = useMemo(() => hoursBetween(bedtime, anchorForTime[time]), [bedtime, time]);
+  const best = useMemo(() => bestPicksForTime(time, energy, virtualHoursUntilBed, HALF_LIFE_HOURS, sizeOz, shots), [time, energy, virtualHoursUntilBed, sizeOz, shots]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -68,7 +87,7 @@ const Ask = () => {
 
   const renderCard = (c: CoffeeItem) => {
     const mgAdj = adjustedMg(c, sizeOz, shots);
-    const v = getSleepVerdict(mgAdj, hoursUntilBed, HALF_LIFE_HOURS);
+    const v = getSleepVerdict(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
     return (
       <Card key={c.id} className="hover-scale cursor-pointer" onClick={() => setSelected(c)}>
         <CardContent className="py-3">
@@ -139,10 +158,44 @@ const Ask = () => {
             <h2 className="text-lg font-semibold text-foreground">Best pick right now</h2>
             <Badge variant="secondary" className="hover-scale">{time.replace("_", " ")} · {energy}</Badge>
           </div>
+          {(() => {
+            const warn = time === "late_night" && energy === "high" && virtualHoursUntilBed < 3;
+            if (!warn) return null;
+            const decaf = COFFEES.find((c) => c.id === "decaf_coffee");
+            const herbal = COFFEES.find((c) => c.id === "herbal_tea");
+            const coldBrew = COFFEES.find((c) => c.id === "cold_brew");
+            const remainingCold = coldBrew ? Math.round(caffeineRemaining(adjustedMg(coldBrew, sizeOz, shots), virtualHoursUntilBed, HALF_LIFE_HOURS)) : undefined;
+            return (
+              <div className="mb-4 p-4 rounded-lg border bg-muted/40 animate-enter">
+                <h3 className="font-semibold text-foreground mb-1">Heads up! It's too late for high energy</h3>
+                <p className="text-sm text-muted-foreground mb-3">Your {bedtime} bedtime is just around the corner. A high‑caffeine drink now would seriously impact your sleep.</p>
+                <div className="grid sm:grid-cols-3 grid-cols-1 gap-3">
+                  {decaf && (
+                    <Card className="border-dashed">
+                      <CardHeader className="pb-2"><CardTitle className="text-base">The only safe choice: {decaf.name} (~{decaf.caffeineMg}mg)</CardTitle></CardHeader>
+                      <CardContent className="text-sm text-muted-foreground">If you're craving the flavor, this is the way to go. Virtually no impact on sleep. ✅</CardContent>
+                    </Card>
+                  )}
+                  {herbal && (
+                    <Card className="border-dashed">
+                      <CardHeader className="pb-2"><CardTitle className="text-base">Zero‑caffeine option: {herbal.name} ({herbal.caffeineMg}mg)</CardTitle></CardHeader>
+                      <CardContent className="text-sm text-muted-foreground">A perfect, calming drink to help you wind down. Guaranteed sleep‑friendly.</CardContent>
+                    </Card>
+                  )}
+                  {coldBrew && (
+                    <Card className="border-destructive">
+                      <CardHeader className="pb-2"><CardTitle className="text-base">Your requested energy: Cold Brew ({coldBrew.caffeineMg}mg)</CardTitle></CardHeader>
+                      <CardContent className="text-sm text-muted-foreground">🚫 High sleep risk! {remainingCold !== undefined ? `~${remainingCold}mg` : "A lot"} would still be in your system at bedtime.</CardContent>
+                    </Card>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
           <div className="grid sm:grid-cols-3 grid-cols-1 gap-3">
             {best.map((c) => {
               const mgAdj = adjustedMg(c, sizeOz, shots);
-              const v = getSleepVerdict(mgAdj, hoursUntilBed, HALF_LIFE_HOURS);
+              const v = getSleepVerdict(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
               return (
                 <Card key={c.id} className="animate-enter hover-scale cursor-pointer" onClick={() => setSelected(c)}>
                   <CardHeader className="pb-2">
@@ -225,7 +278,7 @@ const Ask = () => {
                 <p className="text-sm text-muted-foreground">{selected.description}</p>
                 {(() => {
                   const mgAdj = adjustedMg(selected, sizeOz, shots);
-                  const v = getSleepVerdict(mgAdj, hoursUntilBed, HALF_LIFE_HOURS);
+                  const v = getSleepVerdict(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
                   return (
                     <div className="mt-4 p-4 rounded-lg bg-muted/50">
                       <Badge variant="secondary" className="mb-2">{v.chip}</Badge>
