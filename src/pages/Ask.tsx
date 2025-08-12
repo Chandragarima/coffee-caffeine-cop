@@ -18,12 +18,12 @@ import ServingControl from "@/components/ServingControl";
 import { adjustedMg, SizeOz } from "@/lib/serving";
 
 const categoryLabels: Record<CoffeeCategory, string> = {
-  espresso: "Espresso",
-  milk: "Milk Based",
-  water: "Water Brewed",
-  tea: "Tea",
-  cold: "Cold",
-  specialty: "Specialty",
+  espresso: "☕ Espresso",
+  milk: "🥛 Milk Based", 
+  water: "💧 Water Brewed",
+  tea: "🍃 Tea",
+  cold: "🧊 Cold",
+  specialty: "✨ Specialty",
 };
 
 // hoursUntil: compute hours from now until a given HH:mm bedtime (today or tomorrow)
@@ -73,15 +73,13 @@ const Ask = () => {
       <Card key={c.id} className="hover-scale cursor-pointer" onClick={() => setSelected(c)}>
         <CardContent className="py-3">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1">
               <div className="font-medium text-foreground">{c.name}</div>
               <div className="text-xs text-muted-foreground">{c.description}</div>
             </div>
-            <div className="text-sm text-muted-foreground">~{mgAdj} mg</div>
           </div>
-          <div className="mt-2 flex items-center gap-2">
-            <Badge variant="secondary">{v.chip}</Badge>
-            <span className="text-sm font-medium text-foreground">{v.headline}</span>
+          <div className="mt-2">
+            <Badge variant="secondary" className="text-xs">{v.chip}</Badge>
           </div>
         </CardContent>
       </Card>
@@ -148,16 +146,13 @@ const Ask = () => {
               return (
                 <Card key={c.id} className="animate-enter hover-scale cursor-pointer" onClick={() => setSelected(c)}>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center justify-between">
-                      <span>{c.name}</span>
-                      <span className="text-sm text-muted-foreground">~{mgAdj} mg</span>
-                    </CardTitle>
+                    <CardTitle className="text-base">{c.name}</CardTitle>
                   </CardHeader>
                   <CardContent className="text-sm text-muted-foreground">
                     {c.description}
-                    <div className="mt-2 flex items-center gap-2">
-                      <Badge variant="secondary">{v.chip}</Badge>
-                      <span className="text-xs font-medium text-foreground">{v.headline}</span>
+                    <div className="mt-3">
+                      <Badge variant="secondary" className="text-xs">{v.chip}</Badge>
+                      <p className="text-xs text-foreground mt-1">{v.detail}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -225,39 +220,34 @@ const Ask = () => {
             {selected && (
               <>
                 <DialogHeader>
-                  <DialogTitle className="flex items-center justify-between">
-                    <span>{selected.name}</span>
-                    <Badge variant="outline">~{adjustedMg(selected, sizeOz, shots)} mg</Badge>
-                  </DialogTitle>
+                  <DialogTitle>{selected.name}</DialogTitle>
                 </DialogHeader>
                 <p className="text-sm text-muted-foreground">{selected.description}</p>
                 {(() => {
                   const mgAdj = adjustedMg(selected, sizeOz, shots);
                   const v = getSleepVerdict(mgAdj, hoursUntilBed, HALF_LIFE_HOURS);
                   return (
-                    <div className="mt-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="secondary">{v.chip}</Badge>
-                        <span className="text-sm font-medium text-foreground">{v.headline}</span>
-                        <span className="text-xs text-muted-foreground">~{v.remainingMg} mg by bedtime</span>
-                      </div>
-                      <p className="mt-2 text-sm text-foreground">{v.detail}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">{v.suggestion}</p>
+                    <div className="mt-4 p-4 rounded-lg bg-muted/50">
+                      <Badge variant="secondary" className="mb-2">{v.chip}</Badge>
+                      <p className="text-sm text-foreground font-medium mb-1">{v.detail}</p>
+                      <p className="text-xs text-muted-foreground">{v.suggestion}</p>
                     </div>
                   );
                 })()}
-                <div className="mt-3">
-                  <h3 className="text-sm font-medium mb-2">Caffeine decay (t½ {HALF_LIFE_HOURS}h)</h3>
-                  <DecayChart mg={adjustedMg(selected, sizeOz, shots)} halfLife={HALF_LIFE_HOURS} />
-                  <ul className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                    {getMilestones(adjustedMg(selected, sizeOz, shots), HALF_LIFE_HOURS).map((m) => (
-                      <li key={m.label} className="rounded-md border p-2">
-                        <div className="font-medium">{m.label}</div>
-                        <div className="text-muted-foreground">~{m.hours}h · {m.remaining} mg</div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                <details className="mt-4">
+                  <summary className="text-sm font-medium cursor-pointer text-muted-foreground hover:text-foreground">View caffeine science</summary>
+                  <div className="mt-3">
+                    <DecayChart mg={adjustedMg(selected, sizeOz, shots)} halfLife={HALF_LIFE_HOURS} />
+                    <ul className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      {getMilestones(adjustedMg(selected, sizeOz, shots), HALF_LIFE_HOURS).map((m) => (
+                        <li key={m.label} className="rounded-md border p-2">
+                          <div className="font-medium">{m.label}</div>
+                          <div className="text-muted-foreground">{m.remaining} mg</div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </details>
               </>
             )}
           </DialogContent>

@@ -4,11 +4,11 @@ import { caffeineRemaining } from "@/lib/caffeine";
 
 export type SleepVerdict = {
   code: VerdictCode;
-  chip: string; // Emoji + label for quick glance
-  headline: string; // Plain-English verdict
-  detail: string; // Reasoning text
-  suggestion: string; // Optional suggestion
-  remainingMg: number; // Rounded remaining mg at bedtime
+  chip: string; // Simple status for quick glance
+  headline: string; // User-friendly outcome
+  detail: string; // Personalized context
+  suggestion: string; // Actionable alternative
+  remainingMg: number; // For internal calculations only
 };
 
 export const getSleepVerdict = (
@@ -17,14 +17,15 @@ export const getSleepVerdict = (
   halfLife = 5
 ): SleepVerdict => {
   const remaining = caffeineRemaining(mg, hoursUntilBed, halfLife);
+  const bedtimeHours = Math.round(hoursUntilBed * 10) / 10;
 
   if (remaining < 50) {
     return {
       code: "green",
-      chip: "🟢 Sleep-Friendly",
-      headline: "Clear to Sip",
-      detail: `This cup’s ~${mg} mg will mellow out to ~${remaining} mg by bedtime — Mr. Brew approves. Sleep should be sweet!`,
-      suggestion: "You could even go medium roast here and still be fine.",
+      chip: "😴 Sleep well tonight",
+      headline: "Perfect timing",
+      detail: `Great choice! This gives you energy now and lets you wind down naturally by bedtime (${bedtimeHours}h from now).`,
+      suggestion: "You could even go for a larger size if you want more energy.",
       remainingMg: remaining,
     };
   }
@@ -32,20 +33,20 @@ export const getSleepVerdict = (
   if (remaining <= 100) {
     return {
       code: "yellow",
-      chip: "🟡 Might Keep You Up",
-      headline: "Sip Smart",
-      detail: `If you sip this now, you’ll still have about ${remaining} mg buzzing at bedtime — not a total no-go, but you might be tossing a bit.`,
-      suggestion: "Want to play it safe? Try a smaller size or half-caff and be bedtime-ready.",
+      chip: "😪 Might toss a bit",
+      headline: "Okay choice",
+      detail: `This will energize you now but might make it a bit harder to fall asleep at your usual bedtime (${bedtimeHours}h from now).`,
+      suggestion: "Try a smaller size or switch to something lighter for better sleep.",
       remainingMg: remaining,
     };
   }
 
   return {
     code: "red",
-    chip: "🔴 Wide Awake Tonight",
-    headline: "Better Hold Off",
-    detail: `This ${mg} mg drink will leave you with over ${remaining} mg by bedtime — hello, 2 AM TikTok scroll. Swap for decaf or tea to stay on Mr. Brew’s good side.`,
-    suggestion: "You can still enjoy coffee now — just make it a small or a lighter roast.",
+    chip: "🔴 2AM energy crash",
+    headline: "Skip this one",
+    detail: `This much caffeine will keep you wired well past your bedtime (${bedtimeHours}h from now) - you'll be scrolling your phone at 2AM.`,
+    suggestion: "Try decaf or tea instead - you'll thank yourself tomorrow.",
     remainingMg: remaining,
   };
 };
