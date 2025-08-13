@@ -1,4 +1,4 @@
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { caffeineRemaining } from "@/lib/caffeine";
 
 interface DecayChartProps {
