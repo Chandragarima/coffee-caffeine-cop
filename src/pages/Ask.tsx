@@ -24,6 +24,8 @@ const categoryLabels: Record<CoffeeCategory, string> = {
   tea: "🍃 Tea",
   cold: "🧊 Cold",
   specialty: "✨ Specialty",
+  energy: "⚡ Energy Drinks",
+  soda: "🥤 Sodas",
 };
 
 // hoursUntil: compute hours from now until a given HH:mm bedtime (today or tomorrow)

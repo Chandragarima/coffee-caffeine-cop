@@ -12,16 +12,16 @@ const ServingControl = ({ sizeOz, onSizeChange, shots, onShotsChange }: ServingC
   return (
     <div className="grid grid-cols-2 gap-3">
       <div>
-        <label className="block text-sm mb-1 text-muted-foreground">Cup size</label>
+        <label className="block text-sm mb-1 text-muted-foreground">Serving size</label>
         <Select value={String(sizeOz)} onValueChange={(v) => onSizeChange(Number(v) as SizeOz)}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select size" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="8">8 oz</SelectItem>
-            <SelectItem value="12">12 oz</SelectItem>
-            <SelectItem value="16">16 oz</SelectItem>
-            <SelectItem value="20">20 oz</SelectItem>
+            <SelectItem value="8">Small (8 oz)</SelectItem>
+            <SelectItem value="12">Regular (12 oz)</SelectItem>
+            <SelectItem value="16">Large (16 oz)</SelectItem>
+            <SelectItem value="20">Extra Large (20 oz)</SelectItem>
           </SelectContent>
         </Select>
       </div>

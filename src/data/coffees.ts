@@ -4,7 +4,9 @@ export type CoffeeCategory =
   | "water"
   | "tea"
   | "cold"
-  | "specialty";
+  | "specialty"
+  | "energy"
+  | "soda";
 
 export type CoffeeItem = {
   id: string;
@@ -64,6 +66,26 @@ export const COFFEES: CoffeeItem[] = [
 
   // Low caffeine/decaf options as items
   { id: "decaf_coffee", name: "Decaf Coffee", category: "water", caffeineMg: 5, description: "Brewed decaf coffee.", tags: ["decaf", "low_caffeine"] },
+
+  // Energy Drinks category (based on standard serving sizes)
+  { id: "red_bull", name: "Red Bull", category: "energy", caffeineMg: 80, description: "Classic energy drink, 8.4 fl oz can." },
+  { id: "monster_energy", name: "Monster Energy", category: "energy", caffeineMg: 160, description: "High-caffeine energy drink, 16 fl oz can." },
+  { id: "rockstar", name: "Rockstar", category: "energy", caffeineMg: 160, description: "Performance energy drink, 16 fl oz can." },
+  { id: "five_hour_energy", name: "5-Hour Energy", category: "energy", caffeineMg: 200, description: "Concentrated energy shot, 1.93 fl oz bottle." },
+  { id: "bang_energy", name: "Bang Energy", category: "energy", caffeineMg: 300, description: "Super creatine energy drink, 16 fl oz can." },
+  { id: "celsius", name: "Celsius", category: "energy", caffeineMg: 200, description: "Fitness energy drink, 12 fl oz can." },
+
+  // Soda category (based on 12 fl oz servings)
+  { id: "coke", name: "Coca-Cola", category: "soda", caffeineMg: 34, description: "Classic cola, 12 fl oz can.", tags: ["low_caffeine"] },
+  { id: "pepsi", name: "Pepsi", category: "soda", caffeineMg: 38, description: "Cola beverage, 12 fl oz can.", tags: ["low_caffeine"] },
+  { id: "dr_pepper", name: "Dr Pepper", category: "soda", caffeineMg: 41, description: "Unique blend of 23 flavors, 12 fl oz can.", tags: ["low_caffeine"] },
+  { id: "mountain_dew", name: "Mountain Dew", category: "soda", caffeineMg: 54, description: "Citrus soda with caffeine, 12 fl oz can.", tags: ["low_caffeine"] },
+  { id: "diet_coke", name: "Diet Coke", category: "soda", caffeineMg: 46, description: "Sugar-free cola, 12 fl oz can.", tags: ["low_caffeine"] },
+  { id: "diet_pepsi", name: "Diet Pepsi", category: "soda", caffeineMg: 36, description: "Sugar-free cola, 12 fl oz can.", tags: ["low_caffeine"] },
+  { id: "cherry_coke", name: "Cherry Coke", category: "soda", caffeineMg: 34, description: "Cherry-flavored cola, 12 fl oz can.", tags: ["low_caffeine"] },
+  { id: "sprite", name: "Sprite", category: "soda", caffeineMg: 0, description: "Caffeine-free lemon-lime soda, 12 fl oz can.", tags: ["low_caffeine"] },
+  { id: "root_beer", name: "Root Beer", category: "soda", caffeineMg: 0, description: "Traditional root beer, 12 fl oz can.", tags: ["low_caffeine"] },
+  { id: "orange_soda", name: "Orange Soda", category: "soda", caffeineMg: 0, description: "Orange-flavored soda, 12 fl oz can.", tags: ["low_caffeine"] },
 ];
 
 export const HALF_LIFE_HOURS = 5; // default half-life
