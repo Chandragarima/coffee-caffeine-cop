@@ -24,6 +24,8 @@ const categoryLabels: Record<CoffeeCategory, string> = {
   tea: "🍃 Tea",
   cold: "🧊 Cold",
   specialty: "✨ Specialty",
+  energy: "⚡ Energy Drinks",
+  soda: "🥤 Sodas",
 };
 
 // hoursUntil: compute hours from now until a given HH:mm bedtime (today or tomorrow)
@@ -64,7 +66,7 @@ const Ask = () => {
   const [selected, setSelected] = useState<CoffeeItem | null>(null);
   const [bedtime, setBedtime] = useState<string>("23:00");
   const [query, setQuery] = useState<string>("");
-  const [sizeOz, setSizeOz] = useState<SizeOz>(16);
+  const [sizeOz, setSizeOz] = useState<SizeOz>(12);
   const [shots, setShots] = useState<1 | 2>(1);
   const [showPreferences, setShowPreferences] = useState<boolean>(false);
   const [refreshCount, setRefreshCount] = useState<number>(0);

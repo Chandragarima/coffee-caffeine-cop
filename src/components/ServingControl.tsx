@@ -18,9 +18,10 @@ const ServingControl = ({ sizeOz, onSizeChange, shots, onShotsChange }: ServingC
             <SelectValue placeholder="Select size" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="12">☕ 12 oz</SelectItem>
-            <SelectItem value="16">☕ 16 oz</SelectItem>
-            <SelectItem value="20">☕ 20 oz</SelectItem>
+            <SelectItem value="8">Small (8 oz)</SelectItem>
+            <SelectItem value="12">Regular (12 oz)</SelectItem>
+            <SelectItem value="16">Large (16 oz)</SelectItem>
+            <SelectItem value="20">Extra Large (20 oz)</SelectItem>
           </SelectContent>
         </Select>
       </div>

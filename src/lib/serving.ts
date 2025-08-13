@@ -1,9 +1,10 @@
 import { CoffeeItem } from "@/data/coffees";
 
-export type SizeOz = 12 | 16 | 20;
+export type SizeOz = 8 | 12 | 16 | 20;
 
 // Treat 16 oz as baseline (1.0). Approximate scaling for brewed drinks.
 export const sizeMultipliers: Record<SizeOz, number> = {
+  8: 0.5,
   12: 0.75,
   16: 1,
   20: 1.25,

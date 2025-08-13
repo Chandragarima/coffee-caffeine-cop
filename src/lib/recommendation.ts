@@ -41,7 +41,7 @@ export const bestPicksForTime = (
   energy: EnergyLevel = defaultEnergyForTime[time],
   hoursUntilBed?: number,
   halfLife = 5,
-  sizeOz = 16,
+  sizeOz = 12,
   shots = 1
 ): CoffeeItem[] => {
   // Step 1: Filter by energy level (existing logic)
