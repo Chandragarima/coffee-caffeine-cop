@@ -68,9 +68,12 @@ const Ask = () => {
   const [query, setQuery] = useState<string>("");
   const [sizeOz, setSizeOz] = useState<SizeOz>(12);
   const [shots, setShots] = useState<1 | 2>(1);
+  const [showPreferences, setShowPreferences] = useState<boolean>(false);
+  const [refreshCount, setRefreshCount] = useState<number>(0);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   const virtualHoursUntilBed = useMemo(() => hoursBetween(bedtime, anchorForTime[time]), [bedtime, time]);
-  const best = useMemo(() => bestPicksForTime(time, energy, virtualHoursUntilBed, HALF_LIFE_HOURS, sizeOz, shots), [time, energy, virtualHoursUntilBed, sizeOz, shots]);
+  const best = useMemo(() => bestPicksForTime(time, energy, virtualHoursUntilBed, HALF_LIFE_HOURS, sizeOz, shots), [time, energy, virtualHoursUntilBed, sizeOz, shots, refreshCount]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -81,6 +84,7 @@ const Ask = () => {
       (c.tags?.some((t) => t.includes(q)) ?? false)
     );
   }, [query]);
+  
   useEffect(() => {
     document.title = "Ask CoffeePolice – Smart coffee picks";
     const meta = document.querySelector('meta[name="description"]');
@@ -91,75 +95,254 @@ const Ask = () => {
     const mgAdj = adjustedMg(c, sizeOz, shots);
     const v = getSleepVerdict(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
     return (
-      <Card key={c.id} className="hover-scale cursor-pointer" onClick={() => setSelected(c)}>
-        <CardContent className="py-3">
-          <div className="flex items-center justify-between">
+      <Card key={c.id} className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-0 bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm" onClick={() => setSelected(c)}>
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between">
             <div className="flex-1">
-              <div className="font-medium text-foreground">{c.name}</div>
-              <div className="text-xs text-muted-foreground">{c.description}</div>
+              <div className="font-semibold text-lg text-gray-900 mb-1 group-hover:text-amber-700 transition-colors">{c.name}</div>
+              <div className="text-sm text-gray-600 leading-relaxed">{c.description}</div>
             </div>
           </div>
-          <div className="mt-2">
-            <Badge variant="secondary" className="text-xs">{v.chip}</Badge>
+          <div className="mt-4 flex items-center gap-2">
+            <Badge variant="outline" className="text-xs font-medium border-amber-200 text-amber-700 bg-amber-50/50">
+              {v.chip}
+            </Badge>
+            <span className="text-xs text-gray-500 font-medium">{mgAdj}mg caffeine</span>
           </div>
         </CardContent>
       </Card>
     );
   };
 
+  const getRecommendationContext = (index: number, coffee: CoffeeItem, verdict: any) => {
+    // Get coffee-specific icon based on category and name
+    const getCoffeeIcon = (coffee: CoffeeItem) => {
+      const name = coffee.name.toLowerCase();
+      const category = coffee.category;
+      
+      // Check for high caffeine drinks first (use special icon)
+      if (name.includes('espresso') || name.includes('cold brew') || name.includes('red eye') || name.includes('black eye') || name.includes('dead eye')) {
+        return 'strong-coffee'; // Special identifier for high caffeine drinks
+      }
+      
+      // Check for specific coffee types
+      if (name.includes('latte')) return '🥛';
+      if (name.includes('cappuccino')) return '☕';
+      if (name.includes('americano')) return '☕';
+      if (name.includes('mocha')) return '🍫';
+      if (name.includes('flat white')) return '🥛';
+      if (name.includes('iced')) return '🧊';
+      if (name.includes('decaf')) return '🫖';
+      if (name.includes('tea')) return '🫖';
+      if (name.includes('herbal')) return '🌿';
+      if (name.includes('chai')) return '🫖';
+      if (name.includes('pour over')) return '💧';
+      if (name.includes('french press')) return '☕';
+      if (name.includes('aeropress')) return '☕';
+      if (name.includes('siphon')) return '🧪';
+      if (name.includes('chemex')) return '💧';
+      if (name.includes('drip')) return '☕';
+      if (name.includes('filter')) return '☕';
+      
+      // Fallback to category-based icons
+      switch (category) {
+        case 'espresso': return 'strong-coffee'; // High caffeine category
+        case 'milk': return '🥛';
+        case 'water': return '💧';
+        case 'tea': return '🫖';
+        case 'cold': return '🧊';
+        case 'specialty': return '✨';
+        default: return '☕';
+      }
+    };
+
+    const contexts = [
+      {
+        title: "Perfect timing",
+        description: `This ${coffee.name.toLowerCase()} will give you the right energy boost for your ${time} activities while ensuring you're ready for bed at ${bedtime}.`,
+        icon: getCoffeeIcon(coffee)
+      },
+      {
+        title: "Smart choice",
+        description: `With ${verdict.remainingAtBedtime || "minimal"} caffeine remaining at bedtime, this ${coffee.name.toLowerCase()} strikes the perfect balance for your energy needs.`,
+        icon: getCoffeeIcon(coffee)
+      },
+      {
+        title: "Sleep-friendly",
+        description: `This ${coffee.name.toLowerCase()} provides gentle energy that naturally fades, helping you maintain your sleep schedule without disruption.`,
+        icon: getCoffeeIcon(coffee)
+      }
+    ];
+    return contexts[index % contexts.length];
+  };
+
   return (
-    <main className="min-h-screen bg-background">
-      <section className="px-4 py-6 max-w-screen-md mx-auto">
-        <header className="mb-6 animate-enter">
-          <div className="flex items-center gap-3">
-            <img
-              src="/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
-              alt="CoffeePolice mascot logo"
-              className="h-10 w-10 rounded-md"
-              loading="lazy"
-            />
+    <main className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-50/30">
+      <section className="px-6 py-8 max-w-6xl mx-auto">
+        <header className="mb-8 text-center">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="relative">
+              <img
+                src="/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
+                alt="CoffeePolice mascot logo"
+                className="h-12 w-12 rounded-xl shadow-lg"
+                loading="lazy"
+              />
+              <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 to-amber-600 rounded-xl blur opacity-20"></div>
+            </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">Ask CoffeePolice</h1>
-              <p className="text-muted-foreground text-sm">Time‑aware picks with caffeine half‑life guidance.</p>
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900">Ask CoffeePolice</h1>
+              <p className="text-gray-600">Time‑aware picks with caffeine half‑life guidance</p>
             </div>
           </div>
-        </header>
+         </header>
 
-        <section className="mb-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
-          <div>
-            <label className="block text-sm mb-1 text-muted-foreground">Time of day</label>
-            <Select value={time} onValueChange={(v: TimeOfDay) => { setTime(v); setEnergy(defaultEnergyForTime[v]); }}>
-              <SelectTrigger className="w-full"><SelectValue placeholder="Select time" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="morning">Morning</SelectItem>
-                <SelectItem value="afternoon">Afternoon</SelectItem>
-                <SelectItem value="evening">Evening</SelectItem>
-                <SelectItem value="late_night">Late night</SelectItem>
-              </SelectContent>
-            </Select>
+                                   {/* Preferences Section - Always Visible */}
+          <section className="mb-8">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-amber-100/50">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Default Preferences</h2>
+                  <p className="text-sm text-gray-600">These settings determine your coffee recommendations</p>
+                </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowPreferences(!showPreferences)}
+                  className="text-amber-700 hover:text-amber-800 hover:bg-amber-50 flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {showPreferences ? "Hide" : "Customize"}
+            </Button>
           </div>
-          <div>
-            <label className="block text-sm mb-1 text-muted-foreground">Energy level</label>
-            <Select value={energy} onValueChange={(v: EnergyLevel) => setEnergy(v)}>
-              <SelectTrigger className="w-full"><SelectValue placeholder="Select energy" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <BedtimeControl value={bedtime} onChange={setBedtime} />
-          <div>
-            <ServingControl sizeOz={sizeOz} onSizeChange={setSizeOz} shots={shots} onShotsChange={setShots} />
-          </div>
-        </section>
+              
+              {/* Current Settings Summary */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                <div className="flex items-center gap-3 p-3 bg-amber-50/50 rounded-xl border border-amber-100">
+                  <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <span className="text-amber-600 text-sm">⏰</span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Bed time</p>
+                    <p className="text-sm font-semibold text-gray-900">{bedtime}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <span className="text-blue-600 text-sm">⚡</span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Energy level</p>
+                    <p className="text-sm font-semibold text-gray-900 capitalize">{energy}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-green-50/50 rounded-xl border border-green-100">
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <span className="text-green-600 text-sm">🛡️</span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Safe limit</p>
+                    <p className="text-sm font-semibold text-gray-900">≤50mg for good sleep</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Expandable Preferences */}
+        {showPreferences && (
+                <div className="border-t border-amber-100 pt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Time of day</label>
+                  <Select value={time} onValueChange={(v: TimeOfDay) => { setTime(v); setEnergy(defaultEnergyForTime[v]); }}>
+                    <SelectTrigger className="w-full bg-white/80 border-amber-200 focus:border-amber-400 focus:ring-amber-400/20">
+                      <SelectValue placeholder="Select time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="morning">🌅 Morning</SelectItem>
+                      <SelectItem value="afternoon">☀️ Afternoon</SelectItem>
+                      <SelectItem value="evening">🌆 Evening</SelectItem>
+                      <SelectItem value="late_night">🌙 Late night</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Energy level</label>
+                  <Select value={energy} onValueChange={(v: EnergyLevel) => setEnergy(v)}>
+                    <SelectTrigger className="w-full bg-white/80 border-amber-200 focus:border-amber-400 focus:ring-amber-400/20">
+                      <SelectValue placeholder="Select energy" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="high">⚡ High</SelectItem>
+                      <SelectItem value="medium">⚡ Medium</SelectItem>
+                      <SelectItem value="low">⚡ Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <BedtimeControl value={bedtime} onChange={setBedtime} />
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">Serving</label>
+                  <ServingControl sizeOz={sizeOz} onSizeChange={setSizeOz} shots={shots} onShotsChange={setShots} />
+                </div>
+              </div>
+                </div>
+              )}
+            </div>
+          </section>
 
-        <article className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-semibold text-foreground">Best pick right now</h2>
-            <Badge variant="secondary" className="hover-scale">{time.replace("_", " ")} · {energy}</Badge>
+                                   {/* Coffee Recommendations & Browse Section */}
+          <article className="mb-16">
+            {/* Section Header */}
+            <div className="relative mb-12">
+              <div className="absolute inset-0 bg-gradient-to-r from-amber-100/30 via-transparent to-orange-100/30 rounded-3xl blur-3xl"></div>
+              <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-amber-100/50 shadow-xl">
+                <div className="flex flex-col sm:flex-row items-start justify-between gap-6 mb-6">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center">
+                        <span className="text-white text-lg font-bold">☕</span>
+                      </div>
+                      <div>
+                        <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                          Top Picks for You
+                        </h2>
+                        <p className="text-gray-600 text-sm mt-1">
+                          Based on preferences • Time of the day • Caffeine amount
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                                     <Button
+                     variant="outline"
+                     size="lg"
+                     onClick={() => {
+                       setIsRefreshing(true);
+                       setRefreshCount(prev => prev + 1);
+                       setTimeout(() => setIsRefreshing(false), 500);
+                     }}
+                     disabled={isRefreshing}
+                     className="border-2 border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-300 transition-all duration-300 disabled:opacity-50 shadow-sm hover:shadow-md"
+                   >
+                     <svg 
+                       className={`w-5 h-5 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} 
+                       fill="none" 
+                       stroke="currentColor" 
+                       viewBox="0 0 24 24"
+                     >
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                     </svg>
+                     {isRefreshing ? 'Refreshing...' : 'Get new picks'}
+                   </Button>
           </div>
+          
+                 {/* Best Picks Section */}
+                 <div className="mb-8">
+                   {/* <h3 className="text-lg font-semibold text-gray-900 mb-4">Best picks for you</h3> */}
+                   
+                   {/* Sleep Warning Section */}
           {(() => {
             const warn = time === "late_night" && energy === "high" && virtualHoursUntilBed < 3;
             if (!warn) return null;
@@ -168,136 +351,244 @@ const Ask = () => {
             const coldBrew = COFFEES.find((c) => c.id === "cold_brew");
             const remainingCold = coldBrew ? Math.round(caffeineRemaining(adjustedMg(coldBrew, sizeOz, shots), virtualHoursUntilBed, HALF_LIFE_HOURS)) : undefined;
             return (
-              <div className="mb-4 p-4 rounded-lg border bg-muted/40 animate-enter">
-                <h3 className="font-semibold text-foreground mb-1">Heads up! It's too late for high energy</h3>
-                <p className="text-sm text-muted-foreground mb-3">Your {bedtime} bedtime is just around the corner. A high‑caffeine drink now would seriously impact your sleep.</p>
-                <div className="grid sm:grid-cols-3 grid-cols-1 gap-3">
+               <div className="mb-12 relative">
+                 <div className="absolute inset-0 bg-gradient-to-r from-red-100/20 via-orange-100/20 to-red-100/20 rounded-3xl blur-2xl"></div>
+                 <div className="relative bg-white/90 backdrop-blur-sm rounded-3xl p-8 border-2 border-red-200/50 shadow-xl">
+                   <div className="flex items-start gap-4 mb-6">
+                     <div className="w-12 h-12 bg-gradient-to-br from-red-100 to-orange-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                       <span className="text-red-600 text-xl">⚠️</span>
+                  </div>
+                     <div className="flex-1">
+                       <h3 className="font-bold text-gray-900 text-xl mb-2">Sleep Alert</h3>
+                       <p className="text-gray-600 leading-relaxed">
+                         Your {bedtime} bedtime is approaching. High-caffeine drinks now could significantly impact your sleep quality.
+                       </p>
+                  </div>
+                </div>
+                   
+                   <div className="grid sm:grid-cols-3 grid-cols-1 gap-6">
                   {decaf && (
-                    <Card className="border-dashed">
-                      <CardHeader className="pb-2"><CardTitle className="text-base">The only safe choice: {decaf.name} (~{decaf.caffeineMg}mg)</CardTitle></CardHeader>
-                      <CardContent className="text-sm text-muted-foreground">If you're craving the flavor, this is the way to go. Virtually no impact on sleep. ✅</CardContent>
-                    </Card>
+                       <div className="group p-4 rounded-2xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 hover:shadow-lg transition-all duration-300">
+                         <div className="flex items-center gap-3 mb-3">
+                           <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                             <span className="text-green-600 text-sm">✅</span>
+                           </div>
+                           <h4 className="font-semibold text-green-800">Safe choice</h4>
+                         </div>
+                         <p className="text-sm text-green-700 leading-relaxed">
+                           {decaf.name} - Virtually no impact on sleep, perfect for late-night cravings.
+                         </p>
+                       </div>
                   )}
                   {herbal && (
-                    <Card className="border-dashed">
-                      <CardHeader className="pb-2"><CardTitle className="text-base">Zero‑caffeine option: {herbal.name} ({herbal.caffeineMg}mg)</CardTitle></CardHeader>
-                      <CardContent className="text-sm text-muted-foreground">A perfect, calming drink to help you wind down. Guaranteed sleep‑friendly.</CardContent>
-                    </Card>
+                       <div className="group p-4 rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 hover:shadow-lg transition-all duration-300">
+                         <div className="flex items-center gap-3 mb-3">
+                           <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                             <span className="text-blue-600 text-sm">🫖</span>
+                           </div>
+                           <h4 className="font-semibold text-blue-800">Zero caffeine</h4>
+                         </div>
+                         <p className="text-sm text-blue-700 leading-relaxed">
+                           {herbal.name} - A calming drink to help you wind down naturally.
+                         </p>
+                       </div>
                   )}
                   {coldBrew && (
-                    <Card className="border-destructive">
-                      <CardHeader className="pb-2"><CardTitle className="text-base">Your requested energy: Cold Brew ({coldBrew.caffeineMg}mg)</CardTitle></CardHeader>
-                      <CardContent className="text-sm text-muted-foreground">🚫 High sleep risk! {remainingCold !== undefined ? `~${remainingCold}mg` : "A lot"} would still be in your system at bedtime.</CardContent>
-                    </Card>
-                  )}
+                       <div className="group p-4 rounded-2xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-pink-50 hover:shadow-lg transition-all duration-300">
+                         <div className="flex items-center gap-3 mb-3">
+                           <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+                             <span className="text-red-600 text-sm">🚫</span>
+                           </div>
+                           <h4 className="font-semibold text-red-800">High risk</h4>
+                         </div>
+                         <p className="text-sm text-red-700 leading-relaxed">
+                           Cold Brew - {remainingCold !== undefined ? `~${remainingCold}mg` : "A lot"} would remain in your system at bedtime.
+                         </p>
+                       </div>
+                     )}
+                   </div>
                 </div>
               </div>
             );
           })()}
-          <div className="grid sm:grid-cols-3 grid-cols-1 gap-3">
-            {best.map((c) => {
+          
+                     {/* Recommendation Cards */}
+           <div className="grid sm:grid-cols-3 grid-cols-1 gap-8">
+            {best.map((c, index) => {
               const mgAdj = adjustedMg(c, sizeOz, shots);
               const v = getSleepVerdict(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
+              const context = getRecommendationContext(index, c, v);
               return (
-                <Card key={c.id} className="animate-enter hover-scale cursor-pointer" onClick={() => setSelected(c)}>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">{c.name}</CardTitle>
+                 <Card 
+                   key={c.id} 
+                   className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer bg-gradient-to-br from-white via-amber-50/20 to-white backdrop-blur-sm" 
+                   onClick={() => setSelected(c)}
+                 >
+                   {/* Background gradient overlay */}
+                   <div className="absolute inset-0 bg-gradient-to-br from-amber-400/5 via-orange-400/5 to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                   
+                   {/* Card Header */}
+                   <CardHeader className="relative pb-6">
+                     <div className="flex items-start justify-between mb-4">
+                       <div className="flex-1">
+                         <div className="flex items-center gap-3 mb-3">
+                           <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                             {context.icon === 'strong-coffee' ? (
+                               <img 
+                                 src="/icons/strong-coffee.svg" 
+                                 alt="Strong coffee" 
+                                 className="w-8 h-8"
+                               />
+                             ) : (
+                      <span className="text-2xl">{context.icon}</span>
+                             )}
+                           </div>
+                           <div className="flex-1">
+                             <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-amber-800 transition-colors leading-tight">
+                               {c.name}
+                             </CardTitle>
+                             <div className="flex items-center gap-2 mt-1">
+                               {/* <Badge 
+                                 variant="outline" 
+                                 className="text-xs font-semibold border-amber-200 text-amber-700 bg-amber-50/70 px-2 py-1"
+                               >
+                                 {v.chip}
+                               </Badge> */}
+                               <span className="text-xs text-gray-500 font-medium">
+                                 {mgAdj}mg caffeine
+                               </span>
+                             </div>
+                           </div>
+                         </div>
+                         <p className="text-sm text-gray-600 leading-relaxed">
+                           {c.description} {context.description}
+                         </p>
+                       </div>
+                    </div>
                   </CardHeader>
-                  <CardContent className="text-sm text-muted-foreground">
-                    {c.description}
-                    <div className="mt-3">
-                      <Badge variant="secondary" className="text-xs">{v.chip}</Badge>
-                      <p className="text-xs text-foreground mt-1">{v.detail}</p>
+                   
+                   {/* Card Content */}
+                   <CardContent className="relative pt-0">
+                     <div className="space-y-4">
+                       {/* Quick Info */}
+                       <div className="flex items-center justify-between text-xs text-gray-500">
+                         <span className="flex items-center gap-1">
+                           <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                           Sleep-friendly
+                         </span>
+                         <span className="flex items-center gap-1">
+                           <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                           Perfect timing
+                         </span>
+                      </div>
                     </div>
                   </CardContent>
+                   
+                   {/* Hover effect indicator */}
+                   <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
                 </Card>
               );
             })}
           </div>
-        </article>
+                 
+                 {/* Browse & Search Section */}
+                 <div className="border-t border-amber-100 pt-8">
+                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Browse all coffees</h3>
 
-        <article>
-          <div className="mb-3">
-            <label className="block text-sm mb-1 text-muted-foreground">Search</label>
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search coffees (e.g., latte, decaf, tea)"
-            />
-          </div>
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">Search coffees</label>
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search for your perfect brew (e.g., latte, decaf, tea, espresso)"
+                className="bg-white/80 border-amber-200 focus:border-amber-400 focus:ring-amber-400/20 text-lg py-3"
+              />
+            </div>
 
-          {query ? (
-            <>
-              <h2 className="text-lg font-semibold text-foreground mb-3">Results for "{query}"</h2>
-              {filtered.length > 0 ? (
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {filtered.map(renderCard)}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No matches. Try decaf, tea, latte, or espresso.</p>
-              )}
-            </>
-          ) : (
-            <>
-              <h2 className="text-lg font-semibold text-foreground mb-3">Browse by category</h2>
-              <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="all" className="w-full">
-                <TabsList className="flex flex-wrap">
-                  <TabsTrigger value="all">All</TabsTrigger>
-                  {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
-                    <TabsTrigger key={cat} value={cat}>{categoryLabels[cat]}</TabsTrigger>
-                  ))}
-                </TabsList>
-                <TabsContent value="all" className="mt-4">
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {COFFEES.map(renderCard)}
+            {query ? (
+              <>
+                       <h4 className="text-lg font-semibold text-gray-900 mb-4">Results for "{query}"</h4>
+                {filtered.length > 0 ? (
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {filtered.map(renderCard)}
                   </div>
-                </TabsContent>
-                {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
-                  <TabsContent key={cat} value={cat} className="mt-4">
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      {byCategory(cat).map(renderCard)}
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">☕</div>
+                    <p className="text-gray-600 text-lg">No matches found. Try searching for decaf, tea, latte, or espresso.</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                       <h4 className="text-lg font-semibold text-gray-900 mb-4">Browse by category</h4>
+                <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="all" className="w-full">
+                  <TabsList className="flex flex-wrap bg-amber-50/50 border border-amber-200 p-1 rounded-xl">
+                    <TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm">All</TabsTrigger>
+                    {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
+                      <TabsTrigger key={cat} value={cat} className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm">{categoryLabels[cat]}</TabsTrigger>
+                    ))}
+                  </TabsList>
+                  <TabsContent value="all" className="mt-6">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      {COFFEES.map(renderCard)}
                     </div>
                   </TabsContent>
-                ))}
-              </Tabs>
-            </>
-          )}
+                  {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
+                    <TabsContent key={cat} value={cat} className="mt-6">
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        {byCategory(cat).map(renderCard)}
+                      </div>
+                    </TabsContent>
+                  ))}
+                </Tabs>
+              </>
+            )}
+                 </div>
+               </div>
+             </div>
+          </div>
         </article>
 
-        <div className="mt-8 text-center">
+        <div className="text-center">
           <Link to="/">
-            <Button variant="ghost">Back to Home</Button>
+            <Button variant="outline" className="px-8 py-3 text-lg font-medium border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-300 transition-colors">
+              ← Back to Home
+            </Button>
           </Link>
         </div>
 
         <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent className="sm:max-w-2xl bg-white/95 backdrop-blur-sm border-amber-200">
             {selected && (
               <>
-                <DialogHeader>
-                  <DialogTitle>{selected.name}</DialogTitle>
+                <DialogHeader className="mb-6">
+                  <DialogTitle className="text-2xl font-bold text-gray-900">{selected.name}</DialogTitle>
                 </DialogHeader>
-                <p className="text-sm text-muted-foreground">{selected.description}</p>
+                <p className="text-gray-600 leading-relaxed mb-6">{selected.description}</p>
                 {(() => {
                   const mgAdj = adjustedMg(selected, sizeOz, shots);
                   const v = getSleepVerdict(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
                   return (
-                    <div className="mt-4 p-4 rounded-lg bg-muted/50">
-                      <Badge variant="secondary" className="mb-2">{v.chip}</Badge>
-                      <p className="text-sm text-foreground font-medium mb-1">{v.detail}</p>
-                      <p className="text-xs text-muted-foreground">{v.suggestion}</p>
+                    <div className="mb-6 p-6 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
+                      <Badge variant="outline" className="mb-3 border-amber-200 text-amber-700 bg-amber-50/50">{v.chip}</Badge>
+                      <p className="text-gray-900 font-medium mb-2">{v.detail}</p>
+                      <p className="text-sm text-gray-600">{v.suggestion}</p>
                     </div>
                   );
                 })()}
-                <details className="mt-4">
-                  <summary className="text-sm font-medium cursor-pointer text-muted-foreground hover:text-foreground">View caffeine science</summary>
-                  <div className="mt-3">
+                <details className="mt-6">
+                  <summary className="text-sm font-medium cursor-pointer text-amber-700 hover:text-amber-800 transition-colors flex items-center gap-2">
+                    <span>📊</span>
+                    View caffeine science
+                  </summary>
+                  <div className="mt-4 p-4 bg-gray-50 rounded-xl">
                     <DecayChart mg={adjustedMg(selected, sizeOz, shots)} halfLife={HALF_LIFE_HOURS} />
-                    <ul className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                    <ul className="mt-4 grid grid-cols-2 gap-3 text-xs">
                       {getMilestones(adjustedMg(selected, sizeOz, shots), HALF_LIFE_HOURS).map((m) => (
-                        <li key={m.label} className="rounded-md border p-2">
-                          <div className="font-medium">{m.label}</div>
-                          <div className="text-muted-foreground">{m.remaining} mg</div>
+                        <li key={m.label} className="rounded-lg border border-amber-200 p-3 bg-white">
+                          <div className="font-semibold text-gray-900">{m.label}</div>
+                          <div className="text-amber-700 font-medium">{m.remaining} mg</div>
                         </li>
                       ))}
                     </ul>
@@ -313,4 +604,7 @@ const Ask = () => {
 };
 
 export default Ask;
+
+
+
 

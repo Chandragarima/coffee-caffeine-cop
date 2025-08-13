@@ -9,14 +9,20 @@ type BedtimeControlProps = {
 
 const BedtimeControl = ({ value, onChange, label = "Bedtime", ...rest }: BedtimeControlProps) => {
   return (
-    <div>
-      <label className="block text-sm mb-1 text-muted-foreground">{label}</label>
-      <Input
-        type="time"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        {...rest}
-      />
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <div className="relative">
+        <Input
+          type="time"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="bg-white/80 border-amber-200 focus:border-amber-400 focus:ring-amber-400/20"
+          {...rest}
+        />
+        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+          <span className="text-amber-600">🌙</span>
+        </div>
+      </div>
     </div>
   );
 };
