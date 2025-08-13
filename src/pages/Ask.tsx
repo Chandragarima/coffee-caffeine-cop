@@ -64,7 +64,7 @@ const Ask = () => {
   const [selected, setSelected] = useState<CoffeeItem | null>(null);
   const [bedtime, setBedtime] = useState<string>("23:00");
   const [query, setQuery] = useState<string>("");
-  const [sizeOz, setSizeOz] = useState<SizeOz>(16);
+  const [sizeOz, setSizeOz] = useState<SizeOz>(12);
   const [shots, setShots] = useState<1 | 2>(1);
 
   const virtualHoursUntilBed = useMemo(() => hoursBetween(bedtime, anchorForTime[time]), [bedtime, time]);
