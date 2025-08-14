@@ -491,60 +491,123 @@ const Ask = () => {
             })}
           </div>
                  
-                 {/* Browse & Search Section */}
-                 <div className="border-t border-amber-100 pt-8">
-                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Browse all coffees</h3>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Search coffees</label>
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for your perfect brew (e.g., latte, decaf, tea, espresso)"
-                className="bg-white/80 border-amber-200 focus:border-amber-400 focus:ring-amber-400/20 text-lg py-3"
-              />
-            </div>
-
-            {query ? (
-              <>
-                       <h4 className="text-lg font-semibold text-gray-900 mb-4">Results for "{query}"</h4>
-                {filtered.length > 0 ? (
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {filtered.map(renderCard)}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">☕</div>
-                    <p className="text-gray-600 text-lg">No matches found. Try searching for decaf, tea, latte, or espresso.</p>
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                       <h4 className="text-lg font-semibold text-gray-900 mb-4">Browse by category</h4>
-                <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="all" className="w-full">
-                  <TabsList className="flex flex-wrap bg-amber-50/50 border border-amber-200 p-1 rounded-xl">
-                    <TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm">All</TabsTrigger>
-                    {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
-                      <TabsTrigger key={cat} value={cat} className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm">{categoryLabels[cat]}</TabsTrigger>
-                    ))}
-                  </TabsList>
-                  <TabsContent value="all" className="mt-6">
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      {COFFEES.map(renderCard)}
+                  {/* Browse & Search Section */}
+                  <div className="border-t border-amber-100 pt-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900">Explore More</h3>
+                      <span className="text-xs text-gray-500 bg-amber-50 px-2 py-1 rounded-full">
+                        {COFFEES.length} options
+                      </span>
                     </div>
-                  </TabsContent>
-                  {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
-                    <TabsContent key={cat} value={cat} className="mt-6">
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        {byCategory(cat).map(renderCard)}
+
+                    {/* Compact Search */}
+                    <div className="relative mb-6">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
                       </div>
-                    </TabsContent>
-                  ))}
-                </Tabs>
-              </>
-            )}
-                 </div>
+                      <Input
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Search drinks..."
+                        className="pl-10 bg-white/80 border-amber-200 focus:border-amber-400 focus:ring-amber-400/20 h-10"
+                      />
+                      {query && (
+                        <button
+                          onClick={() => setQuery("")}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        >
+                          <svg className="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+
+                    {query ? (
+                      <>
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-sm font-medium text-gray-700">
+                            {filtered.length} result{filtered.length !== 1 ? 's' : ''} for "{query}"
+                          </h4>
+                        </div>
+                        {filtered.length > 0 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {filtered.slice(0, 6).map(renderCard)}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8">
+                            <div className="text-4xl mb-2">☕</div>
+                            <p className="text-gray-500 text-sm">No matches found</p>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {/* Compact Category Pills */}
+                        <div className="mb-6">
+                          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                            <button
+                              onClick={() => setActiveTab("all")}
+                              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                                activeTab === "all"
+                                  ? "bg-amber-100 text-amber-700 ring-1 ring-amber-200"
+                                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                              }`}
+                            >
+                              All
+                            </button>
+                            {(Object.keys(categoryLabels) as CoffeeCategory[]).slice(0, 4).map((cat) => (
+                              <button
+                                key={cat}
+                                onClick={() => setActiveTab(cat)}
+                                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                                  activeTab === cat
+                                    ? "bg-amber-100 text-amber-700 ring-1 ring-amber-200"
+                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                }`}
+                              >
+                                {categoryLabels[cat]}
+                              </button>
+                            ))}
+                            {Object.keys(categoryLabels).length > 4 && (
+                              <Select value={activeTab} onValueChange={setActiveTab}>
+                                <SelectTrigger className="flex-shrink-0 w-20 h-8 text-xs bg-gray-100 border-0">
+                                  <SelectValue placeholder="More..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {(Object.keys(categoryLabels) as CoffeeCategory[]).slice(4).map((cat) => (
+                                    <SelectItem key={cat} value={cat} className="text-sm">
+                                      {categoryLabels[cat]}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Compact Grid - Show only 6 items max */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {(activeTab === "all" ? COFFEES : byCategory(activeTab as CoffeeCategory))
+                            .slice(0, 6)
+                            .map(renderCard)}
+                        </div>
+
+                        {(activeTab === "all" ? COFFEES : byCategory(activeTab as CoffeeCategory)).length > 6 && (
+                          <div className="text-center mt-6">
+                            <button 
+                              onClick={() => setQuery("show-all-" + activeTab)}
+                              className="text-sm text-amber-600 hover:text-amber-700 font-medium"
+                            >
+                              View all {(activeTab === "all" ? COFFEES : byCategory(activeTab as CoffeeCategory)).length} options →
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
                </div>
              </div>
           </div>
