@@ -94,22 +94,94 @@ const Ask = () => {
   const renderCard = (c: CoffeeItem) => {
     const mgAdj = adjustedMg(c, sizeOz, shots);
     const v = getSleepVerdict(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
+    
+    // Get category icon
+    const getCategoryIcon = () => {
+      switch (c.category) {
+        case 'espresso': return '☕';
+        case 'milk': return '🥛';
+        case 'water': return '💧';
+        case 'tea': return '🍃';
+        case 'cold': return '🧊';
+        case 'specialty': return '✨';
+        case 'energy': return '⚡';
+        case 'soda': return '🥤';
+        default: return '☕';
+      }
+    };
+
+    // Get caffeine intensity color
+    const getCaffeineIntensity = () => {
+      if (mgAdj <= 50) return { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', dot: 'bg-green-400' };
+      if (mgAdj <= 100) return { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', dot: 'bg-yellow-400' };
+      if (mgAdj <= 200) return { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', dot: 'bg-orange-400' };
+      return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', dot: 'bg-red-400' };
+    };
+
+    const intensity = getCaffeineIntensity();
+
     return (
-      <Card key={c.id} className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-0 bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm" onClick={() => setSelected(c)}>
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="font-semibold text-lg text-gray-900 mb-1 group-hover:text-amber-700 transition-colors">{c.name}</div>
-              <div className="text-sm text-gray-600 leading-relaxed">{c.description}</div>
+      <Card 
+        key={c.id} 
+        className="group relative overflow-hidden hover:shadow-xl transition-all duration-500 cursor-pointer border-0 bg-gradient-to-br from-white via-amber-50/10 to-white backdrop-blur-sm hover:scale-105" 
+        onClick={() => setSelected(c)}
+      >
+        {/* Hover gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-400/5 via-orange-400/5 to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        {/* Border gradient */}
+        <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-amber-200/20 via-transparent to-orange-200/20 p-px">
+          <div className="h-full w-full rounded-lg bg-white"></div>
+        </div>
+        
+        <CardContent className="relative p-6">
+          <div className="space-y-4">
+            {/* Header */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-sm">
+                  <span className="text-xl">{getCategoryIcon()}</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg text-gray-900 group-hover:text-amber-800 transition-colors leading-tight mb-1">
+                    {c.name}
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs font-semibold ${intensity.border} ${intensity.text} ${intensity.bg} px-2 py-1`}
+                    >
+                      {categoryLabels[c.category]}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Description */}
+            <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">
+              {c.description}
+            </p>
+            
+            {/* Caffeine info */}
+            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 ${intensity.dot} rounded-full`}></div>
+                <span className="text-sm font-semibold text-gray-900">{mgAdj}mg</span>
+                <span className="text-xs text-gray-500">caffeine</span>
+              </div>
+              <Badge 
+                variant="outline" 
+                className="text-xs font-medium border-amber-200 text-amber-700 bg-amber-50/70"
+              >
+                {v.chip}
+              </Badge>
             </div>
           </div>
-          <div className="mt-4 flex items-center gap-2">
-            <Badge variant="outline" className="text-xs font-medium border-amber-200 text-amber-700 bg-amber-50/50">
-              {v.chip}
-            </Badge>
-            <span className="text-xs text-gray-500 font-medium">{mgAdj}mg caffeine</span>
-          </div>
         </CardContent>
+        
+        {/* Bottom accent line */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
       </Card>
     );
   };
@@ -495,54 +567,128 @@ const Ask = () => {
                  <div className="border-t border-amber-100 pt-8">
                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Browse all coffees</h3>
 
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Search coffees</label>
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for your perfect brew (e.g., latte, decaf, tea, espresso)"
-                className="bg-white/80 border-amber-200 focus:border-amber-400 focus:ring-amber-400/20 text-lg py-3"
-              />
+            {/* Enhanced Search Section */}
+            <div className="relative mb-8">
+              <div className="absolute inset-0 bg-gradient-to-r from-amber-100/20 via-transparent to-orange-100/20 rounded-2xl blur-xl"></div>
+              <div className="relative bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-amber-100/50 shadow-lg">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Find Your Perfect Brew</h3>
+                    <p className="text-sm text-gray-600">Search through our collection of coffees, teas, and energy drinks</p>
+                  </div>
+                </div>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-amber-500">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <Input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search for latte, espresso, tea, energy drinks..."
+                    className="pl-12 bg-white/80 border-amber-200 focus:border-amber-400 focus:ring-amber-400/20 text-lg py-4 rounded-xl shadow-sm"
+                  />
+                </div>
+                {query && (
+                  <div className="mt-3 text-sm text-gray-600">
+                    <span className="font-medium">{filtered.length}</span> results found for "{query}"
+                  </div>
+                )}
+              </div>
             </div>
 
             {query ? (
-              <>
-                       <h4 className="text-lg font-semibold text-gray-900 mb-4">Results for "{query}"</h4>
+              /* Search Results */
+              <div className="space-y-6">
                 {filtered.length > 0 ? (
-                  <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {filtered.map(renderCard)}
                   </div>
                 ) : (
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">☕</div>
-                    <p className="text-gray-600 text-lg">No matches found. Try searching for decaf, tea, latte, or espresso.</p>
+                  <div className="text-center py-16">
+                    <div className="relative mb-6">
+                      <div className="w-24 h-24 mx-auto bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center">
+                        <span className="text-4xl">☕</span>
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-amber-200/20 via-transparent to-orange-200/20 rounded-full blur-xl"></div>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No matches found</h3>
+                    <p className="text-gray-600 text-lg max-w-md mx-auto">Try searching for popular drinks like espresso, latte, tea, or energy drinks.</p>
                   </div>
                 )}
-              </>
+              </div>
             ) : (
-              <>
-                       <h4 className="text-lg font-semibold text-gray-900 mb-4">Browse by category</h4>
-                <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="all" className="w-full">
-                  <TabsList className="flex flex-wrap bg-amber-50/50 border border-amber-200 p-1 rounded-xl">
-                    <TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm">All</TabsTrigger>
-                    {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
-                      <TabsTrigger key={cat} value={cat} className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm">{categoryLabels[cat]}</TabsTrigger>
-                    ))}
-                  </TabsList>
-                  <TabsContent value="all" className="mt-6">
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      {COFFEES.map(renderCard)}
+              /* Category Browse */
+              <div className="space-y-8">
+                {/* Enhanced Category Navigation */}
+                <div className="relative">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">📂</span>
                     </div>
-                  </TabsContent>
-                  {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
-                    <TabsContent key={cat} value={cat} className="mt-6">
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        {byCategory(cat).map(renderCard)}
+                    <h3 className="text-xl font-bold text-gray-900">Browse by Category</h3>
+                  </div>
+                  
+                  <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="all" className="w-full">
+                    {/* Mobile-First Scrollable Category Pills */}
+                    <div className="relative mb-8">
+                      <div className="overflow-x-auto scrollbar-hide">
+                        <TabsList className="inline-flex min-w-full lg:w-full bg-white/90 backdrop-blur-sm border border-amber-100 p-2 rounded-2xl shadow-lg gap-2">
+                          <TabsTrigger 
+                            value="all" 
+                            className="whitespace-nowrap px-6 py-3 rounded-xl font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-400 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-amber-50"
+                          >
+                            🌟 All Drinks
+                          </TabsTrigger>
+                          {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
+                            <TabsTrigger 
+                              key={cat} 
+                              value={cat} 
+                              className="whitespace-nowrap px-6 py-3 rounded-xl font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-400 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-amber-50"
+                            >
+                              {categoryLabels[cat]}
+                            </TabsTrigger>
+                          ))}
+                        </TabsList>
+                      </div>
+                      {/* Scroll indicator gradients */}
+                      <div className="absolute top-0 left-0 w-8 h-full bg-gradient-to-r from-amber-50 to-transparent pointer-events-none lg:hidden"></div>
+                      <div className="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-amber-50 to-transparent pointer-events-none lg:hidden"></div>
+                    </div>
+                    
+                    {/* Enhanced Grid Layout */}
+                    <TabsContent value="all" className="space-y-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="text-gray-600">
+                          <span className="font-semibold text-gray-900">{COFFEES.length}</span> drinks available
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {COFFEES.map(renderCard)}
                       </div>
                     </TabsContent>
-                  ))}
-                </Tabs>
-              </>
+                    
+                    {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
+                      <TabsContent key={cat} value={cat} className="space-y-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <p className="text-gray-600">
+                            <span className="font-semibold text-gray-900">{byCategory(cat).length}</span> drinks in {categoryLabels[cat].toLowerCase()}
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                          {byCategory(cat).map(renderCard)}
+                        </div>
+                      </TabsContent>
+                    ))}
+                  </Tabs>
+                </div>
+              </div>
             )}
                  </div>
                </div>
