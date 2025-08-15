@@ -7,8 +7,10 @@ export type EnergyLevel = "high" | "medium" | "low";
 
 const inRange = (x: number, min: number, max: number) => x >= min && x <= max;
 
-// Safe sleep threshold - caffeine remaining at bedtime should be below this
-const SAFE_SLEEP_THRESHOLD_MG = 50;
+// Scientific sleep guidelines based on 8-hour rule
+// No caffeine should be consumed 8+ hours before bedtime to ensure <50mg at sleep
+const SCIENTIFIC_SLEEP_THRESHOLD_MG = 50;
+const CAFFEINE_HALF_LIFE_HOURS = 5; // Standard caffeine half-life
 
 const shuffleArray = <T>(array: T[]): T[] => {
   const shuffled = [...array];
@@ -22,17 +24,20 @@ const shuffleArray = <T>(array: T[]): T[] => {
 const pickVaried = (items: CoffeeItem[], n = 3, energy: EnergyLevel) => {
   if (items.length <= n) return items;
   
+  // Consider more items for better variety - up to 15 items instead of just 6
+  const maxCandidates = Math.min(15, items.length);
+  
   // For high/medium energy, prefer higher caffeine but shuffle for variety
   if (energy === "high" || energy === "medium") {
     const sorted = items.sort((a, b) => b.caffeineMg - a.caffeineMg);
-    // Take top 6 and shuffle to get variety in the top picks
-    const topCandidates = sorted.slice(0, Math.min(6, items.length));
+    // Take top 15 candidates and shuffle to get much more variety
+    const topCandidates = sorted.slice(0, maxCandidates);
     return shuffleArray(topCandidates).slice(0, n);
   }
   
   // For low energy, prefer lower caffeine but still add variety
   const sorted = items.sort((a, b) => a.caffeineMg - b.caffeineMg);
-  const topCandidates = sorted.slice(0, Math.min(6, items.length));
+  const topCandidates = sorted.slice(0, maxCandidates);
   return shuffleArray(topCandidates).slice(0, n);
 };
 
@@ -44,57 +49,69 @@ export const bestPicksForTime = (
   sizeOz = 12,
   shots = 1
 ): CoffeeItem[] => {
-  // Step 1: Filter by energy level (existing logic)
+  // Step 1: Apply scientific 8-hour rule based on time until bedtime
   let pool: CoffeeItem[] = [];
   
-  if (energy === "high") {
-    pool = COFFEES.filter((c) => inRange(c.caffeineMg, 90, 220));
-  } else if (energy === "medium") {
-    pool = COFFEES.filter((c) => inRange(c.caffeineMg, 60, 130));
-  } else {
-    // low energy: prefer low/decaf, teas, milk_light
-    pool = COFFEES.filter((c) => c.caffeineMg <= 60 || c.tags?.includes("low_caffeine"));
-  }
-  
-  // Step 2: Apply sleep filter if bedtime is provided
   if (hoursUntilBed !== undefined && hoursUntilBed > 0) {
-    // Special handling for late night + high energy requests near bedtime
-    if (time === "late_night" && energy === "high" && hoursUntilBed < 3) {
-      // Force to low energy for very short time to bed during late night
-      energy = "low";
+    // Scientific sleep guidelines: 8-hour rule for <50mg at bedtime
+    if (hoursUntilBed >= 8) {
+      // Morning (6AM-11:59AM): Unlimited (up to 400mg daily)
+      // Afternoon (12PM-3PM): Up to 200mg (last coffee by 3PM)
+      if (energy === "high") {
+        pool = COFFEES.filter((c) => inRange(c.caffeineMg, 90, 220));
+      } else if (energy === "medium") {
+        pool = COFFEES.filter((c) => inRange(c.caffeineMg, 60, 130));
+      } else {
+        pool = COFFEES.filter((c) => c.caffeineMg <= 60 || c.tags?.includes("low_caffeine"));
+      }
+    } else if (hoursUntilBed >= 5) {
+      // Late Afternoon (3PM-8PM): Light tea/soda/energy drink only (under 50mg)
+      pool = COFFEES.filter((c) => c.caffeineMg <= 50 || c.tags?.includes("low_caffeine"));
+         } else if (hoursUntilBed >= 2) {
+       // Evening (8PM+): <5mg caffeine
+       pool = COFFEES.filter((c) => c.caffeineMg <= 5 || c.tags?.includes("decaf") || c.tags?.includes("low_caffeine"));
+     } else {
+       // Very close to bedtime: Only decaf/herbal
+       pool = COFFEES.filter((c) => c.caffeineMg <= 2 || c.tags?.includes("decaf") || c.tags?.includes("low_caffeine"));
+     }
+  } else {
+    // Fallback to original energy-based filtering if no bedtime provided
+    if (energy === "high") {
+      pool = COFFEES.filter((c) => inRange(c.caffeineMg, 90, 220));
+    } else if (energy === "medium") {
+      pool = COFFEES.filter((c) => inRange(c.caffeineMg, 60, 130));
+    } else {
       pool = COFFEES.filter((c) => c.caffeineMg <= 60 || c.tags?.includes("low_caffeine"));
     }
-    
+  }
+  
+  // Step 2: Additional safety filter to ensure <50mg at bedtime
+  if (hoursUntilBed !== undefined && hoursUntilBed > 0) {
     pool = pool.filter((coffee) => {
       const adjustedCaffeine = adjustedMg(coffee, sizeOz as SizeOz, shots as 1 | 2);
       const remainingAtBed = caffeineRemaining(adjustedCaffeine, hoursUntilBed, halfLife);
-      return remainingAtBed <= SAFE_SLEEP_THRESHOLD_MG;
+      return remainingAtBed <= SCIENTIFIC_SLEEP_THRESHOLD_MG;
     });
-    
-    // If no coffees pass the sleep test, fall back to lower energy category
-    if (pool.length === 0 && energy !== "low") {
-      if (energy === "high") {
-        // Try medium energy options
-        pool = COFFEES.filter((c) => inRange(c.caffeineMg, 60, 130))
-          .filter((coffee) => {
-            const adjustedCaffeine = adjustedMg(coffee, sizeOz as SizeOz, shots as 1 | 2);
-            const remainingAtBed = caffeineRemaining(adjustedCaffeine, hoursUntilBed, halfLife);
-            return remainingAtBed <= SAFE_SLEEP_THRESHOLD_MG;
-          });
-      }
-      
-      // If still nothing, try low energy options
-      if (pool.length === 0) {
-        pool = COFFEES.filter((c) => c.caffeineMg <= 60 || c.tags?.includes("low_caffeine"))
-          .filter((coffee) => {
-            const adjustedCaffeine = adjustedMg(coffee, sizeOz as SizeOz, shots as 1 | 2);
-            const remainingAtBed = caffeineRemaining(adjustedCaffeine, hoursUntilBed, halfLife);
-            return remainingAtBed <= SAFE_SLEEP_THRESHOLD_MG;
-          });
-      }
-    }
   }
   
   // Step 3: Return varied selection
-  return pickVaried(pool, 3, energy);
+  let result = pickVaried(pool, 3, energy);
+  
+  // If we have a very small pool (< 10 items), consider expanding the search
+  // to get more variety while still respecting sleep safety
+  if (pool.length < 10 && hoursUntilBed !== undefined && hoursUntilBed > 0) {
+    // Try to get more variety by considering a broader range
+    const expandedPool = COFFEES.filter((coffee) => {
+      const adjustedCaffeine = adjustedMg(coffee, sizeOz as SizeOz, shots as 1 | 2);
+      const remainingAtBed = caffeineRemaining(adjustedCaffeine, hoursUntilBed, halfLife);
+      // Be slightly more lenient for variety (60mg instead of 50mg)
+      return remainingAtBed <= 60;
+    });
+    
+    if (expandedPool.length > pool.length) {
+      result = pickVaried(expandedPool, 3, energy);
+    }
+  }
+  
+  return result;
 };

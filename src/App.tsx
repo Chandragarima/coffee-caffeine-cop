@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Ask from "./pages/Ask";
+import CaffeineTrackerPage from "./pages/CaffeineTrackerPage";
+import CoffeeLogDemo from "./pages/CoffeeLogDemo";
 import InstallPrompt from "./components/InstallPrompt";
 
 const queryClient = new QueryClient();
@@ -20,6 +22,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/ask" element={<Ask />} />
+          <Route path="/caffeine-tracker" element={<CaffeineTrackerPage />} />
+          <Route path="/coffee-log-demo" element={<CoffeeLogDemo />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
