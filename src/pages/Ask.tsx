@@ -16,6 +16,11 @@ import BedtimeControl from "@/components/BedtimeControl";
 import { getSleepVerdict } from "@/lib/sleepVerdict";
 import ServingControl from "@/components/ServingControl";
 import { adjustedMg, SizeOz } from "@/lib/serving";
+import { usePreferences } from "@/hooks/usePreferences";
+import { useCoffeeLogs } from "@/hooks/useCoffeeLogs";
+import QuickLogButton from "@/components/QuickLogButton";
+import CaffeineTracker from "@/components/CaffeineTracker";
+import RecentLogUndo from "@/components/RecentLogUndo";
 
 const categoryLabels: Record<CoffeeCategory, string> = {
   espresso: "☕ Espresso",
@@ -40,40 +45,83 @@ const hoursUntil = (timeStr: string, now: Date = new Date()): number => {
   return Math.max(0, ms / 36e5);
 };
 
-// Map time-of-day to anchor HH:mm used as "virtual now"
-const anchorForTime: Record<TimeOfDay, string> = {
-  morning: "09:00",
-  afternoon: "15:00",
-  evening: "19:00",
-  late_night: "22:00",
+// Get current local time in HH:mm format
+const getCurrentTime = (): string => {
+  const now = new Date();
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
 };
 
-// Compute hours from an anchor HH:mm to a bedtime HH:mm within 24h window
-const hoursBetween = (bedHHMM: string, anchorHHMM: string): number => {
+// Compute hours from current time to bedtime HH:mm within 24h window
+const hoursUntilBedtime = (bedHHMM: string): number => {
+  const now = new Date();
   const [bh, bm] = bedHHMM.split(":").map(Number);
-  const [ah, am] = anchorHHMM.split(":").map(Number);
-  const bedMin = (bh ?? 23) * 60 + (bm ?? 0);
-  const anchorMin = (ah ?? 0) * 60 + (am ?? 0);
-  let diff = bedMin - anchorMin;
-  if (diff < 0) diff += 24 * 60; // wrap to next day
-  return diff / 60;
+  const bed = new Date(now);
+  bed.setHours(bh ?? 23, bm ?? 0, 0, 0);
+  
+  // If bedtime is earlier today, it means tomorrow
+  if (bed.getTime() <= now.getTime()) {
+    bed.setDate(bed.getDate() + 1);
+  }
+  
+  const diffMs = bed.getTime() - now.getTime();
+  return Math.max(0, diffMs / (1000 * 60 * 60)); // Convert to hours
 };
 
 const Ask = () => {
-  const [time, setTime] = useState<TimeOfDay>(getTimeOfDay());
-  const [energy, setEnergy] = useState<EnergyLevel>(defaultEnergyForTime[time]);
+  // Load user preferences
+  const { 
+    bedtime, 
+    servingSize, 
+    shots, 
+    updatePreference,
+    isLoading: preferencesLoading 
+  } = usePreferences();
+
+  // Load coffee logs
+  const { stats: coffeeStats, refreshStats } = useCoffeeLogs();
+
+  // Auto-detect time of day and energy level from local time
+  const [currentTime, setCurrentTime] = useState<TimeOfDay>(getTimeOfDay());
+  const [currentEnergy, setCurrentEnergy] = useState<EnergyLevel>(defaultEnergyForTime[getTimeOfDay()]);
+  
   const [activeTab, setActiveTab] = useState<string>("all");
   const [selected, setSelected] = useState<CoffeeItem | null>(null);
-  const [bedtime, setBedtime] = useState<string>("23:00");
   const [query, setQuery] = useState<string>("");
-  const [sizeOz, setSizeOz] = useState<SizeOz>(12);
-  const [shots, setShots] = useState<1 | 2>(1);
   const [showPreferences, setShowPreferences] = useState<boolean>(false);
   const [refreshCount, setRefreshCount] = useState<number>(0);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  // Update local state when preferences change
+  const [localBedtime, setLocalBedtime] = useState<string>(bedtime);
+  const [localSizeOz, setLocalSizeOz] = useState<SizeOz>(servingSize as SizeOz);
+  const [localShots, setLocalShots] = useState<1 | 2>(shots);
 
-  const virtualHoursUntilBed = useMemo(() => hoursBetween(bedtime, anchorForTime[time]), [bedtime, time]);
-  const best = useMemo(() => bestPicksForTime(time, energy, virtualHoursUntilBed, HALF_LIFE_HOURS, sizeOz, shots), [time, energy, virtualHoursUntilBed, sizeOz, shots, refreshCount]);
+  // Sync local state with preferences
+  useEffect(() => {
+    if (!preferencesLoading) {
+      setLocalBedtime(bedtime);
+      setLocalSizeOz(servingSize as SizeOz);
+      setLocalShots(shots);
+    }
+  }, [bedtime, servingSize, shots, preferencesLoading]);
+
+  const virtualHoursUntilBed = useMemo(() => hoursUntilBedtime(localBedtime), [localBedtime]);
+  
+  // Debug: Show how many items are being considered
+  const allCoffees = useMemo(() => {
+    const pool = COFFEES.filter((coffee) => {
+      if (virtualHoursUntilBed !== undefined && virtualHoursUntilBed > 0) {
+        const adjustedCaffeine = adjustedMg(coffee, localSizeOz, localShots);
+        const remainingAtBed = caffeineRemaining(adjustedCaffeine, virtualHoursUntilBed, HALF_LIFE_HOURS);
+        return remainingAtBed <= 50;
+      }
+      return true;
+    });
+    return pool;
+  }, [virtualHoursUntilBed, localSizeOz, localShots]);
+  
+  const best = useMemo(() => bestPicksForTime(currentTime, currentEnergy, virtualHoursUntilBed, HALF_LIFE_HOURS, localSizeOz, localShots), [currentTime, currentEnergy, virtualHoursUntilBed, localSizeOz, localShots, refreshCount]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -85,6 +133,23 @@ const Ask = () => {
     );
   }, [query]);
   
+  // Auto-update time and energy level every minute
+  useEffect(() => {
+    const updateTimeAndEnergy = () => {
+      const newTime = getTimeOfDay();
+      setCurrentTime(newTime);
+      setCurrentEnergy(defaultEnergyForTime[newTime]);
+    };
+
+    // Update immediately
+    updateTimeAndEnergy();
+
+    // Update every minute
+    const interval = setInterval(updateTimeAndEnergy, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     document.title = "Ask CoffeePolice – Smart coffee picks";
     const meta = document.querySelector('meta[name="description"]');
@@ -92,7 +157,7 @@ const Ask = () => {
   }, []);
 
   const renderCard = (c: CoffeeItem) => {
-    const mgAdj = adjustedMg(c, sizeOz, shots);
+    const mgAdj = adjustedMg(c, localSizeOz, localShots);
     const v = getSleepVerdict(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
     return (
       <Card key={c.id} className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-0 bg-gradient-to-br from-white to-gray-50/50 backdrop-blur-sm" onClick={() => setSelected(c)}>
@@ -103,11 +168,24 @@ const Ask = () => {
               <div className="text-sm text-gray-600 leading-relaxed">{c.description}</div>
             </div>
           </div>
-          <div className="mt-4 flex items-center gap-2">
-            <Badge variant="outline" className="text-xs font-medium border-amber-200 text-amber-700 bg-amber-50/50">
-              {v.chip}
-            </Badge>
-            <span className="text-xs text-gray-500 font-medium">{mgAdj}mg caffeine</span>
+          <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-xs font-medium border-amber-200 text-amber-700 bg-amber-50/50">
+                {v.chip}
+              </Badge>
+              <span className="text-xs text-gray-500 font-medium">{mgAdj}mg caffeine</span>
+            </div>
+                                                   <div onClick={(e) => e.stopPropagation()}>
+                                 <QuickLogButton 
+                   coffee={c} 
+                   variant="ghost" 
+                   size="sm" 
+                   className="opacity-0 group-hover:opacity-100 transition-opacity"
+                   showDialog={false}
+                   onLogSuccess={refreshStats}
+                   showUndoAfterLog={true}
+                 />
+              </div>
           </div>
         </CardContent>
       </Card>
@@ -157,11 +235,11 @@ const Ask = () => {
     };
 
     const contexts = [
-      {
-        title: "Perfect timing",
-        description: `This ${coffee.name.toLowerCase()} will give you the right energy boost for your ${time} activities while ensuring you're ready for bed at ${bedtime}.`,
-        icon: getCoffeeIcon(coffee)
-      },
+             {
+         title: "Perfect timing",
+         description: `This ${coffee.name.toLowerCase()} will give you the right energy boost for your ${currentTime} activities while ensuring you're ready for bed at ${bedtime}.`,
+         icon: getCoffeeIcon(coffee)
+       },
       {
         title: "Smart choice",
         description: `With ${verdict.remainingAtBedtime || "minimal"} caffeine remaining at bedtime, this ${coffee.name.toLowerCase()} strikes the perfect balance for your energy needs.`,
@@ -201,10 +279,10 @@ const Ask = () => {
           <section className="mb-8">
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-amber-100/50">
               <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Default Preferences</h2>
-                  <p className="text-sm text-gray-600">These settings determine your coffee recommendations</p>
-                </div>
+                                 <div>
+                   <h2 className="text-lg font-semibold text-gray-900">Smart Preferences</h2>
+                   <p className="text-sm text-gray-600">No caffeine 8+ hours before bedtime ensures sound sleep.</p>
+                 </div>
             <Button 
               variant="ghost" 
               size="sm" 
@@ -215,78 +293,112 @@ const Ask = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  {showPreferences ? "Hide" : "Customize"}
+                                     {showPreferences ? "Hide" : "Edit Preferences"}
             </Button>
           </div>
               
-              {/* Current Settings Summary */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-                <div className="flex items-center gap-3 p-3 bg-amber-50/50 rounded-xl border border-amber-100">
-                  <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <span className="text-amber-600 text-sm">⏰</span>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Bed time</p>
-                    <p className="text-sm font-semibold text-gray-900">{bedtime}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <span className="text-blue-600 text-sm">⚡</span>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Energy level</p>
-                    <p className="text-sm font-semibold text-gray-900 capitalize">{energy}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-green-50/50 rounded-xl border border-green-100">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <span className="text-green-600 text-sm">🛡️</span>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Safe limit</p>
-                    <p className="text-sm font-semibold text-gray-900">≤50mg for good sleep</p>
-                  </div>
-                </div>
+                             {/* Current Settings Summary */}
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                 
+                 {/* Sleep Science Info */}
+                 {/* <div className="col-span-full mb-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                   <div className="flex items-start gap-3">
+                     <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                       <span className="text-blue-600 text-sm">🧬</span>
+                     </div>
+                     <div>
+                       <p className="text-sm font-medium text-blue-900 mb-1">Scientific Sleep Guidelines</p>
+                       <p className="text-xs text-blue-700 leading-relaxed">
+                         <strong>8-hour rule:</strong> No caffeine 8+ hours before bedtime ensures &lt;50mg at sleep. 
+                         Morning: Unlimited • Afternoon: Up to 200mg • Late PM: Under 50mg • Evening: &lt;5mg
+                       </p>
+                     </div>
+                   </div>
+                 </div> */}
+                                 {/* <div className="flex items-center gap-3 p-3 bg-amber-50/50 rounded-xl border border-amber-100">
+                   <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                     <span className="text-amber-600 text-sm">⏰</span>
+                   </div>
+                   <div>
+                     <p className="text-xs text-gray-500 font-medium">Current time</p>
+                     <p className="text-sm font-semibold text-gray-900">{getCurrentTime()}</p>
+                   </div>
+                 </div> */}
+                 <div className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
+                   <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                     <span className="text-blue-600 text-sm">⚡</span>
+                   </div>
+                   <div>
+                     <p className="text-xs text-gray-500 font-medium">Time of the Day</p>
+                     <p className="text-sm font-semibold text-gray-900 capitalize">{currentTime}</p>
+                   </div>
+                 </div>
+                 {/* <div className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
+                   <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                     <span className="text-blue-600 text-sm">⚡</span>
+                   </div>
+                   <div>
+                     <p className="text-xs text-gray-500 font-medium">Energy Level</p>
+                     <p className="text-sm font-semibold text-gray-900 capitalize">{currentEnergy}</p>
+                   </div>
+                 </div> */}
+                                 <div className="flex items-center gap-3 p-3 bg-green-50/50 rounded-xl border border-green-100">
+                   <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                     <span className="text-green-600 text-sm">🛡️</span>
+                   </div>
+                   <div>
+                     <p className="text-xs text-gray-500 font-medium">Safe Limit</p>
+                     <p className="text-sm font-semibold text-gray-900">≤50mg for good sleep</p>
+                     {/* <p className="text-xs text-gray-500">Considering {allCoffees.length} of {COFFEES.length} options</p> */}
+                   </div>
+                 </div>
+                                                    <div className="flex items-center gap-3 p-3 bg-purple-50/50 rounded-xl border border-purple-100">
+                   <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                     <span className="text-purple-600 text-sm">🛏️</span>
+                   </div>
+                   <div>
+                     <p className="text-xs text-gray-500 font-medium">Bed time</p>
+                     <p className="text-sm font-semibold text-gray-900">{localBedtime}</p>
+                   </div>
+                 </div>
+                 
+                                   {/* Coffee Stats Summary */}
+                  {coffeeStats && (
+                    <div className="flex items-center gap-3 p-3 bg-amber-50/50 rounded-xl border border-amber-100">
+                      <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                        <span className="text-amber-600 text-sm">📊</span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">Today's Caffeine</p>
+                        <p className="text-sm font-semibold text-gray-900">{coffeeStats.totalCaffeineToday}mg</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                                     {/* Caffeine Tracker */}
+                   <div className="col-span-full">
+                     <CaffeineTracker compact={true} />
+                   </div>
+                   
+                   {/* Recently Logged Coffees with Undo */}
+                   <div className="col-span-full">
+                     <RecentLogUndo 
+                       showCount={3} 
+                       onUndo={refreshStats}
+                     />
+                   </div>
               </div>
               
               {/* Expandable Preferences */}
-        {showPreferences && (
+              {showPreferences && (
                 <div className="border-t border-amber-100 pt-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Time of day</label>
-                  <Select value={time} onValueChange={(v: TimeOfDay) => { setTime(v); setEnergy(defaultEnergyForTime[v]); }}>
-                    <SelectTrigger className="w-full bg-white/80 border-amber-200 focus:border-amber-400 focus:ring-amber-400/20">
-                      <SelectValue placeholder="Select time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="morning">🌅 Morning</SelectItem>
-                      <SelectItem value="afternoon">☀️ Afternoon</SelectItem>
-                      <SelectItem value="evening">🌆 Evening</SelectItem>
-                      <SelectItem value="late_night">🌙 Late night</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Energy level</label>
-                  <Select value={energy} onValueChange={(v: EnergyLevel) => setEnergy(v)}>
-                    <SelectTrigger className="w-full bg-white/80 border-amber-200 focus:border-amber-400 focus:ring-amber-400/20">
-                      <SelectValue placeholder="Select energy" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="high">⚡ High</SelectItem>
-                      <SelectItem value="medium">⚡ Medium</SelectItem>
-                      <SelectItem value="low">⚡ Low</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <BedtimeControl value={bedtime} onChange={setBedtime} />
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Serving</label>
-                  <ServingControl sizeOz={sizeOz} onSizeChange={setSizeOz} shots={shots} onShotsChange={setShots} />
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <BedtimeControl value={localBedtime} onChange={setLocalBedtime} />
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">Serving Size</label>
+                      <ServingControl sizeOz={localSizeOz} onSizeChange={setLocalSizeOz} shots={localShots} onShotsChange={setLocalShots} />
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -344,12 +456,12 @@ const Ask = () => {
                    
                    {/* Sleep Warning Section */}
           {(() => {
-            const warn = time === "late_night" && energy === "high" && virtualHoursUntilBed < 3;
+            const warn = currentTime === "late_night" && currentEnergy === "high" && virtualHoursUntilBed < 3;
             if (!warn) return null;
             const decaf = COFFEES.find((c) => c.id === "decaf_coffee");
             const herbal = COFFEES.find((c) => c.id === "herbal_tea");
             const coldBrew = COFFEES.find((c) => c.id === "cold_brew");
-            const remainingCold = coldBrew ? Math.round(caffeineRemaining(adjustedMg(coldBrew, sizeOz, shots), virtualHoursUntilBed, HALF_LIFE_HOURS)) : undefined;
+            const remainingCold = coldBrew ? Math.round(caffeineRemaining(adjustedMg(coldBrew, localSizeOz, localShots), virtualHoursUntilBed, HALF_LIFE_HOURS)) : undefined;
             return (
                <div className="mb-12 relative">
                  <div className="absolute inset-0 bg-gradient-to-r from-red-100/20 via-orange-100/20 to-red-100/20 rounded-3xl blur-2xl"></div>
@@ -415,7 +527,7 @@ const Ask = () => {
                      {/* Recommendation Cards */}
            <div className="grid sm:grid-cols-3 grid-cols-1 gap-8">
             {best.map((c, index) => {
-              const mgAdj = adjustedMg(c, sizeOz, shots);
+              const mgAdj = adjustedMg(c, localSizeOz, localShots);
               const v = getSleepVerdict(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
               const context = getRecommendationContext(index, c, v);
               return (
@@ -480,9 +592,22 @@ const Ask = () => {
                            <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
                            Perfect timing
                          </span>
-                      </div>
-                    </div>
-                  </CardContent>
+                       </div>
+                       
+                                               {/* Quick Log Button */}
+                                                                                                   <div className="pt-2" onClick={(e) => e.stopPropagation()}>
+                                                         <QuickLogButton 
+                               coffee={c} 
+                               variant="outline" 
+                               size="sm" 
+                               className="w-full"
+                               showDialog={false}
+                               onLogSuccess={refreshStats}
+                               showUndoAfterLog={true}
+                             />
+                          </div>
+                     </div>
+                   </CardContent>
                    
                    {/* Hover effect indicator */}
                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
@@ -639,7 +764,7 @@ const Ask = () => {
                 </DialogHeader>
 
                 {(() => {
-                  const mgAdj = adjustedMg(selected, sizeOz, shots);
+                  const mgAdj = adjustedMg(selected, localSizeOz, localShots);
                   const v = getSleepVerdict(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
                   const milestones = getMilestones(mgAdj, HALF_LIFE_HOURS);
                   const remainingAtBedtime = caffeineRemaining(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
@@ -763,6 +888,23 @@ const Ask = () => {
                     </div>
                   );
                 })()}
+                <details className="mt-6">
+                  <summary className="text-sm font-medium cursor-pointer text-amber-700 hover:text-amber-800 transition-colors flex items-center gap-2">
+                    <span>📊</span>
+                    View caffeine science
+                  </summary>
+                  <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+                    <DecayChart mg={adjustedMg(selected, localSizeOz, localShots)} halfLife={HALF_LIFE_HOURS} />
+                    <ul className="mt-4 grid grid-cols-2 gap-3 text-xs">
+                      {getMilestones(adjustedMg(selected, localSizeOz, localShots), HALF_LIFE_HOURS).map((m) => (
+                        <li key={m.label} className="rounded-lg border border-amber-200 p-3 bg-white">
+                          <div className="font-semibold text-gray-900">{m.label}</div>
+                          <div className="text-amber-700 font-medium">{m.remaining} mg</div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </details>
               </>
             )}
           </DialogContent>
