@@ -616,60 +616,123 @@ const Ask = () => {
             })}
           </div>
                  
-                 {/* Browse & Search Section */}
-                 <div className="border-t border-amber-100 pt-8">
-                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Browse all coffees</h3>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Search coffees</label>
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for your perfect brew (e.g., latte, decaf, tea, espresso)"
-                className="bg-white/80 border-amber-200 focus:border-amber-400 focus:ring-amber-400/20 text-lg py-3"
-              />
-            </div>
-
-            {query ? (
-              <>
-                       <h4 className="text-lg font-semibold text-gray-900 mb-4">Results for "{query}"</h4>
-                {filtered.length > 0 ? (
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {filtered.map(renderCard)}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">☕</div>
-                    <p className="text-gray-600 text-lg">No matches found. Try searching for decaf, tea, latte, or espresso.</p>
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                       <h4 className="text-lg font-semibold text-gray-900 mb-4">Browse by category</h4>
-                <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="all" className="w-full">
-                  <TabsList className="flex flex-wrap bg-amber-50/50 border border-amber-200 p-1 rounded-xl">
-                    <TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm">All</TabsTrigger>
-                    {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
-                      <TabsTrigger key={cat} value={cat} className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm">{categoryLabels[cat]}</TabsTrigger>
-                    ))}
-                  </TabsList>
-                  <TabsContent value="all" className="mt-6">
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      {COFFEES.map(renderCard)}
+                  {/* Browse & Search Section */}
+                  <div className="border-t border-amber-100 pt-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900">Explore More</h3>
+                      <span className="text-xs text-gray-500 bg-amber-50 px-2 py-1 rounded-full">
+                        {COFFEES.length} options
+                      </span>
                     </div>
-                  </TabsContent>
-                  {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
-                    <TabsContent key={cat} value={cat} className="mt-6">
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        {byCategory(cat).map(renderCard)}
+
+                    {/* Compact Search */}
+                    <div className="relative mb-6">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
                       </div>
-                    </TabsContent>
-                  ))}
-                </Tabs>
-              </>
-            )}
-                 </div>
+                      <Input
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Search drinks..."
+                        className="pl-10 bg-white/80 border-amber-200 focus:border-amber-400 focus:ring-amber-400/20 h-10"
+                      />
+                      {query && (
+                        <button
+                          onClick={() => setQuery("")}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        >
+                          <svg className="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+
+                    {query ? (
+                      <>
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-sm font-medium text-gray-700">
+                            {filtered.length} result{filtered.length !== 1 ? 's' : ''} for "{query}"
+                          </h4>
+                        </div>
+                        {filtered.length > 0 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {filtered.slice(0, 6).map(renderCard)}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8">
+                            <div className="text-4xl mb-2">☕</div>
+                            <p className="text-gray-500 text-sm">No matches found</p>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {/* Compact Category Pills */}
+                        <div className="mb-6">
+                          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                            <button
+                              onClick={() => setActiveTab("all")}
+                              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                                activeTab === "all"
+                                  ? "bg-amber-100 text-amber-700 ring-1 ring-amber-200"
+                                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                              }`}
+                            >
+                              All
+                            </button>
+                            {(Object.keys(categoryLabels) as CoffeeCategory[]).slice(0, 4).map((cat) => (
+                              <button
+                                key={cat}
+                                onClick={() => setActiveTab(cat)}
+                                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                                  activeTab === cat
+                                    ? "bg-amber-100 text-amber-700 ring-1 ring-amber-200"
+                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                }`}
+                              >
+                                {categoryLabels[cat]}
+                              </button>
+                            ))}
+                            {Object.keys(categoryLabels).length > 4 && (
+                              <Select value={activeTab} onValueChange={setActiveTab}>
+                                <SelectTrigger className="flex-shrink-0 w-20 h-8 text-xs bg-gray-100 border-0">
+                                  <SelectValue placeholder="More..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {(Object.keys(categoryLabels) as CoffeeCategory[]).slice(4).map((cat) => (
+                                    <SelectItem key={cat} value={cat} className="text-sm">
+                                      {categoryLabels[cat]}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Compact Grid - Show only 6 items max */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {(activeTab === "all" ? COFFEES : byCategory(activeTab as CoffeeCategory))
+                            .slice(0, 6)
+                            .map(renderCard)}
+                        </div>
+
+                        {(activeTab === "all" ? COFFEES : byCategory(activeTab as CoffeeCategory)).length > 6 && (
+                          <div className="text-center mt-6">
+                            <button 
+                              onClick={() => setQuery("show-all-" + activeTab)}
+                              className="text-sm text-amber-600 hover:text-amber-700 font-medium"
+                            >
+                              View all {(activeTab === "all" ? COFFEES : byCategory(activeTab as CoffeeCategory)).length} options →
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
                </div>
              </div>
           </div>
@@ -684,21 +747,144 @@ const Ask = () => {
         </div>
 
         <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-          <DialogContent className="sm:max-w-2xl bg-white/95 backdrop-blur-sm border-amber-200">
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white via-amber-50/30 to-white backdrop-blur-sm border-amber-200 shadow-2xl">
             {selected && (
               <>
-                <DialogHeader className="mb-6">
-                  <DialogTitle className="text-2xl font-bold text-gray-900">{selected.name}</DialogTitle>
+                {/* Header Section */}
+                <DialogHeader className="pb-4 border-b border-amber-100">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-xl">☕</span>
+                    </div>
+                    <div className="flex-1">
+                      <DialogTitle className="text-2xl font-bold text-gray-900 mb-1">{selected.name}</DialogTitle>
+                      <p className="text-gray-600 text-sm">{selected.description}</p>
+                    </div>
+                  </div>
                 </DialogHeader>
-                <p className="text-gray-600 leading-relaxed mb-6">{selected.description}</p>
+
                 {(() => {
                   const mgAdj = adjustedMg(selected, localSizeOz, localShots);
                   const v = getSleepVerdict(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
+                  const milestones = getMilestones(mgAdj, HALF_LIFE_HOURS);
+                  const remainingAtBedtime = caffeineRemaining(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
+                  
                   return (
-                    <div className="mb-6 p-6 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
-                      <Badge variant="outline" className="mb-3 border-amber-200 text-amber-700 bg-amber-50/50">{v.chip}</Badge>
-                      <p className="text-gray-900 font-medium mb-2">{v.detail}</p>
-                      <p className="text-sm text-gray-600">{v.suggestion}</p>
+                    <div className="space-y-6">
+                      {/* Sleep Verdict - Compact */}
+                      <div className="p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Badge variant="outline" className="border-amber-200 text-amber-700 bg-amber-50/50">
+                              {v.chip}
+                            </Badge>
+                            <span className="text-sm font-medium text-gray-900">{v.headline}</span>
+                          </div>
+                          <span className="text-xs text-gray-600 font-mono bg-white/60 px-2 py-1 rounded">
+                            {remainingAtBedtime}mg at bedtime
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Hero: Caffeine Decay Chart */}
+                      <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-lg">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                              <span className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                <span className="text-white text-xs">📈</span>
+                              </span>
+                              Caffeine Decay Timeline
+                            </h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                              How your body processes <span className="font-medium text-amber-700">{mgAdj}mg</span> of caffeine over time
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xs text-gray-500">Half-life</div>
+                            <div className="text-sm font-semibold text-blue-600">{HALF_LIFE_HOURS}h</div>
+                          </div>
+                        </div>
+
+                        {/* Enhanced Chart */}
+                        <div className="h-56 mb-4 bg-gradient-to-b from-blue-50/30 to-transparent rounded-xl p-4">
+                          <DecayChart mg={mgAdj} halfLife={HALF_LIFE_HOURS} />
+                        </div>
+
+                        {/* Scientific Insights Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {/* Milestones */}
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                              <span className="w-4 h-4 bg-orange-100 rounded flex items-center justify-center">
+                                <span className="text-orange-600 text-xs">⏱️</span>
+                              </span>
+                              Key Milestones
+                            </h4>
+                            {milestones.map((m) => (
+                              <div key={m.label} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-xs font-medium text-gray-600">{m.label}</span>
+                                  <span className="text-xs text-gray-500">{m.hours}h</span>
+                                </div>
+                                <div className="text-sm font-semibold text-orange-600">{m.remaining}mg remaining</div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Science Facts */}
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                              <span className="w-4 h-4 bg-blue-100 rounded flex items-center justify-center">
+                                <span className="text-blue-600 text-xs">🧬</span>
+                              </span>
+                              Science Facts
+                            </h4>
+                            <div className="space-y-2 text-xs text-gray-600">
+                              <div className="p-2 bg-blue-50/50 rounded border border-blue-100">
+                                <span className="font-medium">Absorption:</span> Peak levels in 30-60 minutes
+                              </div>
+                              <div className="p-2 bg-green-50/50 rounded border border-green-100">
+                                <span className="font-medium">Metabolism:</span> Liver processes ~50% every {HALF_LIFE_HOURS}h
+                              </div>
+                              <div className="p-2 bg-purple-50/50 rounded border border-purple-100">
+                                <span className="font-medium">Sleep impact:</span> &lt;50mg at bedtime is ideal
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Personal Impact */}
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                              <span className="w-4 h-4 bg-green-100 rounded flex items-center justify-center">
+                                <span className="text-green-600 text-xs">👤</span>
+                              </span>
+                              Your Timeline
+                            </h4>
+                            <div className="space-y-2 text-xs">
+                              <div className="p-2 bg-amber-50 rounded border border-amber-100">
+                                <div className="font-medium text-amber-700">Now</div>
+                                <div className="text-gray-600">{mgAdj}mg enters bloodstream</div>
+                              </div>
+                              <div className="p-2 bg-blue-50 rounded border border-blue-100">
+                                <div className="font-medium text-blue-700">In {HALF_LIFE_HOURS}h</div>
+                                <div className="text-gray-600">{milestones[0]?.remaining}mg remaining</div>
+                              </div>
+                              <div className="p-2 bg-green-50 rounded border border-green-100">
+                                <div className="font-medium text-green-700">At bedtime ({virtualHoursUntilBed.toFixed(1)}h)</div>
+                                <div className="text-gray-600">{remainingAtBedtime}mg in your system</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Suggestion */}
+                      <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                        <p className="text-sm text-gray-700">
+                          <span className="font-medium">💡 Tip:</span> {v.suggestion}
+                        </p>
+                      </div>
                     </div>
                   );
                 })()}
