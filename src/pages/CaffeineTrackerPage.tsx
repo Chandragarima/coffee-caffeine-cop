@@ -11,7 +11,23 @@ import CaffeineTracker from '@/components/CaffeineTracker';
 import CoffeeLogHistory from '@/components/CoffeeLogHistory';
 import RecentLogUndo from '@/components/RecentLogUndo';
 import { Link } from 'react-router-dom';
-import { getCaffeineColor, getCaffeineBgColor } from '@/lib/caffeineTracker';
+import { getCaffeineColor, getCaffeineBgColor, CaffeineGuidance } from '@/lib/caffeineTracker';
+
+// Helper component to render guidance icons (SVG or emoji)
+const GuidanceIcon = ({ guidance, className = "" }: { guidance: CaffeineGuidance, className?: string }) => {
+  if (guidance.iconType === 'svg' && guidance.iconPath) {
+    return (
+      <img 
+        src={guidance.iconPath} 
+        alt={guidance.reason}
+        className={`w-full h-full object-contain ${className}`}
+      />
+    );
+  }
+  
+  // Fallback to emoji
+  return <span className={className}>{guidance.icon}</span>;
+};
 
 const CaffeineTrackerPage = () => {
   const {
@@ -83,7 +99,7 @@ const CaffeineTrackerPage = () => {
               <CardContent className="space-y-4">
                 <div className="text-center">
                   <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center ${caffeineBgColor} mb-3`}>
-                    <span className="text-2xl">{guidance.icon}</span>
+                    <GuidanceIcon guidance={guidance} className="text-2xl" />
                   </div>
                   <div className={`text-2xl font-bold ${caffeineColor}`}>
                     {caffeineStatus.currentLevel}mg
@@ -187,7 +203,7 @@ const CaffeineTrackerPage = () => {
                 <div className="p-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200">
                   <div className="flex items-center gap-4">
                     <div className={`w-16 h-16 rounded-full flex items-center justify-center ${caffeineBgColor}`}>
-                      <span className="text-3xl">{guidance.icon}</span>
+                      <GuidanceIcon guidance={guidance} className="text-3xl" />
                     </div>
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">

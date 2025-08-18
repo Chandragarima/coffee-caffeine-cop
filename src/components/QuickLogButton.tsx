@@ -9,7 +9,7 @@ import { useCoffeeLogs } from '@/hooks/useCoffeeLogs';
 import { usePreferences } from '@/hooks/usePreferences';
 import { CoffeeItem } from '@/data/coffees';
 import { adjustedMg } from '@/lib/serving';
-import Toast from './Toast';
+import { toast } from '@/components/ui/sonner';
 
 interface QuickLogButtonProps {
   coffee: CoffeeItem;
@@ -37,12 +37,10 @@ const QuickLogButton = ({
   const [notes, setNotes] = useState('');
   const [location, setLocation] = useState('');
   const [mood, setMood] = useState<'great' | 'good' | 'ok' | 'bad'>('good');
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
   const [lastLoggedId, setLastLoggedId] = useState<string | null>(null);
   const [showUndo, setShowUndo] = useState(false);
 
-  const caffeineMg = adjustedMg(coffee, servingSize, shots);
+  const caffeineMg = adjustedMg(coffee, servingSize as any, shots);
 
   const handleQuickLog = async () => {
     if (!showDialog) {
@@ -59,8 +57,10 @@ const QuickLogButton = ({
         
         if (success) {
           // Show success toast
-          setToastMessage(`${coffee.name} logged! +${caffeineMg}mg caffeine`);
-          setShowToast(true);
+          toast.success(`${coffee.name} logged!`, {
+            description: `+${caffeineMg}mg caffeine added to your daily intake`,
+            duration: 4000,
+          });
           
           // Find the most recent log for this coffee
           const recentLog = logs
@@ -79,8 +79,10 @@ const QuickLogButton = ({
         }
       } catch (error) {
         console.error('Failed to log coffee:', error);
-        setToastMessage('Failed to log coffee. Please try again.');
-        setShowToast(true);
+        toast.error('Failed to log coffee', {
+          description: 'Please try again.',
+          duration: 4000,
+        });
       } finally {
         setIsLogging(false);
       }
@@ -104,8 +106,10 @@ const QuickLogButton = ({
       
       if (success) {
         // Show success toast
-        setToastMessage(`${coffee.name} logged! +${caffeineMg}mg caffeine`);
-        setShowToast(true);
+        toast.success(`${coffee.name} logged!`, {
+          description: `+${caffeineMg}mg caffeine added to your daily intake`,
+          duration: 4000,
+        });
         
         // Find the most recent log for this coffee
         const recentLog = logs
@@ -129,8 +133,10 @@ const QuickLogButton = ({
       }
     } catch (error) {
       console.error('Failed to log coffee:', error);
-      setToastMessage('Failed to log coffee. Please try again.');
-      setShowToast(true);
+      toast.error('Failed to log coffee', {
+        description: 'Please try again.',
+        duration: 4000,
+      });
     } finally {
       setIsLogging(false);
     }
@@ -152,20 +158,26 @@ const QuickLogButton = ({
     try {
       const success = await deleteLog(lastLoggedId);
       if (success) {
-        setToastMessage(`${coffee.name} removed from your log`);
-        setShowToast(true);
+        toast.success(`${coffee.name} removed`, {
+          description: 'Coffee log has been undone',
+          duration: 3000,
+        });
         setShowUndo(false);
         setLastLoggedId(null);
         await refreshStats();
         onLogSuccess?.();
       } else {
-        setToastMessage('Failed to remove coffee log');
-        setShowToast(true);
+        toast.error('Failed to remove coffee log', {
+          description: 'Please try again.',
+          duration: 3000,
+        });
       }
     } catch (error) {
       console.error('Failed to delete log:', error);
-      setToastMessage('Failed to remove coffee log');
-      setShowToast(true);
+      toast.error('Failed to remove coffee log', {
+        description: 'Please try again.',
+        duration: 3000,
+      });
     }
   };
 
@@ -206,11 +218,7 @@ const QuickLogButton = ({
         )} */}
       </div>
 
-      <Toast
-        message={toastMessage}
-        isVisible={showToast}
-        onClose={() => setShowToast(false)}
-      />
+
 
       {showDialog && (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>

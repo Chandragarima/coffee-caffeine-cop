@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useCoffeeLogs } from '@/hooks/useCoffeeLogs';
 import { CoffeeLogEntry } from '@/lib/coffeeLog';
 import { addCoffeeLoggedListener, addCoffeeDeletedListener } from '@/lib/events';
-import Toast from './Toast';
+import { toast } from '@/components/ui/sonner';
 
 interface RecentLogUndoProps {
   className?: string;
@@ -19,8 +19,6 @@ const RecentLogUndo = ({
   onUndo 
 }: RecentLogUndoProps) => {
   const { logs, deleteLog, refreshStats, refreshLogs } = useCoffeeLogs();
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   // Listen for coffee logged/deleted events to refresh immediately
@@ -59,18 +57,24 @@ const RecentLogUndo = ({
     try {
       const success = await deleteLog(log.id);
       if (success) {
-        setToastMessage(`${log.coffeeName} removed from your log`);
-        setShowToast(true);
+        toast.success(`${log.coffeeName} removed`, {
+          description: 'Coffee log has been undone',
+          duration: 3000,
+        });
         await refreshStats();
         onUndo?.();
       } else {
-        setToastMessage('Failed to remove coffee log');
-        setShowToast(true);
+        toast.error('Failed to remove coffee log', {
+          description: 'Please try again.',
+          duration: 3000,
+        });
       }
     } catch (error) {
       console.error('Failed to delete log:', error);
-      setToastMessage('Failed to remove coffee log');
-      setShowToast(true);
+      toast.error('Failed to remove coffee log', {
+        description: 'Please try again.',
+        duration: 3000,
+      });
     } finally {
       setIsDeleting(null);
     }
@@ -81,13 +85,21 @@ const RecentLogUndo = ({
     const now = new Date();
     const diffMs = now.getTime() - timestamp;
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
 
+    // Show actual time for recent entries, with "Just now" for <1 minute
     if (diffMinutes < 1) return 'Just now';
-    if (diffMinutes < 60) return `${diffMinutes}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
     
-    return date.toLocaleTimeString([], { 
+    // For today, show time only
+    const isToday = date.toDateString() === now.toDateString();
+    if (isToday) {
+      return date.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    }
+    
+    // For older entries, show date + time
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { 
       hour: '2-digit', 
       minute: '2-digit' 
     });
@@ -177,11 +189,6 @@ const RecentLogUndo = ({
         </CardContent>
       </Card>
 
-      <Toast
-        message={toastMessage}
-        isVisible={showToast}
-        onClose={() => setShowToast(false)}
-      />
     </>
   );
 };
