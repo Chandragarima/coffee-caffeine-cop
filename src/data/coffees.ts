@@ -1,9 +1,9 @@
 export type CoffeeCategory =
+  | "brewed"
   | "espresso"
   | "milk"
-  | "water"
-  | "tea"
   | "cold"
+  | "tea"
   | "specialty"
   | "energy"
   | "soda";
@@ -17,55 +17,56 @@ export type CoffeeItem = {
   tags?: ("low_caffeine" | "decaf")[];
 };
 
-// Deduplicated list across categories, primary component decides category
+// Coffee data organized by new category structure with exact values from specifications
 export const COFFEES: CoffeeItem[] = [
-  // Espresso category (espresso-based)
-  { id: "espresso", name: "Espresso Shot", category: "espresso", caffeineMg: 63, description: "A concentrated 1 oz shot of coffee.", },
-  { id: "americano", name: "Americano", category: "espresso", caffeineMg: 63, description: "Espresso diluted with hot water.", },
-  { id: "macchiato", name: "Macchiato", category: "espresso", caffeineMg: 75, description: "Espresso with a dollop of foam.", },
-  { id: "cortado", name: "Cortado", category: "espresso", caffeineMg: 80, description: "Equal parts espresso and warm milk.", },
-  { id: "shaken_espresso", name: "Shaken Espresso", category: "espresso", caffeineMg: 126, description: "Double espresso shaken with ice.", },
-  { id: "ristretto", name: "Ristretto", category: "espresso", caffeineMg: 55, description: "Shorter pull for a sweeter, syrupy shot.", },
-  { id: "lungo", name: "Lungo", category: "espresso", caffeineMg: 80, description: "Longer pull for a larger, milder shot.", },
+  // BREWED CATEGORY - Drip & Manual Brew Methods
+  { id: "espresso_machine_home", name: " 1 Espresso Pod", category: "brewed", caffeineMg: 75, description: "Single shot from home espresso machine (1oz).", },
+  { id: "moka_pot", name: "1-Cup Moka Pot", category: "brewed", caffeineMg: 105, description: "Stovetop pressure-brewed coffee (2oz).", },
+  { id: "drip_coffee", name: "Drip Coffee", category: "brewed", caffeineMg: 80, description: "Classic filtered coffee brewed in a drip machine (8oz).", },
+  { id: "pour_over", name: "Pour Over", category: "brewed", caffeineMg: 85, description: "Hand-poured filter coffee (8oz).", },
+  { id: "french_press", name: "French Press", category: "brewed", caffeineMg: 100, description: "Full-bodied coffee steeped in hot water, then pressed (8oz).", },
+  { id: "decaf_drip_coffee", name: "Decaf Drip", category: "brewed", caffeineMg: 5, description: "Decaffeinated drip coffee (8oz).", tags: ["decaf", "low_caffeine"] },
 
-  // Milk category (contains milk)
-  { id: "latte", name: "Latte", category: "milk", caffeineMg: 80, description: "Espresso with steamed milk and light foam.", },
-  { id: "cappuccino", name: "Cappuccino", category: "milk", caffeineMg: 80, description: "Espresso with equal parts steamed milk and foam.", },
-  { id: "flat_white", name: "Flat White", category: "milk", caffeineMg: 130, description: "Double espresso with velvety microfoam.", },
-  { id: "mocha", name: "Mocha", category: "milk", caffeineMg: 90, description: "Latte with chocolate.", },
-  { id: "caramel_macchiato", name: "Caramel Macchiato", category: "milk", caffeineMg: 150, description: "Milk-forward drink with vanilla and caramel.", },
-  { id: "chai_latte", name: "Chai Latte", category: "milk", caffeineMg: 50, description: "Spiced black tea with milk.", tags: ["low_caffeine"] },
-  { id: "matcha_latte", name: "Matcha Latte", category: "milk", caffeineMg: 70, description: "Stone-ground green tea with milk.", },
-  { id: "milk_tea", name: "Milk Tea", category: "milk", caffeineMg: 45, description: "Black tea blended with milk.", tags: ["low_caffeine"] },
-  { id: "decaf_latte", name: "Decaf Latte", category: "milk", caffeineMg: 5, description: "Latte with decaf espresso.", tags: ["decaf", "low_caffeine"] },
+  // ESPRESSO-BASED CATEGORY - Fixed Small-Size Espresso Drinks
+  { id: "single_espresso", name: "Single Espresso", category: "espresso", caffeineMg: 75, description: "Single concentrated shot of coffee (1oz).", },
+  { id: "double_espresso", name: "Double Espresso", category: "espresso", caffeineMg: 150, description: "Double concentrated shot of coffee (2oz).", },
+  { id: "ristretto", name: "Ristretto", category: "espresso", caffeineMg: 65, description: "Short extraction espresso shot with concentrated flavor (1oz).", },
+  { id: "americano_8oz", name: "Small Americano", category: "espresso", caffeineMg: 75, description: "Single shot espresso diluted with hot water (8oz).", },
+  { id: "americano_12oz", name: "Regular Americano", category: "espresso", caffeineMg: 150, description: "Double shot espresso diluted with hot water (12oz).", },
+  { id: "affogato", name: "Affogato", category: "espresso", caffeineMg: 75, description: "Espresso shot over ice cream (3-4oz).", },
+  { id: "cortado", name: "Cortado", category: "espresso", caffeineMg: 150, description: "Double shot espresso with equal parts warm milk (4oz).", },
+  { id: "flat_white", name: "Flat White", category: "espresso", caffeineMg: 130, description: "Double shot espresso with velvety microfoam (6oz).", },
+  { id: "decaf_espresso", name: "Decaf Espresso", category: "espresso", caffeineMg: 3, description: "Decaffeinated espresso shot (1oz).", tags: ["decaf", "low_caffeine"] },
 
-  // Water category (brewed with water only)
-  { id: "drip_coffee", name: "Drip Coffee", category: "water", caffeineMg: 95, description: "Classic filtered coffee.", },
-  { id: "pour_over", name: "Pour Over", category: "water", caffeineMg: 100, description: "Hand-poured filter coffee.", },
-  { id: "french_press", name: "French Press", category: "water", caffeineMg: 110, description: "Full-bodied immersion brew.", },
-  { id: "black_coffee", name: "Black Coffee", category: "water", caffeineMg: 95, description: "No milk, no sugar, just coffee.", },
+  // MILK-BASED CATEGORY - Milk-Based Espresso Drinks
+  { id: "cappuccino", name: "Cappuccino", category: "milk", caffeineMg: 75, description: "Single shot espresso with equal parts steamed milk and foam (8oz).", },
+  { id: "cafe_au_lait", name: "Café au Lait", category: "milk", caffeineMg: 80, description: "Strong coffee with steamed milk (8oz).", },
+  { id: "latte", name: "Latte", category: "milk", caffeineMg: 75, description: "Single shot espresso with steamed milk and light foam (12oz).", },
+  { id: "caramel_macchiato", name: "Macchiato", category: "milk", caffeineMg: 75, description: "Steamed milk with espresso, vanilla, and caramel drizzle (12oz).", },
+  { id: "mocha", name: "Mocha", category: "milk", caffeineMg: 95, description: "Single shot espresso with chocolate and steamed milk (12oz).", },
+  { id: "shaken_espresso", name: "Shaken Espresso", category: "milk", caffeineMg: 150, description: "Double shot espresso shaken with ice and milk (12oz).", },
+  { id: "chai_latte", name: "Chai Tea Latte", category: "milk", caffeineMg: 50, description: "Spiced black tea blended with steamed milk (12oz).", tags: ["low_caffeine"] },
+  { id: "matcha_latte", name: "Matcha Latte", category: "milk", caffeineMg: 80, description: "Stone-ground green tea whisked with milk (12oz).", },
+  { id: "decaf_latte", name: "Decaf Latte", category: "milk", caffeineMg: 5, description: "Latte made with decaf espresso.", tags: ["decaf", "low_caffeine"] },
 
-  // Tea category
-  { id: "green_tea", name: "Green Tea", category: "tea", caffeineMg: 30, description: "Light and grassy.", tags: ["low_caffeine"] },
-  { id: "black_tea", name: "Black Tea", category: "tea", caffeineMg: 47, description: "Bold and robust.", },
-  { id: "earl_grey", name: "Earl Grey", category: "tea", caffeineMg: 40, description: "Black tea with bergamot.", tags: ["low_caffeine"] },
-  { id: "oolong_tea", name: "Oolong Tea", category: "tea", caffeineMg: 38, description: "Semi-oxidized tea with floral notes.", tags: ["low_caffeine"] },
-  { id: "herbal_tea", name: "Herbal Tea", category: "tea", caffeineMg: 0, description: "Caffeine-free herbal infusion.", tags: ["low_caffeine"] },
+  // ICED CATEGORY - Iced & Cold Brewed Coffee
+  { id: "iced_americano", name: "Iced Americano", category: "cold", caffeineMg: 150, description: "Double shot espresso with cold water over ice (12oz).", },
+  { id: "nitro_cold_brew", name: "Nitro Cold Brew", category: "cold", caffeineMg: 150, description: "Cold brew infused with nitrogen for creamy texture (12oz).", },
+  { id: "cold_brew", name: "Cold Brew", category: "cold", caffeineMg: 155, description: "Slow-steeped, super smooth cold coffee (12oz).", },
 
-  // Cold category
-  { id: "cold_brew", name: "Cold Brew", category: "cold", caffeineMg: 200, description: "Slow-steeped, super smooth.", },
-  { id: "iced_coffee", name: "Iced Coffee", category: "cold", caffeineMg: 120, description: "Chilled brewed coffee over ice.", },
-  { id: "nitro_cold_brew", name: "Nitro Cold Brew", category: "cold", caffeineMg: 230, description: "Cold brew infused with nitrogen.", },
-  { id: "frappuccino", name: "Frappuccino", category: "cold", caffeineMg: 95, description: "Blended icy treat.", },
+  // TEA CATEGORY - Tea & Tea-Based Drinks
+  { id: "green_tea", name: "Green Tea", category: "tea", caffeineMg: 25, description: "Light and grassy with gentle caffeine (8oz).", tags: ["low_caffeine"] },
+  { id: "oolong_tea", name: "Oolong Tea", category: "tea", caffeineMg: 37, description: "Semi-oxidized tea with floral notes (8oz).", tags: ["low_caffeine"] },
+  { id: "black_tea", name: "Black Tea", category: "tea", caffeineMg: 47, description: "Bold and robust with a strong finish (8oz).", tags: ["low_caffeine"] },
+  { id: "earl_grey", name: "Earl Grey Tea", category: "tea", caffeineMg: 47, description: "Black tea infused with citrusy bergamot (8oz).", tags: ["low_caffeine"] },
+  { id: "masala_chai", name: "Indian Masala Chai", category: "tea", caffeineMg: 50, description: "Spiced black tea with aromatic spices (8oz).", tags: ["low_caffeine"] },
+  { id: "iced_tea", name: "Iced Tea", category: "tea", caffeineMg: 60, description: "Chilled black tea served over ice (12oz).", tags: ["low_caffeine"] },
+  { id: "boba_tea", name: "Boba Tea", category: "tea", caffeineMg: 35, description: "Bubble tea with tapioca pearls (12oz).", tags: ["low_caffeine"] },
 
-  // Specialty category (methods/signature drinks not above)
-  { id: "turkish_coffee", name: "Turkish Coffee", category: "specialty", caffeineMg: 120, description: "Unfiltered coffee simmered in a cezve.", },
-  { id: "moka_pot", name: "Moka Pot", category: "specialty", caffeineMg: 100, description: "Stovetop pressure-brewed coffee.", },
-  { id: "siphon", name: "Siphon Coffee", category: "specialty", caffeineMg: 120, description: "Vacuum brewing with theatrical flair.", },
-  { id: "affogato", name: "Affogato", category: "specialty", caffeineMg: 63, description: "Espresso over ice cream. Dessert meets coffee!", },
-
-  // Low caffeine/decaf options as items
-  { id: "decaf_coffee", name: "Decaf Coffee", category: "water", caffeineMg: 5, description: "Brewed decaf coffee.", tags: ["decaf", "low_caffeine"] },
+  // SPECIALTY CATEGORY - Specialty & International
+  { id: "turkish_coffee", name: "Turkish Coffee", category: "specialty", caffeineMg: 50, description: "Unfiltered coffee simmered in a cezve (2-5oz).", },
+  { id: "vietnamese_coffee", name: "Vietnamese Coffee", category: "specialty", caffeineMg: 150, description: "Strong dark roast coffee with sweetened condensed milk (8oz).", },
+  { id: "frappuccino", name: "Frappuccino", category: "specialty", caffeineMg: 70, description: "Blended iced coffee sweetened with flavored syrup (12oz).", },
 
   // Energy Drinks category (based on standard serving sizes)
   { id: "red_bull", name: "Red Bull", category: "energy", caffeineMg: 80, description: "Classic energy drink, 8.4 fl oz can." },

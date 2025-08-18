@@ -13,12 +13,22 @@ export const DecayChart = ({ mg, halfLife = 5 }: DecayChartProps) => {
   }));
 
   return (
-    <div className="w-full h-40">
+    <div className="w-full h-48">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          <XAxis dataKey="h" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} label={{ value: "hours", position: "insideRight", offset: 0 }} />
+        <LineChart data={data} margin={{ top: 5, right: 20, left: 5, bottom: 20 }}>
+          <XAxis 
+            dataKey="h" 
+            tick={{ fontSize: 12 }} 
+            tickLine={false} 
+            axisLine={false} 
+            label={{ value: "hours", position: "insideBottomRight", offset: -10 }} 
+          />
           <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={false} width={30} />
-          <Tooltip contentStyle={{ borderRadius: 8 }} formatter={(v: any) => [`${v} mg`, "remaining"]} labelFormatter={(l) => `${l}h`} />
+          <Tooltip 
+            contentStyle={{ borderRadius: 8 }} 
+            formatter={(v: any) => [`${v} mg`, "remaining"]} 
+            labelFormatter={(l) => `${l}h`} 
+          />
           <Line type="monotone" dataKey="remaining" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
         </LineChart>
       </ResponsiveContainer>

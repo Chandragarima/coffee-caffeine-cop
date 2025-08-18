@@ -58,7 +58,8 @@ export const useCaffeineTracker = () => {
       caffeineStatus.currentLevel,
       caffeineStatus.timeToNextCoffee,
       caffeineStatus.dailyLimit,
-      caffeineStatus.dailyProgress
+      caffeineStatus.dailyProgress,
+      caffeineStatus.timeToBedtime
     );
   }, [caffeineStatus, forceUpdate]);
 

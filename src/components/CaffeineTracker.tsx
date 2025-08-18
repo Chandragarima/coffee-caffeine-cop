@@ -4,13 +4,29 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useCaffeineTracker } from '@/hooks/useCaffeineTracker';
-import { getCaffeineColor, getCaffeineBgColor } from '@/lib/caffeineTracker';
+import { getCaffeineColor, getCaffeineBgColor, CaffeineGuidance } from '@/lib/caffeineTracker';
 
 interface CaffeineTrackerProps {
   className?: string;
   showDetails?: boolean;
   compact?: boolean;
 }
+
+// Helper component to render guidance icons (SVG or emoji)
+const GuidanceIcon = ({ guidance, className = "" }: { guidance: CaffeineGuidance, className?: string }) => {
+  if (guidance.iconType === 'svg' && guidance.iconPath) {
+    return (
+      <img 
+        src={guidance.iconPath} 
+        alt={guidance.reason}
+        className={`w-full h-full object-contain ${className}`}
+      />
+    );
+  }
+  
+  // Fallback to emoji
+  return <span className={className}>{guidance.icon}</span>;
+};
 
 const CaffeineTracker = ({ className = '', showDetails = true, compact = false }: CaffeineTrackerProps) => {
   const {
@@ -33,64 +49,77 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
     return () => clearTimeout(timer);
   }, [caffeineStatus.currentLevel]);
 
-  const caffeineColor = getCaffeineColor(caffeineStatus.currentLevel, caffeineStatus.dailyLimit);
-  const caffeineBgColor = getCaffeineBgColor(caffeineStatus.currentLevel, caffeineStatus.dailyLimit);
+  // Use guidance-based colors for consistency with SVG icons
+  const caffeineColor = guidance.color === 'green' ? 'text-green-600' : 
+                        guidance.color === 'yellow' ? 'text-yellow-600' : 'text-red-600';
+  const caffeineBgColor = guidance.color === 'green' ? 'bg-green-100' : 
+                          guidance.color === 'yellow' ? 'bg-yellow-100' : 'bg-red-100';
 
   if (compact) {
     return (
       <Card className={`${className} overflow-hidden bg-gradient-to-r from-white via-amber-50/30 to-orange-50/20 border-0 shadow-lg transition-all duration-300 ${isAnimating ? 'scale-105 shadow-xl' : ''}`}>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className={`relative w-16 h-16 rounded-2xl flex items-center justify-center ${caffeineBgColor} transition-all duration-300 shadow-lg`}>
-                <span className={`text-3xl ${isAnimating ? 'animate-bounce' : ''}`}>
-                  {guidance.icon}
-                </span>
-                <div className="absolute -top-1 -right-1 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md">
-                  <div className="w-2 h-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full animate-pulse"></div>
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className={`relative w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center ${caffeineBgColor} transition-all duration-300 shadow-lg`}>
+                <div className={`text-2xl sm:text-3xl ${isAnimating ? 'animate-bounce' : ''}`}>
+                  <GuidanceIcon guidance={guidance} />
+                </div>
+                <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-6 sm:h-6 bg-white rounded-full flex items-center justify-center shadow-md">
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full animate-pulse"></div>
                 </div>
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className={`text-2xl font-black ${caffeineColor} tracking-tight`}>
-                    {caffeineStatus.currentLevel}mg
-                  </span>
-                  <Badge 
-                    variant="outline" 
-                    className={`px-3 py-1 rounded-full font-medium ${
-                      guidance.color === 'green' ? 'border-emerald-200 text-emerald-700 bg-emerald-50' : 
-                      guidance.color === 'yellow' ? 'border-amber-200 text-amber-700 bg-amber-50' : 
-                      'border-red-200 text-red-700 bg-red-50'
-                    }`}
-                  >
-                    {guidance.reason}
-                  </Badge>
-                </div>
-                <p className="text-sm text-gray-700 font-medium mb-2">
-                  {guidance.recommendation}
-                </p>
-                <div className="flex items-center gap-4 text-xs">
-                  <span className="text-gray-600">
-                    <span className="font-semibold">{Math.round(caffeineStatus.dailyProgress)}%</span> of daily limit
-                  </span>
-                  <span className="text-emerald-600 font-semibold">
-                    {Math.round(Math.max(0, caffeineStatus.dailyLimit - (caffeineStatus.dailyProgress / 100 * caffeineStatus.dailyLimit)))}mg remaining
-                  </span>
-                </div>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <span className={`text-xl sm:text-2xl font-black ${caffeineColor} tracking-tight`}>
+                  {caffeineStatus.currentLevel}mg
+                </span>
+                <Badge 
+                  variant="outline" 
+                  className={`px-2 py-1 sm:px-3 text-xs font-medium rounded-full ${
+                    guidance.color === 'green' ? 'border-emerald-200 text-emerald-700 bg-emerald-50' : 
+                    guidance.color === 'yellow' ? 'border-amber-200 text-amber-700 bg-amber-50' : 
+                    'border-red-200 text-red-700 bg-red-50'
+                  }`}
+                >
+                  {guidance.reason}
+                </Badge>
               </div>
             </div>
             
-            {!isSafeForNextCoffee && (
-              <div className="text-right bg-amber-50 p-3 rounded-xl border border-amber-200">
-                <div className="text-lg font-bold text-amber-700">
-                  {timeToNextCoffeeFormatted}
-                </div>
-                <div className="text-xs text-amber-600 font-medium">
-                  until next coffee
+            <div className="flex-1 min-w-0">
+              <div className="sm:ml-4">
+                {/* Clean Progress Bar */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">Daily Progress</span>
+                    <span className="text-xs font-medium text-gray-700">{Math.round(caffeineStatus.dailyProgress)}%</span>
+                  </div>
+                  <Progress 
+                    value={caffeineStatus.dailyProgress} 
+                    className={`h-2 transition-all duration-500 ${
+                      caffeineStatus.dailyProgress < 30 ? 'bg-green-100' :
+                      caffeineStatus.dailyProgress < 60 ? 'bg-yellow-100' :
+                      caffeineStatus.dailyProgress < 90 ? 'bg-orange-100' : 'bg-red-100'
+                    }`}
+                  />
+                  <div className="text-xs text-gray-500">
+                    {Math.round(Math.max(0, caffeineStatus.dailyLimit - (caffeineStatus.dailyProgress / 100 * caffeineStatus.dailyLimit)))}mg remaining
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
+          
+          {!isSafeForNextCoffee && (
+            <div className="mt-4 text-center bg-amber-50 p-3 rounded-xl border border-amber-200">
+              <div className="text-lg font-bold text-amber-700">
+                {timeToNextCoffeeFormatted}
+              </div>
+              <div className="text-xs text-amber-600 font-medium">
+                until next coffee
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
@@ -182,7 +211,7 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
           
           {/* Floating Status Icon */}
           <div className={`absolute -top-2 -right-2 w-12 h-12 rounded-full flex items-center justify-center ${caffeineBgColor} shadow-lg border-4 border-white`}>
-            <span className="text-2xl">{guidance.icon}</span>
+            <GuidanceIcon guidance={guidance} className="text-2xl" />
           </div>
         </div>
 
@@ -237,7 +266,7 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
           'bg-red-50/70 border-red-400'
         }`}>
           <div className="flex items-start gap-4">
-            <span className="text-3xl mt-1">{guidance.icon}</span>
+            <GuidanceIcon guidance={guidance} className="text-3xl mt-1" />
             <div>
               <h4 className="font-semibold text-gray-900 text-lg mb-2">
                 {guidance.recommendation}

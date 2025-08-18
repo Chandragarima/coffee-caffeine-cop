@@ -22,6 +22,8 @@ export interface CaffeineGuidance {
   waitTime?: string;
   recommendation: string;
   icon: string;
+  iconType: 'emoji' | 'svg';
+  iconPath?: string;
   color: 'green' | 'yellow' | 'red';
 }
 
@@ -111,57 +113,109 @@ export const calculateTimeToNextCoffee = (
   const safeTimeBeforeBed = 8 * 60; // 8 hours before bed
   const latestSafeTime = minutesToBedtime - safeTimeBeforeBed;
   
-  return Math.max(0, Math.min(minutesToDecay, latestSafeTime));
+  // If we're too close to bedtime (within 8 hours), use decay time only
+  // but warn that it might affect sleep
+  if (latestSafeTime <= 0) {
+    return Math.max(0, minutesToDecay);
+  }
+  
+  const finalWaitTime = Math.max(0, Math.min(minutesToDecay, latestSafeTime));
+  
+  return finalWaitTime;
 };
 
-// Get caffeine guidance
+// Get caffeine guidance based on projected bedtime caffeine levels
 export const getCaffeineGuidance = (
   currentLevel: number,
   timeToNextCoffee: number,
   dailyLimit: number = 400,
-  dailyProgress: number
+  dailyProgress: number,
+  timeToBedtime: number = 999 // minutes until bedtime
 ): CaffeineGuidance => {
+  const hoursUntilBed = timeToBedtime / 60;
+  
+  // Calculate projected caffeine at bedtime
+  const projectedAtBedtime = caffeineRemaining(currentLevel, hoursUntilBed, HALF_LIFE_HOURS);
+  
+  // Determine sleep risk based on projected bedtime caffeine
+  let sleepRisk: 'low' | 'medium' | 'high';
+  let color: 'green' | 'yellow' | 'red';
+  let iconPath: string;
+  let reason: string;
+  
+  if (projectedAtBedtime < 50) {
+    sleepRisk = 'low';
+    color = 'green';
+    iconPath = '/icons/low.svg';
+    reason = 'Low sleep risk';
+  } else if (projectedAtBedtime <= 90) {
+    sleepRisk = 'medium';
+    color = 'yellow';
+    iconPath = '/icons/medium.svg';
+    reason = 'Medium sleep risk';
+  } else {
+    sleepRisk = 'high';
+    color = 'red';
+    iconPath = '/icons/high.svg';
+    reason = 'High sleep risk';
+  }
+  
+  // Generate recommendation based on sleep risk and current status
+  let recommendation: string;
+  let canHaveCoffee: boolean;
+  
   if (timeToNextCoffee === 0) {
+    // No wait time - safe to have coffee now
     if (dailyProgress >= 90) {
-      return {
-        canHaveCoffee: false,
-        reason: 'Daily limit nearly reached',
-        recommendation: 'You\'ve had enough caffeine today. Consider decaf or herbal tea.',
-        icon: '⚠️',
-        color: 'yellow'
-      };
+      canHaveCoffee = false;
+      reason = 'Daily limit nearly reached';
+      recommendation = 'You\'ve had enough caffeine today. Consider decaf or herbal tea.';
+      color = 'yellow';
+      iconPath = '/icons/medium.svg';
+    } else if (sleepRisk === 'low') {
+      canHaveCoffee = true;
+      recommendation = 'Go ahead and enjoy your coffee! It will clear well before bedtime.';
+    } else if (sleepRisk === 'medium') {
+      canHaveCoffee = true;
+      recommendation = 'You can have coffee, but consider a smaller size to protect sleep quality.';
+    } else {
+      canHaveCoffee = false;
+      recommendation = 'Skip coffee for now - it would significantly disrupt your sleep tonight.';
     }
+  } else {
+    // Need to wait - explain WHY based on sleep risk
+    canHaveCoffee = false;
+    const hours = Math.floor(timeToNextCoffee / 60);
+    const minutes = Math.ceil(timeToNextCoffee % 60);
+    const waitTime = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
     
-    return {
-      canHaveCoffee: true,
-      reason: 'Safe to have coffee',
-      recommendation: 'Go ahead and enjoy your coffee!',
-      icon: '☕',
-      color: 'green'
-    };
+    if (timeToNextCoffee < 60) {
+      reason = 'Wait a bit longer';
+      recommendation = `Wait about ${Math.ceil(timeToNextCoffee)} minutes to avoid exceeding daily limits.`;
+    } else {
+      // Be specific about why they need to wait based on sleep risk
+      if (sleepRisk === 'high') {
+        reason = 'Too much for good sleep';
+        recommendation = `Wait ${waitTime} - more coffee now would leave ${Math.round(projectedAtBedtime)}mg+ at bedtime, disrupting sleep.`;
+      } else if (sleepRisk === 'medium') {
+        reason = 'Moderate sleep impact';
+        recommendation = `Wait ${waitTime} to keep bedtime caffeine under 50mg for better sleep quality.`;
+      } else {
+        reason = 'Pacing for optimal timing';
+        recommendation = `Wait ${waitTime} to maintain good sleep while maximizing your daily caffeine benefit.`;
+      }
+    }
   }
-  
-  if (timeToNextCoffee < 60) {
-    return {
-      canHaveCoffee: false,
-      reason: 'Wait a bit longer',
-      waitTime: `${Math.ceil(timeToNextCoffee)} minutes`,
-      recommendation: `Wait about ${Math.ceil(timeToNextCoffee)} minutes for caffeine to clear.`,
-      icon: '⏰',
-      color: 'yellow'
-    };
-  }
-  
-  const hours = Math.floor(timeToNextCoffee / 60);
-  const minutes = Math.ceil(timeToNextCoffee % 60);
   
   return {
-    canHaveCoffee: false,
-    reason: 'Caffeine still active',
-    waitTime: hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`,
-    recommendation: `Wait ${hours > 0 ? `${hours} hours and ${minutes} minutes` : `${minutes} minutes`} for caffeine to clear.`,
-    icon: '⏳',
-    color: 'red'
+    canHaveCoffee,
+    reason,
+    waitTime: timeToNextCoffee > 0 ? (timeToNextCoffee < 60 ? `${Math.ceil(timeToNextCoffee)} minutes` : `${Math.floor(timeToNextCoffee / 60)}h ${Math.ceil(timeToNextCoffee % 60)}m`) : undefined,
+    recommendation,
+    icon: sleepRisk === 'low' ? '😴' : sleepRisk === 'medium' ? '😐' : '😵',
+    iconType: 'svg',
+    iconPath,
+    color
   };
 };
 
@@ -173,20 +227,20 @@ export const getSleepRisk = (
   const hoursToBed = timeToBedtime / 60;
   const projectedLevel = caffeineRemaining(currentLevel, hoursToBed, HALF_LIFE_HOURS);
   
-  if (projectedLevel <= 25) {
+  if (projectedLevel < 50) {
     return {
       risk: 'low',
-      message: 'Your caffeine will clear well before bedtime. Sleep should be unaffected.'
+      message: `${Math.round(projectedLevel)}mg will remain at bedtime. Sleep should be unaffected.`
     };
-  } else if (projectedLevel <= 50) {
+  } else if (projectedLevel <= 90) {
     return {
       risk: 'medium',
-      message: 'Some caffeine may remain at bedtime. Consider avoiding caffeine for the next few hours.'
+      message: `${Math.round(projectedLevel)}mg will remain at bedtime. May slightly affect sleep quality.`
     };
   } else {
     return {
       risk: 'high',
-      message: 'Significant caffeine will remain at bedtime. This may affect your sleep quality.'
+      message: `${Math.round(projectedLevel)}mg will remain at bedtime. Likely to disrupt sleep quality.`
     };
   }
 };
@@ -225,7 +279,7 @@ export const getCaffeineStatus = (
   const sleepRisk = getSleepRisk(currentLevel, timeToBedtime);
   
   // Generate next coffee recommendation
-  const guidance = getCaffeineGuidance(currentLevel, timeToNextCoffee, dailyLimit, dailyProgress);
+  const guidance = getCaffeineGuidance(currentLevel, timeToNextCoffee, dailyLimit, dailyProgress, timeToBedtime);
   
   return {
     currentLevel: Math.round(currentLevel),
