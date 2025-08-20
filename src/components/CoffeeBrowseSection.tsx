@@ -6,14 +6,14 @@ import { SizeOz } from "@/lib/serving";
 import { CoffeeCard } from "@/components/CoffeeCard";
 
 const categoryLabels: Record<CoffeeCategory, string> = {
-  brewed: "☕ Brewed",
-  espresso: "🎯 Espresso-Based",
-  milk: "🥛 Milk-Based", 
-  cold: "🧊 Iced",
-  tea: "🍃 Tea",
-  specialty: "✨ Specialty",
-  energy: "⚡ Energy",
-  soda: "🥤 Soda",
+  brewed: "Brewed",
+  espresso: "Espresso-Based",
+  milk: "Milk-Based", 
+  cold: "Iced",
+  tea: "Tea",
+  specialty: "Specialty",
+  energy: "Energy Drinks",
+  soda: "Soda",
 };
 
 interface CoffeeBrowseSectionProps {
@@ -215,7 +215,7 @@ export const CoffeeBrowseSection = ({
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent"
                 }`}
               >
-                ☕ All
+               All
               </button>
               {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
                 <button

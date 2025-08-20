@@ -198,8 +198,8 @@ const QuickLogButton = ({
             </>
           ) : (
             <>
-              <span className="mr-2">☕</span>
-              Log {coffee.name}
+              {/* <span className="mr-2">☕</span> */}
+              Log
             </>
           )}
         </Button>
