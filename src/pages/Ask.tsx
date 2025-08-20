@@ -1,42 +1,34 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { CoffeeItem } from "@/data/coffees";
-import { TimeOfDay, getTimeOfDay, defaultEnergyForTime } from "@/hooks/useTimeOfDay";
-import { EnergyLevel } from "@/lib/recommendation";
-import { hoursUntilBedtime } from "@/lib/timeUtils";
-import BedtimeControl from "@/components/BedtimeControl";
-import ServingControl from "@/components/ServingControl";
-import { SizeOz } from "@/lib/serving";
-import { usePreferences } from "@/hooks/usePreferences";
-import { useCoffeeLogs } from "@/hooks/useCoffeeLogs";
-import CaffeineTracker from "@/components/CaffeineTracker";
-import RecentLogUndo from "@/components/RecentLogUndo";
-import { RecommendationsSection } from "@/components/RecommendationsSection";
 import { CoffeeBrowseSection } from "@/components/CoffeeBrowseSection";
 import { CoffeeDetailDialog } from "@/components/CoffeeDetailDialog";
+import PreferencesDemo from "@/components/PreferencesDemo";
+import CaffeineTracker from "@/components/CaffeineTracker";
 import { SmartCaffeineTracker } from "@/components/SmartCaffeineTracker";
-import { CaffeineGuidanceBanner } from "@/components/CaffeineGuidanceBanner";
+import { RecommendationsSection } from "@/components/RecommendationsSection";
+import { CoffeeItem } from "@/data/coffees";
+import { usePreferences } from "@/hooks/usePreferences";
+import { useCoffeeLogs } from "@/hooks/useCoffeeLogs";
 import { useCaffeineTracker } from "@/hooks/useCaffeineTracker";
+import { hoursUntilBedtime, getCurrentTime } from "@/lib/timeUtils";
+import { SizeOz } from "@/lib/serving";
+import { Settings } from "lucide-react";
 
 const Ask = () => {
-  // Load user preferences
-  const { 
-    bedtime, 
-    servingSize, 
-    shots, 
-    updatePreference,
-    isLoading: preferencesLoading 
+  const {
+    bedtime,
+    servingSize,
+    shots,
+    caffeineLimit,
+    preferences,
+    isLoading: preferencesLoading,
+    updatePreference
   } = usePreferences();
 
   // Load coffee logs
   const { stats: coffeeStats, refreshStats } = useCoffeeLogs();
   const { caffeineStatus } = useCaffeineTracker();
 
-  // Auto-detect time of day and energy level from local time
-  const [currentTime, setCurrentTime] = useState<TimeOfDay>(getTimeOfDay());
-  const [currentEnergy, setCurrentEnergy] = useState<EnergyLevel>(defaultEnergyForTime[getTimeOfDay()]);
-  
   const [selected, setSelected] = useState<CoffeeItem | null>(null);
   const [showPreferences, setShowPreferences] = useState<boolean>(false);
   const [refreshCount, setRefreshCount] = useState<number>(0);
@@ -66,236 +58,174 @@ const Ask = () => {
     setTimeout(() => setIsRefreshing(false), 500);
   };
   
-  // Auto-update time and energy level every minute
   useEffect(() => {
-    const updateTimeAndEnergy = () => {
-      const newTime = getTimeOfDay();
-      setCurrentTime(newTime);
-      setCurrentEnergy(defaultEnergyForTime[newTime]);
-    };
-
-    // Update immediately
-    updateTimeAndEnergy();
-
-    // Update every minute
-    const interval = setInterval(updateTimeAndEnergy, 60000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    document.title = "Ask CoffeePolice – Smart coffee picks";
+    document.title = "CoffeePolice – Smart caffeine tracker";
     const meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute("content", "Browse coffees, see half-life charts, and get time-smart picks.");
   }, []);
+  
+  // Format time helper function
+  const formatTime = (timeString: string) => {
+    const [hours, minutes] = timeString.split(':');
+    const hour24 = parseInt(hours);
+    const ampm = hour24 >= 12 ? 'PM' : 'AM';
+    const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+    return `${hour12}:${minutes} ${ampm}`;
+  };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-50/30">
-      <section className="px-6 py-8 max-w-6xl mx-auto">
-        <header className="mb-8 text-center">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="relative">
-              <img
-                src="/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
-                alt="CoffeePolice mascot logo"
-                className="h-12 w-12 rounded-xl shadow-lg"
-                loading="lazy"
-              />
-              <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 to-amber-600 rounded-xl blur opacity-20"></div>
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">Ask CoffeePolice</h1>
-              <p className="text-gray-600">Time‑aware picks with caffeine half‑life guidance</p>
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-50/30">
+      {/* Mobile-Optimized Header */}
+      <header className="px-4 sm:px-6 py-4 sm:py-6 bg-gradient-to-r from-primary/5 via-amber-50/50 to-primary/5 border-b border-amber-100">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <img
+              src="/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
+              alt="CoffeePolice mascot"
+              className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl shadow-md"
+              loading="eager"
+            />
+            <div className="text-center sm:text-left">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">CoffeePolice</h1>
+              <p className="text-sm sm:text-base text-gray-600">
+                Your cheeky caffeine cop—smarter sips, better sleep.
+              </p>
             </div>
           </div>
-         </header>
+        </div>
+      </header>
 
-                                   {/* Preferences Section - Always Visible */}
-          <section className="mb-8">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-amber-100/50">
-              <div className="flex items-center justify-between mb-4">
-                                 <div>
-                   <h2 className="text-lg font-semibold text-gray-900">Smart Preferences</h2>
-                   <p className="text-sm text-gray-600">No caffeine 8+ hours before bedtime ensures sound sleep.</p>
-                 </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setShowPreferences(!showPreferences)}
-                  className="text-amber-700 hover:text-amber-800 hover:bg-amber-50 flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                                     {showPreferences ? "Hide" : "Edit Preferences"}
-            </Button>
-          </div>
-              
-                             {/* Current Settings Summary */}
-               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                 <div className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
-                   <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                     <span className="text-blue-600 text-sm">⚡</span>
-                   </div>
-                   <div>
-                     <p className="text-xs text-gray-500 font-medium">Time of the Day</p>
-                     <p className="text-sm font-semibold text-gray-900 capitalize">{currentTime}</p>
-                   </div>
-                 </div>
-                                 <div className="flex items-center gap-3 p-3 bg-green-50/50 rounded-xl border border-green-100">
-                   <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                     <span className="text-green-600 text-sm">🛡️</span>
-                   </div>
-                   <div>
-                     <p className="text-xs text-gray-500 font-medium">Safe Limit</p>
-                     <p className="text-sm font-semibold text-gray-900">≤50mg for good sleep</p>
-                   </div>
-                 </div>
-                                                    <div className="flex items-center gap-3 p-3 bg-purple-50/50 rounded-xl border border-purple-100">
-                   <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                     <span className="text-purple-600 text-sm">🛏️</span>
-                   </div>
-                   <div>
-                     <p className="text-xs text-gray-500 font-medium">Bed time</p>
-                     <p className="text-sm font-semibold text-gray-900">{localBedtime}</p>
-                   </div>
-                 </div>
-                 
-                                   {/* Coffee Stats Summary */}
-                  {coffeeStats && (
-                    <div className="flex items-center gap-3 p-3 bg-amber-50/50 rounded-xl border border-amber-100">
-                      <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                        <span className="text-amber-600 text-sm">📊</span>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 font-medium">Today's Caffeine</p>
-                        <p className="text-sm font-semibold text-gray-900">{coffeeStats.totalCaffeineToday}mg</p>
-                      </div>
-                    </div>
-                  )}
-                   </div>
-                   
-            {/* Expandable Preferences - Moved here for better visibility */}
-            {showPreferences && (
-              <div className="mb-6 p-4 bg-gradient-to-r from-amber-50/50 to-orange-50/30 rounded-xl border border-amber-200 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-6 h-6 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <span className="text-amber-600 text-sm">⚙️</span>
-                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Edit Your Preferences</h3>
+      {/* Mobile-Optimized Main Content */}
+      <main className="flex-1 px-4 sm:px-6 py-4 sm:py-6 max-w-6xl mx-auto">
+        {/* Compact Preferences Summary */}
+        <section className="mb-6 sm:mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className="bg-white/70 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-amber-100 shadow-sm">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <span className="text-lg sm:text-2xl">🌙</span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Bedtime</div>
+                  <div className="text-sm sm:text-lg font-semibold text-gray-900 truncate">{formatTime(preferences.bedtime)}</div>
+                </div>
               </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <BedtimeControl value={localBedtime} onChange={setLocalBedtime} />
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Serving Size</label>
-                      <ServingControl sizeOz={localSizeOz} onSizeChange={setLocalSizeOz} shots={localShots} onShotsChange={setLocalShots} />
-                    </div>
-                  </div>
-                <div className="mt-4 pt-4 border-t border-amber-200">
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    💡 <strong>Tip:</strong> Changes are automatically saved and will affect your coffee recommendations immediately.
-                        </p>
-                      </div>
-                    </div>
-              )}
-                  
-            {/* Caffeine Tracker */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Caffeine Tracking</h3>
-                                     <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowSmartTracker(!showSmartTracker)}
-                  className="text-blue-700 hover:text-blue-800 hover:bg-blue-50 flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                     </svg>
-                  {showSmartTracker ? "Simple View" : "Smart Tracker"}
-                   </Button>
+            </div>
+            
+            <div className="bg-white/70 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-amber-100 shadow-sm">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <span className="text-lg sm:text-2xl">☕</span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Size</div>
+                  <div className="text-sm sm:text-lg font-semibold text-gray-900">{preferences.serving_size}oz</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white/70 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-amber-100 shadow-sm">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <span className="text-lg sm:text-2xl">⚡</span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Shots</div>
+                  <div className="text-sm sm:text-lg font-semibold text-gray-900">{preferences.shots}</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white/70 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-amber-100 shadow-sm">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <span className="text-lg sm:text-2xl">📊</span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">Limit</div>
+                  <div className="text-sm sm:text-lg font-semibold text-gray-900">{preferences.caffeine_limit}mg</div>
+                </div>
+              </div>
+            </div>
           </div>
           
-              {showSmartTracker ? (
-                <SmartCaffeineTracker />
-              ) : (
-                <CaffeineTracker compact={true} />
-                             )}
-                           </div>
-            
-            {/* Recently Logged Coffees with Undo */}
-            <div className="mb-6">
-              <RecentLogUndo 
-                showCount={3} 
-                onUndo={refreshStats}
-                             />
-                          </div>
-                     </div>
-          </section>
-
-                                   {/* Coffee Recommendations & Browse Section */}
-          <article className="mb-16">
-            <div className="relative mb-12">
-              <div className="absolute inset-0 bg-gradient-to-r from-amber-100/30 via-transparent to-orange-100/30 rounded-3xl blur-3xl"></div>
-              <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-amber-100/50 shadow-xl">
-              
-                            {/* Caffeine Guidance Warning */}
-              {/* {caffeineStatus && (
-                <CaffeineGuidanceBanner 
-                  currentCaffeine={caffeineStatus.currentLevel}
-                  timeToBedtime={virtualHoursUntilBed * 60}
-                  dailyProgress={caffeineStatus.dailyProgress}
-                  className="mb-8"
-                />
-              )} */}
-
-              {/* Recommendations Section */}
-              <RecommendationsSection
-                currentTime={currentTime}
-                currentEnergy={currentEnergy}
-                hoursUntilBed={virtualHoursUntilBed}
-                bedtime={localBedtime}
-                sizeOz={localSizeOz}
-                shots={localShots}
-                refreshCount={refreshCount}
-                isRefreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                onSelect={setSelected}
-                onLogSuccess={refreshStats}
-              />
-
-              {/* Browse Section */}
-              <CoffeeBrowseSection
-                sizeOz={localSizeOz}
-                shots={localShots}
-                hoursUntilBed={virtualHoursUntilBed}
-                onSelect={setSelected}
-                onLogSuccess={refreshStats}
-              />
-              
-             </div>
+          <div className="text-center">
+            <button 
+              onClick={() => setShowPreferences(!showPreferences)}
+              className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-medium text-gray-700 bg-white/80 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors min-h-[44px]"
+            >
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Edit Preferences</span>
+              <span className="sm:hidden">Settings</span>
+            </button>
           </div>
-        </article>
+        </section>
 
-        <div className="text-center">
-          <Link to="/">
-            <Button variant="outline" className="px-8 py-3 text-lg font-medium border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-300 transition-colors">
-              ← Back to Home
-            </Button>
-          </Link>
-        </div>
+        {/* Collapsible Preferences Panel */}
+        {showPreferences && (
+          <section className="mb-6 sm:mb-8">
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-amber-100">
+              <PreferencesDemo />
+            </div>
+          </section>
+        )}
 
-        {/* Coffee Detail Dialog */}
-        <CoffeeDetailDialog
-          coffee={selected}
-          sizeOz={localSizeOz}
-          shots={localShots}
-          hoursUntilBed={virtualHoursUntilBed}
-          onClose={() => setSelected(null)}
-        />
-      </section>
-    </main>
+        {/* Mobile-Optimized Caffeine Tracker */}
+        <section className="mb-6 sm:mb-8">
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-amber-100">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <div>
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Caffeine Status</h2>
+                <p className="text-sm text-gray-600">Track your daily intake and sleep impact</p>
+              </div>
+              <Button
+                onClick={() => setShowSmartTracker(!showSmartTracker)}
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto min-h-[44px] border-blue-200 text-blue-700 hover:bg-blue-50"
+              >
+                {showSmartTracker ? "Hide" : "Show"} Smart Tracker
+              </Button>
+            </div>
+            
+            {showSmartTracker ? (
+              <SmartCaffeineTracker />
+            ) : (
+              <CaffeineTracker />
+            )}
+          </div>
+        </section>
+
+        {/* Recommendations Section */}
+        <section className="mb-6 sm:mb-8">
+          <RecommendationsSection
+            currentTime="morning"
+            currentEnergy="low"
+            bedtime={localBedtime}
+            hoursUntilBed={virtualHoursUntilBed}
+            sizeOz={localSizeOz}
+            shots={localShots}
+            onSelect={setSelected}
+            onLogSuccess={refreshStats}
+            refreshCount={refreshCount}
+            isRefreshing={isRefreshing}
+            onRefresh={handleRefresh}
+          />
+        </section>
+
+        {/* Coffee Browse Section */}
+        <section>
+          <CoffeeBrowseSection
+            sizeOz={localSizeOz}
+            shots={localShots}
+            hoursUntilBed={virtualHoursUntilBed}
+            onSelect={setSelected}
+            onLogSuccess={refreshStats}
+          />
+        </section>
+      </main>
+
+      {/* Coffee Detail Dialog */}
+      <CoffeeDetailDialog
+        coffee={selected}
+        sizeOz={localSizeOz}
+        shots={localShots}
+        hoursUntilBed={virtualHoursUntilBed}
+        onClose={() => setSelected(null)}
+      />
+    </div>
   );
 };
 

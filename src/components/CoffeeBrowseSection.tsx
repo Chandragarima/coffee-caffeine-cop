@@ -65,25 +65,25 @@ export const CoffeeBrowseSection = ({
         <p className="text-gray-600">Discover your perfect brew from our extensive collection</p>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative mb-8">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      {/* Mobile-Optimized Search Bar */}
+      <div className="relative mb-6 sm:mb-8">
+        <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
+          <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search for your perfect brew (e.g., latte, decaf, tea, espresso)"
-          className="pl-12 pr-12 h-14 text-base bg-white border-gray-200 focus:border-amber-400 focus:ring-amber-400/20 rounded-xl shadow-sm"
+          placeholder="Search coffees..."
+          className="pl-10 sm:pl-12 pr-10 sm:pr-12 h-12 sm:h-14 text-sm sm:text-base bg-white border-gray-200 focus:border-amber-400 focus:ring-amber-400/20 rounded-xl shadow-sm"
         />
         {query && (
           <button
             onClick={() => setQuery("")}
-            className="absolute inset-y-0 right-0 pr-4 flex items-center"
+            className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center min-h-[44px] min-w-[44px] justify-center"
           >
-            <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -199,17 +199,17 @@ export const CoffeeBrowseSection = ({
         </>
       ) : (
         <>
-          {/* Category Navigation */}
-          <div className="mb-8">
-            <h4 className="text-sm font-semibold text-gray-900 mb-4">Browse by category</h4>
-            <div className="flex flex-wrap gap-3">
+          {/* Mobile-Optimized Category Navigation */}
+          <div className="mb-6 sm:mb-8">
+            <h4 className="text-sm font-semibold text-gray-900 mb-3 sm:mb-4">Browse by category</h4>
+            <div className="flex overflow-x-auto gap-2 sm:gap-3 pb-2 scrollbar-hide">
               <button
                 onClick={() => {
                   setActiveTab("all");
                   setShowAllItems(false);
                   setQuery("");
                 }}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap min-h-[44px] ${
                   activeTab === "all"
                     ? "bg-blue-100 text-blue-700 border border-blue-200"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent"
@@ -225,7 +225,7 @@ export const CoffeeBrowseSection = ({
                     setShowAllItems(false);
                     setQuery("");
                   }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap min-h-[44px] ${
                     activeTab === cat
                       ? "bg-blue-100 text-blue-700 border border-blue-200"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent"
@@ -262,9 +262,9 @@ export const CoffeeBrowseSection = ({
             </div>
           </div>
 
-          {/* Dynamic Layout based on view mode */}
+          {/* Mobile-Optimized Dynamic Layout */}
           {viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {(activeTab === "all" ? COFFEES : byCategory(activeTab as CoffeeCategory))
                 .slice(0, 12)
                 .map(coffee => (
@@ -281,7 +281,7 @@ export const CoffeeBrowseSection = ({
                 ))}
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {(activeTab === "all" ? COFFEES : byCategory(activeTab as CoffeeCategory))
                 .slice(0, 12)
                 .map(coffee => (

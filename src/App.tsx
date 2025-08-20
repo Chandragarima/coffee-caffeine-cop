@@ -21,7 +21,7 @@ const App = () => (
       <InstallPrompt />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<Ask />} />
           <Route path="/ask" element={<Ask />} />
           <Route path="/caffeine-tracker" element={<CaffeineTrackerPage />} />
           <Route path="/smart-tracker" element={<SmartTrackerPage />} />
