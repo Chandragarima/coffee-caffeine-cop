@@ -15,22 +15,7 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icons/*.png', 'icons/*.svg'],
-      manifest: {
-        name: 'CoffeePolice',
-        short_name: 'CoffeePolice',
-        description: 'Your cheeky caffeine cop—smarter sips, better sleep.',
-        theme_color: '#f59e0b',
-        background_color: '#ffffff',
-        display: 'standalone',
-        start_url: '/ask',
-        icons: [
-          {
-            src: 'icons/icon-512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
-      },
+      manifest: './public/manifest.webmanifest',
       workbox: {
         runtimeCaching: [
           {

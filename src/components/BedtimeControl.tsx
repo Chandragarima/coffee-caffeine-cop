@@ -2,12 +2,12 @@ import { InputHTMLAttributes } from "react";
 import { Input } from "@/components/ui/input";
 import { updatePreference } from "@/lib/preferences";
 
-interface BedtimeControlProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type" | "autoSave"> {
+type BedtimeControlProps = {
   value: string; // HH:mm (24h)
   onChange: (val: string) => void;
   label?: string;
   autoSave?: boolean; // Whether to automatically save to preferences
-}
+} & Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type">;
 
 const BedtimeControl = ({ 
   value, 
