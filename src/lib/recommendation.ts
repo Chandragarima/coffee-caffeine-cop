@@ -88,7 +88,7 @@ export const bestPicksForTime = (
   // Step 2: Additional safety filter to ensure <50mg at bedtime
   if (hoursUntilBed !== undefined && hoursUntilBed > 0) {
     pool = pool.filter((coffee) => {
-      const adjustedCaffeine = adjustedMg(coffee, sizeOz as SizeOz, shots as 1 | 2);
+      const adjustedCaffeine = adjustedMg(coffee, sizeOz as SizeOz, shots as 1 | 2 | 3);
       const remainingAtBed = caffeineRemaining(adjustedCaffeine, hoursUntilBed, halfLife);
       return remainingAtBed <= SCIENTIFIC_SLEEP_THRESHOLD_MG;
     });
@@ -102,7 +102,7 @@ export const bestPicksForTime = (
   if (pool.length < 10 && hoursUntilBed !== undefined && hoursUntilBed > 0) {
     // Try to get more variety by considering a broader range
     const expandedPool = COFFEES.filter((coffee) => {
-      const adjustedCaffeine = adjustedMg(coffee, sizeOz as SizeOz, shots as 1 | 2);
+      const adjustedCaffeine = adjustedMg(coffee, sizeOz as SizeOz, shots as 1 | 2 | 3);
       const remainingAtBed = caffeineRemaining(adjustedCaffeine, hoursUntilBed, halfLife);
       // Be slightly more lenient for variety (60mg instead of 50mg)
       return remainingAtBed <= 60;

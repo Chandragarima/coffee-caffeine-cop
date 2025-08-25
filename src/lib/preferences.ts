@@ -2,7 +2,8 @@
 export interface UserPreferences {
   bedtime: string;           // HH:mm format (24h)
   serving_size: number;      // oz (8, 12, 16, 20)
-  shots: 1 | 2;             // espresso shots
+  shots: 1 | 2 | 3;         // espresso shots
+  shots_manually_set: boolean; // whether user has manually changed shots
   theme: 'light' | 'dark';   // UI theme
   notifications: boolean;    // push notifications
   caffeine_limit: number;    // daily caffeine limit (mg)
@@ -14,6 +15,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   bedtime: '23:00',
   serving_size: 12,
   shots: 1,
+  shots_manually_set: false,
   theme: 'light',
   notifications: true,
   caffeine_limit: 400,
@@ -50,7 +52,26 @@ export const loadPreferences = (): UserPreferences => {
     if (stored) {
       const parsed = JSON.parse(stored);
       // Merge with defaults to handle missing properties
-      return { ...DEFAULT_PREFERENCES, ...parsed };
+      const merged = { ...DEFAULT_PREFERENCES, ...parsed };
+      
+      // Validate critical numeric values to prevent NaN issues
+      if (typeof merged.shots !== 'number' || ![1, 2, 3].includes(merged.shots)) {
+        console.warn('Invalid shots value in preferences, using default:', merged.shots);
+        merged.shots = DEFAULT_PREFERENCES.shots;
+      }
+      
+      if (typeof merged.serving_size !== 'number' || ![8, 12, 16, 20, 24].includes(merged.serving_size)) {
+        console.warn('Invalid serving_size value in preferences, using default:', merged.serving_size);
+        merged.serving_size = DEFAULT_PREFERENCES.serving_size;
+      }
+      
+      // Validate shots_manually_set flag
+      if (typeof merged.shots_manually_set !== 'boolean') {
+        console.warn('Invalid shots_manually_set value in preferences, using default:', merged.shots_manually_set);
+        merged.shots_manually_set = DEFAULT_PREFERENCES.shots_manually_set;
+      }
+      
+      return merged;
     }
   } catch (error) {
     console.warn('Failed to parse stored preferences:', error);
@@ -106,8 +127,9 @@ export const getPreference = <K extends keyof UserPreferences>(
 export const validatePreferences = (preferences: Partial<UserPreferences>): boolean => {
   const validators = {
     bedtime: (value: string) => /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value),
-    serving_size: (value: number) => [8, 12, 16, 20].includes(value),
-    shots: (value: number) => [1, 2].includes(value),
+    serving_size: (value: number) => [8, 12, 16, 20, 24].includes(value),
+    shots: (value: number) => [1, 2, 3].includes(value),
+    shots_manually_set: (value: boolean) => typeof value === 'boolean',
     theme: (value: string) => ['light', 'dark'].includes(value),
     notifications: (value: boolean) => typeof value === 'boolean',
     caffeine_limit: (value: number) => value > 0 && value <= 1000,

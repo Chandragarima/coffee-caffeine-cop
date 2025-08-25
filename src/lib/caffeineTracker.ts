@@ -55,17 +55,15 @@ export const calculatePeakCaffeine = (logs: CoffeeLogEntry[]): number => {
   
   // Add time points for each log and calculate cumulative levels
   todayLogs.forEach(log => {
-    const hoursSinceLog = (Date.now() - log.timestamp) / (1000 * 60 * 60);
-    const remainingFromLog = caffeineRemaining(log.caffeineMg, hoursSinceLog, HALF_LIFE_HOURS);
-    
     // Calculate what the level was right after consuming this coffee
+    // This includes all previous caffeine (decayed) + the fresh caffeine from this log
     const levelAfterThisCoffee = todayLogs
-      .filter(prevLog => prevLog.timestamp <= log.timestamp)
+      .filter(prevLog => prevLog.timestamp < log.timestamp) // Use < instead of <= to exclude current log
       .reduce((sum, prevLog) => {
         const hoursSincePrev = (log.timestamp - prevLog.timestamp) / (1000 * 60 * 60);
         const remainingFromPrev = caffeineRemaining(prevLog.caffeineMg, hoursSincePrev, HALF_LIFE_HOURS);
         return sum + remainingFromPrev;
-      }, 0) + log.caffeineMg;
+      }, 0) + log.caffeineMg; // Add the fresh caffeine from current log
     
     peak = Math.max(peak, levelAfterThisCoffee);
   });

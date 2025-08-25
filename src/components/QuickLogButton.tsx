@@ -10,6 +10,7 @@ import { usePreferences } from '@/hooks/usePreferences';
 import { CoffeeItem } from '@/data/coffees';
 import { adjustedMg } from '@/lib/serving';
 import { toast } from '@/components/ui/sonner';
+import { useDynamicCaffeine } from '@/hooks/useDynamicCaffeine';
 
 interface QuickLogButtonProps {
   coffee: CoffeeItem;
@@ -40,7 +41,7 @@ const QuickLogButton = ({
   const [lastLoggedId, setLastLoggedId] = useState<string | null>(null);
   const [showUndo, setShowUndo] = useState(false);
 
-  const caffeineMg = adjustedMg(coffee, servingSize as any, shots);
+  const dynamicCaffeine = useDynamicCaffeine(coffee);
 
   const handleQuickLog = async () => {
     if (!showDialog) {
@@ -50,7 +51,7 @@ const QuickLogButton = ({
         const success = await quickLog(
           coffee.id,
           coffee.name,
-          caffeineMg,
+          dynamicCaffeine,
           servingSize,
           shots
         );
@@ -58,7 +59,7 @@ const QuickLogButton = ({
         if (success) {
           // Show success toast
           toast.success(`${coffee.name} logged!`, {
-            description: `+${caffeineMg}mg caffeine added to your daily intake`,
+            description: `+${dynamicCaffeine}mg caffeine added to your daily intake`,
             duration: 4000,
           });
           
@@ -98,7 +99,7 @@ const QuickLogButton = ({
       const success = await quickLog(
         coffee.id,
         coffee.name,
-        caffeineMg,
+        dynamicCaffeine,
         servingSize,
         shots,
         notes
@@ -107,7 +108,7 @@ const QuickLogButton = ({
       if (success) {
         // Show success toast
         toast.success(`${coffee.name} logged!`, {
-          description: `+${caffeineMg}mg caffeine added to your daily intake`,
+          description: `+${dynamicCaffeine}mg caffeine added to your daily intake`,
           duration: 4000,
         });
         
@@ -236,7 +237,7 @@ const QuickLogButton = ({
                     <p className="text-sm text-gray-600">{coffee.description}</p>
                   </div>
                   <Badge variant="outline" className="border-amber-200 text-amber-700">
-                    {caffeineMg}mg
+                    {dynamicCaffeine}mg
                   </Badge>
                 </div>
                 <div className="mt-2 text-xs text-gray-500">
