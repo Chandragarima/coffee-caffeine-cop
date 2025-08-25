@@ -59,62 +59,62 @@ const SmartTrackerPage = () => {
   ).slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50/30 p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50/30 p-3 sm:p-4 lg:p-6">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="text-center">
-          <div className="flex items-center justify-center gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-3 sm:mb-4">
             <div className="relative">
               <img
                 src="/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
                 alt="CoffeePolice mascot logo"
-                className="h-14 w-14 rounded-xl shadow-lg"
+                className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl shadow-lg"
                 loading="lazy"
               />
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 to-purple-600 rounded-xl blur opacity-20"></div>
             </div>
             <div>
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Smart Tracker
               </h1>
-              <p className="text-gray-600">Intelligent caffeine monitoring with real-time insights</p>
+              <p className="text-sm sm:text-base text-gray-600 hidden sm:block">Intelligent caffeine monitoring with real-time insights</p>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="overview" className="text-sm">Overview</TabsTrigger>
-            <TabsTrigger value="log" className="text-sm">Quick Log</TabsTrigger>
-            <TabsTrigger value="history" className="text-sm">History</TabsTrigger>
-            <TabsTrigger value="insights" className="text-sm">Insights</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 mb-3 sm:mb-6">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 sm:px-3">Overview</TabsTrigger>
+            <TabsTrigger value="log" className="text-xs sm:text-sm px-2 sm:px-3">Log</TabsTrigger>
+            <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-3">History</TabsTrigger>
+            <TabsTrigger value="insights" className="text-xs sm:text-sm px-2 sm:px-3">Tips</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab - Main Smart Tracker */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          <TabsContent value="overview" className="space-y-3 sm:space-y-6">
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-3 sm:gap-6">
               {/* Main Smart Tracker */}
               <div className="xl:col-span-3">
                 <SmartCaffeineTracker />
               </div>
 
               {/* Side Panel */}
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {/* Current Status Quick View */}
                 <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <GuidanceIcon guidance={guidance} className="text-xl" />
+                  <CardHeader className="pb-2 sm:pb-3">
+                    <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                      <GuidanceIcon guidance={guidance} className="text-lg sm:text-xl" />
                       Current Status
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3 sm:space-y-4">
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-blue-600 mb-1">
+                      <div className="text-2xl sm:text-3xl font-bold text-blue-600 mb-1">
                         {caffeineStatus.currentLevel}mg
                       </div>
-                      <div className="text-sm text-gray-600">active caffeine</div>
+                      <div className="text-xs sm:text-sm text-gray-600">active caffeine</div>
                     </div>
 
                     <div className="space-y-2">
@@ -140,25 +140,25 @@ const SmartTrackerPage = () => {
 
                 {/* Quick Actions */}
                 <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">Quick Actions</CardTitle>
+                  <CardHeader className="pb-2 sm:pb-3">
+                    <CardTitle className="text-base sm:text-lg">Quick Actions</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-2 sm:space-y-3">
                     <Button 
                       onClick={() => setActiveTab('log')} 
-                      className="w-full bg-blue-500 hover:bg-blue-600"
+                      className="w-full bg-blue-500 hover:bg-blue-600 text-sm sm:text-base h-9 sm:h-10"
                     >
-                      <span className="mr-2">☕</span>
+                      <span className="mr-1 sm:mr-2">☕</span>
                       Log Coffee
                     </Button>
                     <Link to="/ask">
-                      <Button variant="outline" className="w-full">
+                      <Button variant="outline" className="w-full text-sm sm:text-base h-9 sm:h-10">
                         Browse Coffee Types
                       </Button>
                     </Link>
                     <Button 
                       variant="outline" 
-                      className="w-full"
+                      className="w-full text-sm sm:text-base h-9 sm:h-10"
                       onClick={handleRefresh}
                     >
                       Refresh Data
@@ -333,9 +333,9 @@ const SmartTrackerPage = () => {
         </Tabs>
 
         {/* Back to Home */}
-        <div className="text-center pt-6">
+        <div className="text-center pt-4 sm:pt-6">
           <Link to="/">
-            <Button variant="outline" className="px-8 py-3 text-lg font-medium border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 transition-colors">
+            <Button variant="outline" className="px-4 sm:px-8 py-2 sm:py-3 text-sm sm:text-lg font-medium border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 transition-colors">
               ← Back to Home
             </Button>
           </Link>

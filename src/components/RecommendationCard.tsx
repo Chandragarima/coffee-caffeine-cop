@@ -48,7 +48,7 @@ const CoffeeIcon = ({ iconId, className = "" }: { iconId: string, className?: st
 interface RecommendationCardProps {
   coffee: CoffeeItem;
   sizeOz: SizeOz;
-  shots: 1 | 2;
+  shots: 1 | 2 | 3;
   hoursUntilBed: number;
   bedtime: string;
   currentTime: TimeOfDay;
@@ -141,15 +141,15 @@ export const RecommendationCard = ({
       <div className="absolute inset-0 bg-gradient-to-br from-amber-400/5 via-orange-400/5 to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
       
       {/* Card Header */}
-      <CardHeader className="relative pb-6">
-        <div className="flex items-start justify-between mb-4">
+      <CardHeader className="relative pb-3 sm:pb-6">
+        <div className="flex items-start justify-between mb-2 sm:mb-4">
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <CoffeeIcon iconId={context.icon} className="w-8 h-8" />
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <CoffeeIcon iconId={context.icon} className="w-5 h-5 sm:w-8 sm:h-8" />
               </div>
               <div className="flex-1">
-                <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-amber-800 transition-colors leading-tight">
+                <CardTitle className="text-base sm:text-xl font-bold text-gray-900 group-hover:text-amber-800 transition-colors leading-tight">
                   {coffee.name}
                 </CardTitle>
                 <div className="flex items-center gap-2 mt-1">
@@ -159,8 +159,10 @@ export const RecommendationCard = ({
                 </div>
               </div>
             </div>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              {coffee.description} {context.description}
+            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed line-clamp-2 sm:line-clamp-none">
+              <span className="hidden sm:inline">{coffee.description} </span>
+              <span className="sm:hidden">{coffee.description}</span>
+              <span className="hidden sm:inline">{context.description}</span>
             </p>
           </div>
         </div>
@@ -168,7 +170,7 @@ export const RecommendationCard = ({
       
       {/* Card Content */}
       <CardContent className="relative pt-0">
-        <div className="space-y-4">
+        <div className="space-y-2 sm:space-y-4">
           {/* Quick Info */}
           <div className="flex items-center justify-between text-xs">
             <span className="flex items-center gap-1">
@@ -185,19 +187,19 @@ export const RecommendationCard = ({
                 {v.chip}
               </span>
             </span>
-            <span className="flex items-center gap-1 text-gray-500">
+            <span className="flex items-center gap-1 text-gray-500 hidden sm:flex">
               <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
               Perfect timing
             </span>
           </div>
           
           {/* Quick Log Button */}
-          <div className="pt-2" onClick={(e) => e.stopPropagation()}>
+          <div className="pt-1 sm:pt-2" onClick={(e) => e.stopPropagation()}>
             <QuickLogButton 
               coffee={coffee} 
               variant="outline" 
               size="sm" 
-              className="w-full"
+              className="w-full text-xs sm:text-sm h-8 sm:h-9"
               showDialog={false}
               onLogSuccess={onLogSuccess}
               showUndoAfterLog={true}

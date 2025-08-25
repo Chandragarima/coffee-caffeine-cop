@@ -73,6 +73,7 @@ export const usePreferences = () => {
     bedtime: preferences.bedtime,
     servingSize: preferences.serving_size,
     shots: preferences.shots,
+    shotsManuallySet: preferences.shots_manually_set,
     theme: preferences.theme,
     notifications: preferences.notifications,
     caffeineLimit: preferences.caffeine_limit,

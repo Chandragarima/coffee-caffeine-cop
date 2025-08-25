@@ -130,7 +130,7 @@ export const useCoffeeLogs = () => {
     coffeeName: string,
     caffeineMg: number,
     servingSize: number,
-    shots: 1 | 2 = 1,
+    shots: 1 | 2 | 3 = 1,
     notes?: string
   ): Promise<boolean> => {
     const success = await addLog({

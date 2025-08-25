@@ -5,7 +5,7 @@ export interface CoffeeLogEntry {
   coffeeName: string;            // Coffee name for display
   caffeineMg: number;            // Caffeine amount in mg
   servingSize: number;           // Serving size in oz
-  shots: 1 | 2;                 // Number of espresso shots
+  shots: 1 | 2 | 3;             // Number of espresso shots
   timestamp: number;             // Unix timestamp when consumed
   notes?: string;                // Optional user notes
   location?: string;             // Optional location (home, work, cafe, etc.)

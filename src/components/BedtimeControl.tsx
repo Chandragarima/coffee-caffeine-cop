@@ -27,18 +27,18 @@ const BedtimeControl = ({
   };
 
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+    <div className="space-y-1 sm:space-y-2">
+      <label className="block text-xs sm:text-sm font-medium text-gray-700">{label}</label>
       <div className="relative">
         <Input
           type="time"
           value={value}
           onChange={(e) => handleChange(e.target.value)}
-          className="bg-white/80 border-amber-200 focus:border-amber-400 focus:ring-amber-400/20"
+          className="bg-white/80 border-amber-200 focus:border-amber-400 focus:ring-amber-400/20 h-10 sm:h-11 text-sm"
           {...rest}
         />
-        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-          <span className="text-amber-600">🌙</span>
+        <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-3 pointer-events-none">
+          <span className="text-amber-600 text-sm sm:text-base">🌙</span>
         </div>
       </div>
     </div>
