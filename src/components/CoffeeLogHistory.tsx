@@ -44,11 +44,11 @@ const CoffeeLogHistory = () => {
 
     switch (activeTab) {
       case 'today':
-        return logs.filter(log => log.timestamp >= startOfToday);
+        return logs.filter(log => log.consumedAt >= startOfToday);
       case 'week':
-        return logs.filter(log => log.timestamp >= weekAgo);
+        return logs.filter(log => log.consumedAt >= weekAgo);
       case 'month':
-        return logs.filter(log => log.timestamp >= monthAgo);
+        return logs.filter(log => log.consumedAt >= monthAgo);
       case 'all':
         return logs;
       default:
@@ -228,9 +228,9 @@ const CoffeeLogHistory = () => {
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <span>{log.servingSize}oz</span>
                             {log.shots > 1 && <span>• {log.shots} shots</span>}
-                            {log.location && (
-                              <span>• {getLocationIcon(log.location)} {log.location}</span>
-                            )}
+                                                         {log.location && log.location !== 'none' && (
+                               <span>• {getLocationIcon(log.location)} {log.location}</span>
+                             )}
                           </div>
                         </div>
                       </div>
@@ -239,7 +239,7 @@ const CoffeeLogHistory = () => {
                         <Badge variant="outline" className="border-amber-200 text-amber-700">
                           {log.caffeineMg}mg
                         </Badge>
-                        <span className="text-xs text-gray-500">{formatTime(log.timestamp)}</span>
+                        <span className="text-xs text-gray-500">{formatTime(log.consumedAt)}</span>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -281,13 +281,13 @@ const CoffeeLogHistory = () => {
                   <div className="text-sm text-gray-600 space-y-1">
                     <p>Serving: {selectedLog.servingSize}oz</p>
                     <p>Shots: {selectedLog.shots}</p>
-                    {selectedLog.location && (
-                      <p>Location: {getLocationIcon(selectedLog.location)} {selectedLog.location}</p>
-                    )}
+                                         {selectedLog.location && selectedLog.location !== 'none' && (
+                       <p>Location: {getLocationIcon(selectedLog.location)} {selectedLog.location}</p>
+                     )}
                     {selectedLog.mood && (
                       <p>Mood: {getMoodIcon(selectedLog.mood)} {selectedLog.mood}</p>
                     )}
-                    <p>Time: {new Date(selectedLog.timestamp).toLocaleString()}</p>
+                    <p>Time: {new Date(selectedLog.consumedAt).toLocaleString()}</p>
                   </div>
                 </div>
 

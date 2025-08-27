@@ -47,13 +47,13 @@ const RecentLogUndo = ({
   const allRecentLogs = logs.filter(log => {
     const now = Date.now();
     const oneDayAgo = now - (24 * 60 * 60 * 1000);
-    return log.timestamp >= oneDayAgo;
+    return log.consumedAt >= oneDayAgo;
   });
 
   // Get limited recent logs for display - show fewer on mobile
   const effectiveShowCount = isMobile ? Math.min(showCount, 2) : showCount;
   const recentLogs = allRecentLogs
-    .sort((a, b) => b.timestamp - a.timestamp)
+    .sort((a, b) => b.consumedAt - a.consumedAt)
     .slice(0, isExpanded ? allRecentLogs.length : effectiveShowCount);
 
   const handleUndoLog = async (log: CoffeeLogEntry) => {
@@ -159,7 +159,7 @@ const RecentLogUndo = ({
                       </Badge>
                     </div>
                     <div className="flex items-center gap-1 sm:gap-2 text-xs text-gray-500">
-                      <span>{formatTime(log.timestamp)}</span>
+                      <span>{formatTime(log.consumedAt)}</span>
                       {log.notes && (
                         <>
                           <span className="hidden sm:inline">•</span>

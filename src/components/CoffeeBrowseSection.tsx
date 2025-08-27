@@ -99,9 +99,9 @@ export const CoffeeBrowseSection = ({
           <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Browse all drinks</h3>
           <button
             onClick={() => {
-              toast.info("ℹ️ Serving Size & Shot Preferences", {
+              toast.info("Serving Size & Shot Preferences", {
                 description: "Some drinks (like Single Espresso, Ristretto, Cortado) have fixed sizes and caffeine amounts that don't change with your preferences. This is because these drinks are typically served in standard sizes at coffee shops.",
-                duration: 5000,
+                duration: 4000,
               });
             }}
             className="flex-shrink-0 p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100"

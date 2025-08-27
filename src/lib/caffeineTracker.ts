@@ -33,7 +33,7 @@ export const calculateCurrentCaffeine = (
   currentTime: number = Date.now()
 ): number => {
   return logs.reduce((total, log) => {
-    const hoursSinceConsumption = (currentTime - log.timestamp) / (1000 * 60 * 60);
+    const hoursSinceConsumption = (currentTime - log.consumedAt) / (1000 * 60 * 60);
     const remaining = caffeineRemaining(log.caffeineMg, hoursSinceConsumption, HALF_LIFE_HOURS);
     return total + remaining;
   }, 0);
@@ -45,7 +45,7 @@ export const calculatePeakCaffeine = (logs: CoffeeLogEntry[]): number => {
   today.setHours(0, 0, 0, 0);
   const startOfToday = today.getTime();
   
-  const todayLogs = logs.filter(log => log.timestamp >= startOfToday);
+  const todayLogs = logs.filter(log => log.consumedAt >= startOfToday);
   
   if (todayLogs.length === 0) return 0;
   
@@ -53,17 +53,17 @@ export const calculatePeakCaffeine = (logs: CoffeeLogEntry[]): number => {
   let peak = 0;
   const timePoints = []; // Track caffeine levels throughout the day
   
-  // Add time points for each log and calculate cumulative levels
-  todayLogs.forEach(log => {
-    // Calculate what the level was right after consuming this coffee
-    // This includes all previous caffeine (decayed) + the fresh caffeine from this log
-    const levelAfterThisCoffee = todayLogs
-      .filter(prevLog => prevLog.timestamp < log.timestamp) // Use < instead of <= to exclude current log
-      .reduce((sum, prevLog) => {
-        const hoursSincePrev = (log.timestamp - prevLog.timestamp) / (1000 * 60 * 60);
-        const remainingFromPrev = caffeineRemaining(prevLog.caffeineMg, hoursSincePrev, HALF_LIFE_HOURS);
-        return sum + remainingFromPrev;
-      }, 0) + log.caffeineMg; // Add the fresh caffeine from current log
+      // Add time points for each log and calculate cumulative levels
+    todayLogs.forEach(log => {
+      // Calculate what the level was right after consuming this coffee
+      // This includes all previous caffeine (decayed) + the fresh caffeine from this log
+      const levelAfterThisCoffee = todayLogs
+        .filter(prevLog => prevLog.consumedAt < log.consumedAt) // Use < instead of <= to exclude current log
+        .reduce((sum, prevLog) => {
+          const hoursSincePrev = (log.consumedAt - prevLog.consumedAt) / (1000 * 60 * 60);
+          const remainingFromPrev = caffeineRemaining(prevLog.caffeineMg, hoursSincePrev, HALF_LIFE_HOURS);
+          return sum + remainingFromPrev;
+        }, 0) + log.caffeineMg; // Add the fresh caffeine from current log
     
     peak = Math.max(peak, levelAfterThisCoffee);
   });
@@ -269,7 +269,7 @@ export const getCaffeineStatus = (
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const startOfToday = today.getTime();
-  const todayLogs = logs.filter(log => log.timestamp >= startOfToday);
+  const todayLogs = logs.filter(log => log.consumedAt >= startOfToday);
   const totalConsumedToday = todayLogs.reduce((sum, log) => sum + log.caffeineMg, 0);
   const dailyProgress = (totalConsumedToday / dailyLimit) * 100;
   

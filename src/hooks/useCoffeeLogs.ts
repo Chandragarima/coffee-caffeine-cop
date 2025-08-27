@@ -131,7 +131,8 @@ export const useCoffeeLogs = () => {
     caffeineMg: number,
     servingSize: number,
     shots: 1 | 2 | 3 = 1,
-    notes?: string
+    notes?: string,
+    consumedAt?: number
   ): Promise<boolean> => {
     const success = await addLog({
       coffeeId,
@@ -140,6 +141,7 @@ export const useCoffeeLogs = () => {
       servingSize,
       shots,
       timestamp: Date.now(),
+      consumedAt: consumedAt || Date.now(),
       notes
     });
     return success !== null;
