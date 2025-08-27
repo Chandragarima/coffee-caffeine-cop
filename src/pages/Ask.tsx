@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { CoffeeItem } from "@/data/coffees";
 import { TimeOfDay, getTimeOfDay, defaultEnergyForTime } from "@/hooks/useTimeOfDay";
@@ -362,13 +361,7 @@ const Ask = () => {
           </div>
         </article>
 
-        <div className="text-center">
-          <Link to="/">
-            <Button variant="outline" className="px-4 sm:px-8 py-2 sm:py-3 text-sm sm:text-lg font-medium border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-300 transition-colors">
-              ← Back to Home
-            </Button>
-          </Link>
-        </div>
+
 
         {/* Coffee Detail Dialog */}
         <CoffeeDetailDialog
