@@ -72,7 +72,7 @@ export const CoffeeCard = ({
                     variant="outline" 
                     size="sm" 
                     className="border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors text-xs sm:text-sm px-2 sm:px-3"
-                    showDialog={false}
+                    showDialog={true}
                     onLogSuccess={onLogSuccess}
                     showUndoAfterLog={true}
                   />
@@ -129,7 +129,7 @@ export const CoffeeCard = ({
             variant="outline" 
             size="sm" 
             className="w-full border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors text-xs sm:text-sm h-8 sm:h-9"
-            showDialog={false}
+            showDialog={true}
             onLogSuccess={onLogSuccess}
             showUndoAfterLog={true}
           />

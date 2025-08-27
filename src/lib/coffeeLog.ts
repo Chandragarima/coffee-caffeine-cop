@@ -6,7 +6,8 @@ export interface CoffeeLogEntry {
   caffeineMg: number;            // Caffeine amount in mg
   servingSize: number;           // Serving size in oz
   shots: 1 | 2 | 3;             // Number of espresso shots
-  timestamp: number;             // Unix timestamp when consumed
+  timestamp: number;             // Unix timestamp when logged (for backward compatibility)
+  consumedAt: number;            // Unix timestamp when actually consumed
   notes?: string;                // Optional user notes
   location?: string;             // Optional location (home, work, cafe, etc.)
   mood?: 'great' | 'good' | 'ok' | 'bad'; // How it made them feel
@@ -67,7 +68,13 @@ class CoffeeLogDB {
   async addLog(entry: Omit<CoffeeLogEntry, 'id'>): Promise<string> {
     const db = await this.getDB();
     const id = `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const fullEntry: CoffeeLogEntry = { ...entry, id };
+    
+    // Ensure consumedAt is set (default to timestamp if not provided for backward compatibility)
+    const fullEntry: CoffeeLogEntry = { 
+      ...entry, 
+      id,
+      consumedAt: entry.consumedAt || entry.timestamp
+    };
 
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([COFFEE_LOGS_STORE], 'readwrite');
@@ -102,7 +109,14 @@ class CoffeeLogDB {
 
       request.onsuccess = () => {
         const logs = request.result as CoffeeLogEntry[];
-        resolve(logs.sort((a, b) => b.timestamp - a.timestamp)); // Sort by newest first
+        
+        // Handle backward compatibility: if consumedAt is missing, use timestamp
+        const processedLogs = logs.map(log => ({
+          ...log,
+          consumedAt: log.consumedAt || log.timestamp
+        }));
+        
+        resolve(processedLogs.sort((a, b) => b.timestamp - a.timestamp)); // Sort by newest first
       };
       request.onerror = () => reject(request.error);
     });
@@ -116,14 +130,16 @@ class CoffeeLogDB {
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
     
-    return this.getLogs(startOfDay.getTime(), endOfDay.getTime());
+    const allLogs = await this.getLogs();
+    return allLogs.filter(log => log.consumedAt >= startOfDay.getTime() && log.consumedAt <= endOfDay.getTime());
   }
 
   // Get logs for the last N days
   async getLogsForLastDays(days: number): Promise<CoffeeLogEntry[]> {
     const endTime = Date.now();
     const startTime = endTime - (days * 24 * 60 * 60 * 1000);
-    return this.getLogs(startTime, endTime);
+    const allLogs = await this.getLogs();
+    return allLogs.filter(log => log.consumedAt >= startTime && log.consumedAt <= endTime);
   }
 
   // Delete a log entry
@@ -164,11 +180,11 @@ class CoffeeLogDB {
     const weekAgo = now - (7 * 24 * 60 * 60 * 1000);
     const monthAgo = now - (30 * 24 * 60 * 60 * 1000);
 
-    const [todayLogs, weekLogs, monthLogs] = await Promise.all([
-      this.getLogs(startOfToday, now),
-      this.getLogs(weekAgo, now),
-      this.getLogs(monthAgo, now)
-    ]);
+    const allLogs = await this.getLogs();
+    
+    const todayLogs = allLogs.filter(log => log.consumedAt >= startOfToday && log.consumedAt <= now);
+    const weekLogs = allLogs.filter(log => log.consumedAt >= weekAgo && log.consumedAt <= now);
+    const monthLogs = allLogs.filter(log => log.consumedAt >= monthAgo && log.consumedAt <= now);
 
     // Calculate statistics
     const totalCaffeineToday = todayLogs.reduce((sum, log) => sum + log.caffeineMg, 0);
@@ -192,7 +208,7 @@ class CoffeeLogDB {
     
     // Find peak consumption hour
     const hourCounts = monthLogs.reduce((acc, log) => {
-      const hour = new Date(log.timestamp).getHours();
+      const hour = new Date(log.consumedAt).getHours();
       acc[hour] = (acc[hour] || 0) + 1;
       return acc;
     }, {} as Record<number, number>);
@@ -200,7 +216,7 @@ class CoffeeLogDB {
     const peakConsumptionHour = Object.entries(hourCounts)
       .sort(([,a], [,b]) => b - a)[0]?.[0] || 9;
     
-    const lastConsumptionTime = monthLogs[0]?.timestamp || 0;
+    const lastConsumptionTime = monthLogs[0]?.consumedAt || 0;
 
     return {
       totalCaffeineToday,

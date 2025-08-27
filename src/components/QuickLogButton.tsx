@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { Badge } from '@/components/ui/badge';
 import { useCoffeeLogs } from '@/hooks/useCoffeeLogs';
 import { usePreferences } from '@/hooks/usePreferences';
@@ -31,13 +29,11 @@ const QuickLogButton = ({
   onLogSuccess,
   showUndoAfterLog = false
 }: QuickLogButtonProps) => {
-  const { quickLog, logs, deleteLog, refreshStats } = useCoffeeLogs();
+  const { quickLog, addLog, logs, deleteLog, refreshStats } = useCoffeeLogs();
   const { servingSize, shots } = usePreferences();
   const [isOpen, setIsOpen] = useState(false);
   const [isLogging, setIsLogging] = useState(false);
-  const [notes, setNotes] = useState('');
-  const [location, setLocation] = useState('');
-  const [mood, setMood] = useState<'great' | 'good' | 'ok' | 'bad'>('good');
+  const [consumedAt, setConsumedAt] = useState<number>(Date.now());
   const [lastLoggedId, setLastLoggedId] = useState<string | null>(null);
   const [showUndo, setShowUndo] = useState(false);
 
@@ -53,7 +49,9 @@ const QuickLogButton = ({
           coffee.name,
           dynamicCaffeine,
           servingSize,
-          shots
+          shots,
+          undefined, // notes
+          consumedAt
         );
         
         if (success) {
@@ -96,14 +94,15 @@ const QuickLogButton = ({
   const handleLogWithDetails = async () => {
     setIsLogging(true);
     try {
-      const success = await quickLog(
-        coffee.id,
-        coffee.name,
-        dynamicCaffeine,
+      const success = await addLog({
+        coffeeId: coffee.id,
+        coffeeName: coffee.name,
+        caffeineMg: dynamicCaffeine,
         servingSize,
         shots,
-        notes
-      );
+        timestamp: Date.now(),
+        consumedAt
+      });
       
       if (success) {
         // Show success toast
@@ -128,9 +127,7 @@ const QuickLogButton = ({
         onLogSuccess?.();
         
         setIsOpen(false);
-        setNotes('');
-        setLocation('');
-        setMood('good');
+        setConsumedAt(Date.now());
       }
     } catch (error) {
       console.error('Failed to log coffee:', error);
@@ -143,15 +140,7 @@ const QuickLogButton = ({
     }
   };
 
-  const getMoodIcon = (mood: string) => {
-    switch (mood) {
-      case 'great': return '😍';
-      case 'good': return '😊';
-      case 'ok': return '😐';
-      case 'bad': return '😞';
-      default: return '😊';
-    }
-  };
+
 
   const handleUndo = async () => {
     if (!lastLoggedId) return;
@@ -200,7 +189,7 @@ const QuickLogButton = ({
           ) : (
             <>
               {/* <span className="mr-2">☕</span> */}
-              Log
+              {showDialog ? 'Log' : 'Log'}
             </>
           )}
         </Button>
@@ -222,112 +211,150 @@ const QuickLogButton = ({
 
 
       {showDialog && (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Log Your Coffee</DialogTitle>
-            </DialogHeader>
-            
-            <div className="space-y-4">
-              {/* Coffee Info */}
-              <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{coffee.name}</h3>
-                    <p className="text-sm text-gray-600">{coffee.description}</p>
-                  </div>
-                  <Badge variant="outline" className="border-amber-200 text-amber-700">
-                    {dynamicCaffeine}mg
-                  </Badge>
-                </div>
-                <div className="mt-2 text-xs text-gray-500">
-                  {servingSize}oz • {shots} shot{shots > 1 ? 's' : ''}
-                </div>
-              </div>
+                 <Dialog open={isOpen} onOpenChange={setIsOpen}>
+           <DialogContent className="w-[95%] max-w-sm mx-auto max-h-[90vh] overflow-y-auto !p-6">
+             <DialogHeader className="pb-3">
+               <DialogTitle className="text-lg">Log {coffee.name}</DialogTitle>
+             </DialogHeader>
+             
+             <div className="space-y-4">
+               {/* Compact Drink Info */}
+               <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
+                 <div className="flex-1">
+                   <div className="flex items-center gap-2">
+                     <span className="font-medium text-gray-900">{coffee.name}</span>
+                     <Badge variant="outline" className="border-amber-200 text-amber-700 text-xs">
+                       {dynamicCaffeine}mg
+                     </Badge>
+                   </div>
+                   <p className="text-xs text-gray-500 mt-1">{servingSize}oz</p>
+                 </div>
+               </div>
 
-              {/* Notes */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Notes (optional)
-                </label>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="How was it? Any special notes?"
-                  className="resize-none"
-                  rows={3}
-                />
-              </div>
+               {/* Time Selection */}
+               <div className="space-y-3">
+                 <div className="grid grid-cols-2 gap-2">
+                   {(() => {
+                     const now = new Date();
+                     const morning = new Date(now);
+                     morning.setHours(8, 0, 0, 0);
+                     const afternoon = new Date(now);
+                     afternoon.setHours(14, 0, 0, 0);
+                     
+                     return [
+                       { label: 'This morning', time: morning.getTime() },
+                       { label: 'This afternoon', time: afternoon.getTime() },
+                       { label: 'Just now', time: now.getTime() },
+                       { label: '1 hour ago', time: now.getTime() - 60 * 60 * 1000 },
+                     ];
+                   })().map((option) => (
+                     <Button
+                       key={option.label}
+                       variant={(() => {
+                         if (option.label === 'Just now') {
+                           return Math.abs(consumedAt - Date.now()) < 60000 ? 'default' : 'outline';
+                         } else if (option.label === '1 hour ago') {
+                           return Math.abs(consumedAt - (Date.now() - 60 * 60 * 1000)) < 60000 ? 'default' : 'outline';
+                         } else {
+                           return consumedAt === option.time ? 'default' : 'outline';
+                         }
+                       })()}
+                       size="sm"
+                       onClick={() => setConsumedAt(option.time)}
+                       className={`h-12 relative ${(() => {
+                         if (option.label === 'Just now') {
+                           return Math.abs(consumedAt - Date.now()) < 60000 ? 'ring-2 ring-amber-500' : '';
+                         } else if (option.label === '1 hour ago') {
+                           return Math.abs(consumedAt - (Date.now() - 60 * 60 * 1000)) < 60000 ? 'ring-2 ring-amber-500' : '';
+                         } else {
+                           return consumedAt === option.time ? 'ring-2 ring-amber-500' : '';
+                         }
+                       })()}`}
+                     >
+                       {option.label}
+                       {(() => {
+                         if (option.label === 'Just now') {
+                           return Math.abs(consumedAt - Date.now()) < 60000;
+                         } else if (option.label === '1 hour ago') {
+                           return Math.abs(consumedAt - (Date.now() - 60 * 60 * 1000)) < 60000;
+                         } else {
+                           return consumedAt === option.time;
+                         }
+                       })() && (
+                         <span className="absolute -top-1 -right-1 bg-amber-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                           ✓
+                         </span>
+                       )}
+                     </Button>
+                   ))}
+                 </div>
+                 
+                 {/* Custom time - only show if needed */}
+                 <div className="border-t pt-3">
+                   <div className="flex gap-2">
+                     <input
+                       type="time"
+                       value={new Date(consumedAt).toLocaleTimeString('en-US', { 
+                         hour12: false, 
+                         hour: '2-digit', 
+                         minute: '2-digit' 
+                       })}
+                       onChange={(e) => {
+                         const [hours, minutes] = e.target.value.split(':');
+                         const customTime = new Date();
+                         customTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                         setConsumedAt(customTime.getTime());
+                       }}
+                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                     />
+                     <input
+                       type="date"
+                       value={new Date(consumedAt).toISOString().split('T')[0]}
+                       onChange={(e) => {
+                         const selectedDate = new Date(e.target.value);
+                         const currentTime = new Date(consumedAt);
+                         selectedDate.setHours(currentTime.getHours(), currentTime.getMinutes(), 0, 0);
+                         setConsumedAt(selectedDate.getTime());
+                       }}
+                       max={new Date().toISOString().split('T')[0]}
+                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                     />
+                   </div>
+                 </div>
+                 
+                 {/* Selected time - compact */}
+                 <p className="text-xs text-gray-500 text-center">
+                   {new Date(consumedAt).toLocaleString()}
+                 </p>
+               </div>
 
-              {/* Location */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Location (optional)
-                </label>
-                <Select value={location} onValueChange={setLocation}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Where did you have it?" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">No location</SelectItem>
-                    <SelectItem value="home">🏠 Home</SelectItem>
-                    <SelectItem value="work">💼 Work</SelectItem>
-                    <SelectItem value="cafe">☕ Cafe</SelectItem>
-                    <SelectItem value="restaurant">🍽️ Restaurant</SelectItem>
-                    <SelectItem value="travel">✈️ Travel</SelectItem>
-                    <SelectItem value="other">📍 Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Mood */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  How did it make you feel?
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {(['great', 'good', 'ok', 'bad'] as const).map((moodOption) => (
-                    <Button
-                      key={moodOption}
-                      variant={mood === moodOption ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setMood(moodOption)}
-                      className="flex flex-col items-center gap-1 h-auto py-3"
-                    >
-                      <span className="text-lg">{getMoodIcon(moodOption)}</span>
-                      <span className="text-xs capitalize">{moodOption}</span>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsOpen(false)}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleLogWithDetails}
-                  disabled={isLogging}
-                  className="flex-1"
-                >
-                  {isLogging ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
-                      Logging...
-                    </>
-                  ) : (
-                    'Log Coffee'
-                  )}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+               {/* Actions */}
+               <div className="flex gap-2 pt-2">
+                 <Button
+                   variant="outline"
+                   onClick={() => setIsOpen(false)}
+                   className="flex-1"
+                 >
+                   Cancel
+                 </Button>
+                 <Button
+                   onClick={handleLogWithDetails}
+                   disabled={isLogging}
+                   className="flex-1"
+                 >
+                   {isLogging ? (
+                     <>
+                       <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
+                       Logging...
+                     </>
+                   ) : (
+                     'Log'
+                   )}
+                 </Button>
+               </div>
+             </div>
+           </DialogContent>
+         </Dialog>
       )}
     </>
   );

@@ -57,7 +57,7 @@ const CaffeineTrackerPage = () => {
   const todayLogs = logs.filter(log => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return log.timestamp >= today.getTime();
+    return log.consumedAt >= today.getTime();
   });
 
   return (
@@ -265,8 +265,8 @@ const CaffeineTrackerPage = () => {
                 ) : (
                   <div className="space-y-4">
                     {todayLogs.map((log, index) => {
-                      const time = new Date(log.timestamp);
-                      const hoursSince = (Date.now() - log.timestamp) / (1000 * 60 * 60);
+                                      const time = new Date(log.consumedAt);
+                const hoursSince = (Date.now() - log.consumedAt) / (1000 * 60 * 60);
                       const remaining = Math.round(log.caffeineMg * Math.pow(0.5, hoursSince / 5));
                       
                       return (

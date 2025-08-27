@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { CoffeeItem } from "@/data/coffees";
 import { TimeOfDay, getTimeOfDay, defaultEnergyForTime } from "@/hooks/useTimeOfDay";
@@ -19,6 +18,7 @@ import { SmartCaffeineTracker } from "@/components/SmartCaffeineTracker";
 import { CaffeineGuidanceBanner } from "@/components/CaffeineGuidanceBanner";
 import { useCaffeineTracker } from "@/hooks/useCaffeineTracker";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Ask = () => {
   const isMobile = useIsMobile();
@@ -50,6 +50,7 @@ const Ask = () => {
   const [refreshCount, setRefreshCount] = useState<number>(0);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [showSmartTracker, setShowSmartTracker] = useState<boolean>(false);
+  const [showCoffeeGuide, setShowCoffeeGuide] = useState<boolean>(false);
   
   // Update local state when preferences change
   const [localBedtime, setLocalBedtime] = useState<string>(bedtime);
@@ -176,6 +177,14 @@ const Ask = () => {
               <div>
                 <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-gray-900">Coffee Police</h1>
                 <p className="text-gray-600 text-sm sm:text-base hidden sm:block">Policing your caffeine intake with time-smart picks</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowCoffeeGuide(true)}
+                  className="mt-3 text-amber-700 hover:text-amber-800 hover:bg-amber-50 text-xs sm:text-sm px-3 py-1.5 h-8"
+                >
+                  📋 Coffee Guide
+                </Button>
               </div>
             </div>
           </div>
@@ -352,13 +361,7 @@ const Ask = () => {
           </div>
         </article>
 
-        <div className="text-center">
-          <Link to="/">
-            <Button variant="outline" className="px-4 sm:px-8 py-2 sm:py-3 text-sm sm:text-lg font-medium border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-300 transition-colors">
-              ← Back to Home
-            </Button>
-          </Link>
-        </div>
+
 
         {/* Coffee Detail Dialog */}
         <CoffeeDetailDialog
@@ -368,6 +371,50 @@ const Ask = () => {
           hoursUntilBed={virtualHoursUntilBed}
           onClose={() => setSelected(null)}
         />
+
+        {/* Coffee Guide Dialog */}
+        <Dialog open={showCoffeeGuide} onOpenChange={setShowCoffeeGuide}>
+          <DialogContent className="w-[95%] max-w-4xl max-h-[90vh] overflow-y-auto !p-6">
+            <DialogHeader className="pb-4">
+              <DialogTitle className="text-xl">Coffee Guide - What's What?</DialogTitle>
+            </DialogHeader>
+            
+                          <div className="space-y-6">
+                <div className="text-center">
+                {/* <p className="text-sm text-gray-600 mb-4">
+                  Click on the image below to see what different coffee drinks look like and their typical caffeine content.
+                </p> */}
+                <div className="relative inline-block">
+                  <img
+                    src="/lovable-uploads/poster.png"
+                    alt="Coffee Guide - Different types of coffee drinks and their content"
+                    className="w-[95%] sm:w-full max-w-2xl rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-300"
+                    onClick={() => {
+                      // Open image in new tab for full view
+                      window.open('/lovable-uploads/poster.png', '_blank');
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300 rounded-lg flex items-center justify-center">
+                    {/* <div className="opacity-0 hover:opacity-100 transition-opacity duration-300 bg-white bg-opacity-90 rounded-full p-3">
+                      <span className="text-gray-700 text-sm font-medium">🔍 Click to enlarge</span>
+                    </div> */}
+                  </div>
+                </div>
+              </div>
+              
+              {/* <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                <h3 className="font-semibold text-amber-800 mb-2">💡 How to use this guide:</h3>
+                <ul className="text-sm text-amber-700 space-y-1">
+                  <li>• <strong>Espresso-based drinks</strong> - Concentrated caffeine, quick energy</li>
+                  <li>• <strong>Milk-based drinks</strong> - Balanced caffeine with creamy texture</li>
+                  <li>• <strong>Brewed coffee</strong> - Traditional coffee with varying strengths</li>
+                  <li>• <strong>Caffeine amounts</strong> shown are typical ranges for standard servings</li>
+                </ul>
+              </div> */}
+            </div>
+          </DialogContent>
+        </Dialog>
       </section>
     </main>
   );

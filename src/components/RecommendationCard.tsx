@@ -100,7 +100,7 @@ const getRecommendationContext = (index: number, coffee: CoffeeItem, verdict: an
   const contexts = [
     {
       title: "Perfect timing",
-      description: `This ${coffee.name.toLowerCase()} will give you the right energy boost for your ${currentTime} activities while ensuring you're ready for bed at ${bedtime}.`,
+      description: `This ${coffee.name.toLowerCase()} will give you the right energy boost for your ${currentTime} activities.`,
       icon: getCoffeeIcon(coffee)
     },
     {
@@ -200,7 +200,7 @@ export const RecommendationCard = ({
               variant="outline" 
               size="sm" 
               className="w-full text-xs sm:text-sm h-8 sm:h-9"
-              showDialog={false}
+              showDialog={true}
               onLogSuccess={onLogSuccess}
               showUndoAfterLog={true}
             />

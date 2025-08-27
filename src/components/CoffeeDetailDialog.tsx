@@ -33,7 +33,7 @@ export const CoffeeDetailDialog = ({
 
   return (
     <Dialog open={!!coffee} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white via-amber-50/30 to-white backdrop-blur-sm border-amber-200 shadow-2xl">
+      <DialogContent className="w-[95%] sm:max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-white via-amber-50/30 to-white backdrop-blur-sm border-amber-200 shadow-2xl">
         {/* Header Section */}
         <DialogHeader className="pb-4 border-b border-amber-100">
           {isMobile ? (
