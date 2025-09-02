@@ -7,7 +7,7 @@ type BedtimeControlProps = {
   onChange: (val: string) => void;
   label?: string;
   autoSave?: boolean; // Whether to automatically save to preferences
-} & Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type">;
+} & Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type" | "autoSave">;
 
 const BedtimeControl = ({ 
   value, 
