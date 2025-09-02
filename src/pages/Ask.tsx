@@ -14,7 +14,7 @@ import RecentLogUndo from "@/components/RecentLogUndo";
 import { RecommendationsSection } from "@/components/RecommendationsSection";
 import { CoffeeBrowseSection } from "@/components/CoffeeBrowseSection";
 import { CoffeeDetailDialog } from "@/components/CoffeeDetailDialog";
-import { SmartCaffeineTracker } from "@/components/SmartCaffeineTracker";
+import EnhancedCaffeineTracker from "@/components/EnhancedCaffeineTracker";
 import { CaffeineGuidanceBanner } from "@/components/CaffeineGuidanceBanner";
 import { useCaffeineTracker } from "@/hooks/useCaffeineTracker";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -302,7 +302,7 @@ const Ask = () => {
             </div>
           
             {showSmartTracker ? (
-              <SmartCaffeineTracker />
+              <EnhancedCaffeineTracker />
             ) : (
               <CaffeineTracker compact={true} />
             )}
