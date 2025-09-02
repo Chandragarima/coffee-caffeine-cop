@@ -115,69 +115,31 @@ export const CoffeeBrowseSection = ({
         <p className="text-sm sm:text-base text-gray-600 hidden sm:block">Discover your perfect brew from our extensive collection</p>
       </div>
 
-      {/* Search and Browse Controls - Mobile-First Design */}
+      {/* Search and Browse Controls - Inline on Desktop */}
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 mb-6 sm:mb-8">
-        {/* Search Bar - Redesigned for Mobile */}
+        {/* Search Bar */}
         <div className="relative flex-1">
-          {/* Mobile Search Bar */}
-          <div className="block lg:hidden">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for your perfect brew..."
-                className="pl-12 pr-12 h-12 text-base bg-white/95 backdrop-blur-xl border-0 focus:border-0 focus:ring-2 focus:ring-amber-400/30 rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl focus:shadow-xl focus:bg-white font-medium placeholder:text-gray-500 placeholder:font-normal"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%)',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                }}
-              />
-              {query && (
-                <button
-                  onClick={() => setQuery("")}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center z-10 group"
-                >
-                  <div className="p-1.5 rounded-full bg-gray-100 group-hover:bg-gray-200 transition-all duration-200">
-                    <svg className="h-3.5 w-3.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </div>
-                </button>
-              )}
-              {/* Subtle glow effect when focused */}
-              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-amber-400/20 to-orange-400/20 opacity-0 focus-within:opacity-100 transition-opacity duration-300 -z-10 blur-sm"></div>
-            </div>
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
           </div>
-          
-          {/* Desktop Search Bar (unchanged) */}
-          <div className="hidden lg:block relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search coffees..."
+            className="pl-12 pr-12 h-12 sm:h-14 text-base sm:text-base bg-white border-2 border-gray-200 focus:border-amber-400 focus:ring-amber-400/20 rounded-2xl shadow-sm transition-all duration-200"
+          />
+          {query && (
+            <button
+              onClick={() => setQuery("")}
+              className="absolute inset-y-0 right-0 pr-4 flex items-center"
+            >
+              <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </div>
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search coffees..."
-              className="pl-12 pr-12 h-12 sm:h-14 text-base sm:text-base bg-white border-2 border-gray-200 focus:border-amber-400 focus:ring-amber-400/20 rounded-2xl shadow-sm transition-all duration-200"
-            />
-            {query && (
-              <button
-                onClick={() => setQuery("")}
-                className="absolute inset-y-0 right-0 pr-4 flex items-center"
-              >
-                <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
+            </button>
+          )}
         </div>
 
         {/* Category Dropdown - Inline on Desktop */}
