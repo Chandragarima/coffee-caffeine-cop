@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SmartCaffeineTracker } from '@/components/SmartCaffeineTracker';
+import EnhancedCaffeineTracker from '@/components/EnhancedCaffeineTracker';
 import { useCoffeeLogs } from '@/hooks/useCoffeeLogs';
 import { useCaffeineTracker } from '@/hooks/useCaffeineTracker';
 import CoffeeLogHistory from '@/components/CoffeeLogHistory';
@@ -96,7 +96,7 @@ const SmartTrackerPage = () => {
             <div className="grid grid-cols-1 xl:grid-cols-4 gap-3 sm:gap-6">
               {/* Main Smart Tracker */}
               <div className="xl:col-span-3">
-                <SmartCaffeineTracker />
+                <EnhancedCaffeineTracker />
               </div>
 
               {/* Side Panel */}
