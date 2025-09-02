@@ -167,7 +167,7 @@ const Ask = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-3 sm:mb-4">
               <div className="relative">
                 <img
-                  src="/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
+                  src="/lovable-uploads/64b50735-018a-49d7-8568-11d380b32163.png"
                   alt="CoffeePolice mascot logo"
                   className="h-16 w-16 sm:h-16 sm:w-16 rounded-xl shadow-lg"
                   loading="lazy"

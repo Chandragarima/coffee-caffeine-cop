@@ -5,7 +5,7 @@ const Index = () => {
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary/10 to-background px-4">
       <section className="text-center px-2 sm:px-6 max-w-2xl animate-enter">
         <img
-          src="/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
+          src="/lovable-uploads/64b50735-018a-49d7-8568-11d380b32163.png"
           alt="CoffeePolice mascot logo"
           className="mx-auto mb-4 sm:mb-5 h-16 w-16 sm:h-24 sm:w-24 rounded-xl shadow-md hover-scale"
           loading="eager"
