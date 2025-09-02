@@ -8,6 +8,8 @@ interface SearchAutoCompleteProps {
   searchQuery: string;
   isVisible: boolean;
   onClose: () => void;
+  typoSuggestion?: string | null;
+  onTypoSelect?: (suggestion: string) => void;
 }
 
 export const SearchAutoComplete = ({ 
@@ -15,7 +17,9 @@ export const SearchAutoComplete = ({
   onSelect, 
   searchQuery, 
   isVisible, 
-  onClose 
+  onClose,
+  typoSuggestion,
+  onTypoSelect
 }: SearchAutoCompleteProps) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -82,13 +86,24 @@ export const SearchAutoComplete = ({
     return colors[category as keyof typeof colors] || "bg-gray-100 text-gray-800";
   };
 
-  if (!isVisible || suggestions.length === 0) return null;
+  if (!isVisible || (suggestions.length === 0 && !typoSuggestion)) return null;
 
   return (
     <div 
       ref={dropdownRef}
       className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-gray-200 rounded-xl shadow-xl z-50 max-h-80 overflow-y-auto"
     >
+      {typoSuggestion && onTypoSelect && (
+        <div 
+          className="p-3 border-b border-gray-200 bg-amber-50/50 cursor-pointer hover:bg-amber-100/50 transition-colors"
+          onClick={() => onTypoSelect(typoSuggestion)}
+        >
+          <div className="text-sm text-gray-600">
+            Did you mean: <span className="text-gray-900 font-medium">{typoSuggestion}</span>?
+          </div>
+        </div>
+      )}
+      
       {suggestions.slice(0, 8).map((coffee, index) => (
         <div
           key={coffee.id}

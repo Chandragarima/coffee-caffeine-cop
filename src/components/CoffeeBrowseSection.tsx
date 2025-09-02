@@ -9,6 +9,7 @@ import { toast } from "@/components/ui/sonner";
 import { ChevronDown } from "lucide-react";
 import { SearchAutoComplete } from "@/components/SearchAutoComplete";
 import { SmartNoResults } from "@/components/SmartNoResults";
+import { fuzzySearch, getTypoSuggestion, type FuzzyMatch } from "@/lib/fuzzySearch";
 
 const categoryLabels: Record<CoffeeCategory, string> = {
   brewed: "Brewed",
@@ -57,8 +58,9 @@ export const CoffeeBrowseSection = ({
       }
       return byCategory(category as CoffeeCategory);
     }
-    
-    return COFFEES.filter((c) => {
+
+    // First try exact and partial matching
+    const exactMatches = COFFEES.filter((c) => {
       const name = c.name.toLowerCase();
       const tags = c.tags?.map(t => t.toLowerCase()) || [];
       
@@ -83,20 +85,70 @@ export const CoffeeBrowseSection = ({
         return hasExactWordMatch || hasPartialMatch;
       });
     });
+
+    // If we have exact/partial matches, return them
+    if (exactMatches.length > 0) {
+      return exactMatches;
+    }
+
+    // Fall back to fuzzy matching for typos
+    const fuzzyMatches = fuzzySearch(
+      COFFEES,
+      q,
+      (coffee) => [
+        coffee.name,
+        ...(coffee.tags || [])
+      ],
+      0.4 // Lower threshold for fuzzy matching
+    );
+
+    return fuzzyMatches.map(match => match.item);
   }, [query]);
 
-  // Auto-complete suggestions (only for name matching)
+  // Auto-complete suggestions with fuzzy matching and typo correction
   const autoCompleteSuggestions = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q || q.length < 2) return [];
     
-    return COFFEES.filter((c) => {
+    // First try exact partial matches
+    const exactMatches = COFFEES.filter((c) => {
       const name = c.name.toLowerCase();
       const tags = c.tags?.map(t => t.toLowerCase()) || [];
       
       return name.includes(q) || tags.some(tag => tag.includes(q));
-    }).slice(0, 8);
+    });
+
+    // If we have enough exact matches, use them
+    if (exactMatches.length >= 3) {
+      return exactMatches.slice(0, 8);
+    }
+
+    // Otherwise, add fuzzy matches
+    const fuzzyMatches = fuzzySearch(
+      COFFEES,
+      q,
+      (coffee) => [coffee.name, ...(coffee.tags || [])],
+      0.5 // Higher threshold for autocomplete
+    );
+
+    // Combine exact and fuzzy matches, removing duplicates
+    const combined = [...exactMatches];
+    const exactIds = new Set(exactMatches.map(c => c.id));
+    
+    fuzzyMatches.forEach(match => {
+      if (!exactIds.has(match.item.id) && combined.length < 8) {
+        combined.push(match.item);
+      }
+    });
+
+    return combined.slice(0, 8);
   }, [query]);
+
+  // Check for typo suggestions
+  const typoSuggestion = useMemo(() => {
+    if (!query.trim() || filtered.length > 0) return null;
+    return getTypoSuggestion(query);
+  }, [query, filtered.length]);
 
   // Handle click outside to close auto-complete
   useEffect(() => {
@@ -190,6 +242,8 @@ export const CoffeeBrowseSection = ({
             searchQuery={query}
             isVisible={showAutoComplete}
             onClose={() => setShowAutoComplete(false)}
+            typoSuggestion={typoSuggestion}
+            onTypoSelect={(suggestion) => setQuery(suggestion)}
           />
         </div>
 
