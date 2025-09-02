@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SmartCaffeineTracker } from '@/components/SmartCaffeineTracker';
+import EnhancedCaffeineTracker from '@/components/EnhancedCaffeineTracker';
 import { useCoffeeLogs } from '@/hooks/useCoffeeLogs';
 import { useCaffeineTracker } from '@/hooks/useCaffeineTracker';
 import CoffeeLogHistory from '@/components/CoffeeLogHistory';
@@ -66,7 +66,7 @@ const SmartTrackerPage = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-3 sm:mb-4">
             <div className="relative">
               <img
-                src="/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
+                src="/lovable-uploads/64b50735-018a-49d7-8568-11d380b32163.png"
                 alt="CoffeePolice mascot logo"
                 className="h-10 w-10 sm:h-14 sm:w-14 rounded-xl shadow-lg"
                 loading="lazy"
@@ -96,7 +96,7 @@ const SmartTrackerPage = () => {
             <div className="grid grid-cols-1 xl:grid-cols-4 gap-3 sm:gap-6">
               {/* Main Smart Tracker */}
               <div className="xl:col-span-3">
-                <SmartCaffeineTracker />
+                <EnhancedCaffeineTracker />
               </div>
 
               {/* Side Panel */}

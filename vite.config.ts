@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icons/*.png', 'icons/*.svg'],
-      manifest: './public/manifest.webmanifest',
+      manifest: false,
       workbox: {
         runtimeCaching: [
           {

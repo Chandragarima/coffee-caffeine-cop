@@ -125,7 +125,7 @@ export const getPreference = <K extends keyof UserPreferences>(
 
 // Validate preference values
 export const validatePreferences = (preferences: Partial<UserPreferences>): boolean => {
-  const validators = {
+  const validators: Record<keyof UserPreferences, (value: any) => boolean> = {
     bedtime: (value: string) => /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value),
     serving_size: (value: number) => [8, 12, 16, 20, 24].includes(value),
     shots: (value: number) => [1, 2, 3].includes(value),
@@ -137,7 +137,8 @@ export const validatePreferences = (preferences: Partial<UserPreferences>): bool
   };
 
   for (const [key, value] of Object.entries(preferences)) {
-    if (key in validators && !validators[key as keyof UserPreferences](value as any)) {
+    const validator = validators[key as keyof UserPreferences];
+    if (validator && !validator(value)) {
       console.warn(`Invalid preference value for ${key}:`, value);
       return false;
     }

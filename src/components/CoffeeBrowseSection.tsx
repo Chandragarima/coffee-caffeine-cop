@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { COFFEES, CoffeeCategory, CoffeeItem, byCategory } from "@/data/coffees";
@@ -7,6 +7,9 @@ import { CoffeeCard } from "@/components/CoffeeCard";
 import { useDynamicCoffee } from "@/hooks/useDynamicCaffeine";
 import { toast } from "@/components/ui/sonner";
 import { ChevronDown } from "lucide-react";
+import { SearchAutoComplete } from "@/components/SearchAutoComplete";
+import { SmartNoResults } from "@/components/SmartNoResults";
+import { fuzzySearch, getTypoSuggestion, type FuzzyMatch } from "@/lib/fuzzySearch";
 
 const categoryLabels: Record<CoffeeCategory, string> = {
   brewed: "Brewed",
@@ -39,6 +42,8 @@ export const CoffeeBrowseSection = ({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showAllItems, setShowAllItems] = useState<boolean>(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const [showAutoComplete, setShowAutoComplete] = useState<boolean>(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -53,42 +58,128 @@ export const CoffeeBrowseSection = ({
       }
       return byCategory(category as CoffeeCategory);
     }
-    
-    return COFFEES.filter((c) => {
+
+    // First try exact and partial matching
+    const exactMatches = COFFEES.filter((c) => {
       const name = c.name.toLowerCase();
-      const description = c.description.toLowerCase();
       const tags = c.tags?.map(t => t.toLowerCase()) || [];
       
       // Split search query into words
       const searchWords = q.split(/\s+/).filter(word => word.length > 0);
       
-      // Check each search word against the item
+      // Check each search word against the item (NAME AND TAGS ONLY)
       return searchWords.some(searchWord => {
         // First check for exact word matches (word boundaries)
         const wordBoundaryRegex = new RegExp(`\\b${searchWord}\\b`, 'i');
         const hasExactWordMatch = (
           wordBoundaryRegex.test(name) ||
-          wordBoundaryRegex.test(description) ||
           tags.some(tag => wordBoundaryRegex.test(tag))
         );
         
         // If no exact word match, check for partial matches (for better UX)
         const hasPartialMatch = (
           name.includes(searchWord) ||
-          description.includes(searchWord) ||
           tags.some(tag => tag.includes(searchWord))
         );
         
         return hasExactWordMatch || hasPartialMatch;
       });
     });
+
+    // If we have exact/partial matches, return them
+    if (exactMatches.length > 0) {
+      return exactMatches;
+    }
+
+    // Fall back to fuzzy matching for typos
+    const fuzzyMatches = fuzzySearch(
+      COFFEES,
+      q,
+      (coffee) => [
+        coffee.name,
+        ...(coffee.tags || [])
+      ],
+      0.4 // Lower threshold for fuzzy matching
+    );
+
+    return fuzzyMatches.map(match => match.item);
   }, [query]);
+
+  // Auto-complete suggestions with fuzzy matching and typo correction
+  const autoCompleteSuggestions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q || q.length < 2) return [];
+    
+    // First try exact partial matches
+    const exactMatches = COFFEES.filter((c) => {
+      const name = c.name.toLowerCase();
+      const tags = c.tags?.map(t => t.toLowerCase()) || [];
+      
+      return name.includes(q) || tags.some(tag => tag.includes(q));
+    });
+
+    // If we have enough exact matches, use them
+    if (exactMatches.length >= 3) {
+      return exactMatches.slice(0, 8);
+    }
+
+    // Otherwise, add fuzzy matches
+    const fuzzyMatches = fuzzySearch(
+      COFFEES,
+      q,
+      (coffee) => [coffee.name, ...(coffee.tags || [])],
+      0.5 // Higher threshold for autocomplete
+    );
+
+    // Combine exact and fuzzy matches, removing duplicates
+    const combined = [...exactMatches];
+    const exactIds = new Set(exactMatches.map(c => c.id));
+    
+    fuzzyMatches.forEach(match => {
+      if (!exactIds.has(match.item.id) && combined.length < 8) {
+        combined.push(match.item);
+      }
+    });
+
+    return combined.slice(0, 8);
+  }, [query]);
+
+  // Check for typo suggestions
+  const typoSuggestion = useMemo(() => {
+    if (!query.trim() || filtered.length > 0) return null;
+    return getTypoSuggestion(query);
+  }, [query, filtered.length]);
+
+  // Handle click outside to close auto-complete
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowAutoComplete(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleCategorySelect = (category: string) => {
     setActiveTab(category);
     setShowAllItems(false);
     setQuery("");
     setIsDropdownOpen(false);
+    setShowAutoComplete(false);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setQuery(value);
+    setShowAutoComplete(value.length >= 2);
+  };
+
+  const handleAutoCompleteSelect = (coffee: CoffeeItem) => {
+    setQuery(coffee.name);
+    setShowAutoComplete(false);
+    onSelect(coffee);
   };
 
   return (
@@ -118,7 +209,7 @@ export const CoffeeBrowseSection = ({
       {/* Search and Browse Controls - Inline on Desktop */}
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 mb-6 sm:mb-8">
         {/* Search Bar */}
-        <div className="relative flex-1">
+        <div ref={searchRef} className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -126,13 +217,17 @@ export const CoffeeBrowseSection = ({
           </div>
           <Input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={handleSearchChange}
+            onFocus={() => query.length >= 2 && setShowAutoComplete(true)}
             placeholder="Search coffees..."
-            className="pl-12 pr-12 h-12 sm:h-14 text-base sm:text-base bg-white border-2 border-gray-200 focus:border-amber-400 focus:ring-amber-400/20 rounded-2xl shadow-sm transition-all duration-200"
+            className="pl-12 pr-12 h-10 sm:h-14 text-base sm:text-base bg-white border-2 border-gray-200 focus:border-amber-400 focus:ring-amber-400/20 rounded-2xl shadow-sm transition-all duration-200"
           />
           {query && (
             <button
-              onClick={() => setQuery("")}
+              onClick={() => {
+                setQuery("");
+                setShowAutoComplete(false);
+              }}
               className="absolute inset-y-0 right-0 pr-4 flex items-center"
             >
               <svg className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,6 +235,16 @@ export const CoffeeBrowseSection = ({
               </svg>
             </button>
           )}
+          
+          <SearchAutoComplete
+            suggestions={autoCompleteSuggestions}
+            onSelect={handleAutoCompleteSelect}
+            searchQuery={query}
+            isVisible={showAutoComplete}
+            onClose={() => setShowAutoComplete(false)}
+            typoSuggestion={typoSuggestion}
+            onTypoSelect={(suggestion) => setQuery(suggestion)}
+          />
         </div>
 
         {/* Category Dropdown - Inline on Desktop */}
@@ -259,11 +364,14 @@ export const CoffeeBrowseSection = ({
               </div>
             )
           ) : (
-            <div className="text-center py-16">
-              <div className="text-6xl mb-4">☕</div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-2">No matches found</h4>
-              <p className="text-gray-500">Try searching for something else</p>
-            </div>
+            <SmartNoResults
+              searchQuery={query}
+              sizeOz={sizeOz}
+              shots={shots}
+              hoursUntilBed={hoursUntilBed}
+              onSelect={onSelect}
+              onLogSuccess={onLogSuccess}
+            />
           )}
           
           {!showAllItems && filtered.length > 12 && (
