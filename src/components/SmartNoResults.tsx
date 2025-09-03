@@ -1,12 +1,10 @@
 import { useMemo } from "react";
 import { CoffeeItem, COFFEES } from "@/data/coffees";
 import { CoffeeCard } from "@/components/CoffeeCard";
-import { SizeOz } from "@/lib/serving";
+
 
 interface SmartNoResultsProps {
   searchQuery: string;
-  sizeOz: SizeOz;
-  shots: 1 | 2 | 3;
   hoursUntilBed: number;
   onSelect: (coffee: CoffeeItem) => void;
   onLogSuccess: () => void;
@@ -14,8 +12,6 @@ interface SmartNoResultsProps {
 
 export const SmartNoResults = ({ 
   searchQuery, 
-  sizeOz, 
-  shots, 
   hoursUntilBed, 
   onSelect, 
   onLogSuccess 
@@ -114,8 +110,6 @@ export const SmartNoResults = ({
             <CoffeeCard
               key={coffee.id}
               coffee={coffee}
-              sizeOz={sizeOz}
-              shots={shots}
               hoursUntilBed={hoursUntilBed}
               onSelect={onSelect}
               onLogSuccess={onLogSuccess}

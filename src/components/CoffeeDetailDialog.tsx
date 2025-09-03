@@ -10,16 +10,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CoffeeDetailDialogProps {
   coffee: CoffeeItem | null;
-  sizeOz: SizeOz;
-  shots: 1 | 2 | 3;
   hoursUntilBed: number;
   onClose: () => void;
 }
 
 export const CoffeeDetailDialog = ({ 
   coffee, 
-  sizeOz, 
-  shots, 
   hoursUntilBed, 
   onClose 
 }: CoffeeDetailDialogProps) => {

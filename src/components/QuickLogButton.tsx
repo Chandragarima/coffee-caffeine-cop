@@ -1,14 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 import { Badge } from '@/components/ui/badge';
 import { useCoffeeLogs } from '@/hooks/useCoffeeLogs';
-import { usePreferences } from '@/hooks/usePreferences';
 import { CoffeeItem } from '@/data/coffees';
-import { adjustedMg } from '@/lib/serving';
 import { toast } from '@/components/ui/sonner';
-import { useDynamicCaffeine } from '@/hooks/useDynamicCaffeine';
 
 interface QuickLogButtonProps {
   coffee: CoffeeItem;
@@ -30,14 +29,81 @@ const QuickLogButton = ({
   showUndoAfterLog = false
 }: QuickLogButtonProps) => {
   const { quickLog, addLog, logs, deleteLog, refreshStats } = useCoffeeLogs();
-  const { servingSize, shots } = usePreferences();
   const [isOpen, setIsOpen] = useState(false);
   const [isLogging, setIsLogging] = useState(false);
   const [consumedAt, setConsumedAt] = useState<number>(Date.now());
   const [lastLoggedId, setLastLoggedId] = useState<string | null>(null);
   const [showUndo, setShowUndo] = useState(false);
 
-  const dynamicCaffeine = useDynamicCaffeine(coffee);
+  // Serving customization state
+  const [selectedSize, setSelectedSize] = useState<number>(
+    coffee.sizeOptions?.[0]?.oz || 8
+  );
+  const [selectedShots, setSelectedShots] = useState<number>(
+    coffee.shotOptions?.[0]?.shots || 1
+  );
+  const [selectedTeaspoons, setSelectedTeaspoons] = useState<number>(
+    coffee.teaspoonOptions?.[0]?.teaspoons || 1
+  );
+
+  // Calculate current caffeine based on selections
+  const getCurrentCaffeine = (): number => {
+    switch (coffee.scalingType) {
+      case 'size_only':
+        const sizeOption = coffee.sizeOptions?.find(option => option.oz === selectedSize);
+        return sizeOption?.caffeine || coffee.caffeineMg;
+      case 'shots_only':
+        const shotOption = coffee.shotOptions?.find(option => option.shots === selectedShots);
+        return shotOption?.caffeine || coffee.caffeineMg;
+      case 'both_size_shots':
+        // For drinks with both size and shots, use the exact values from sizeAndShotOptions
+        if (coffee.sizeAndShotOptions) {
+          const sizeAndShotOption = coffee.sizeAndShotOptions.find(option => option.oz === selectedSize);
+          if (sizeAndShotOption) {
+            // Use the exact baseCaffeine value from sizeAndShotOptions
+            return sizeAndShotOption.baseCaffeine;
+          }
+        }
+        // Fallback to old logic if sizeAndShotOptions not available
+        const sizeOption2 = coffee.sizeOptions?.find(option => option.oz === selectedSize);
+        return sizeOption2?.caffeine || coffee.caffeineMg;
+      case 'teaspoon':
+        const teaspoonOption = coffee.teaspoonOptions?.find(option => option.teaspoons === selectedTeaspoons);
+        return teaspoonOption?.caffeine || coffee.caffeineMg;
+      case 'fixed_size':
+      default:
+        return coffee.caffeineMg;
+    }
+  };
+
+  // Set defaults when coffee changes
+  useEffect(() => {
+    if (coffee.sizeOptions && coffee.sizeOptions.length > 0) {
+      setSelectedSize(coffee.sizeOptions[0].oz);
+    }
+    if (coffee.shotOptions && coffee.shotOptions.length > 0) {
+      setSelectedShots(coffee.shotOptions[0].shots);
+    }
+    if (coffee.teaspoonOptions && coffee.teaspoonOptions.length > 0) {
+      setSelectedTeaspoons(coffee.teaspoonOptions[0].teaspoons);
+    }
+  }, [coffee]);
+
+  // Auto-update shots when size changes for both_size_shots drinks
+  useEffect(() => {
+    if (coffee.scalingType === 'both_size_shots' && coffee.sizeAndShotOptions) {
+      // Find the selected size option
+      const selectedSizeOption = coffee.sizeAndShotOptions.find(option => option.oz === selectedSize);
+      
+      if (selectedSizeOption) {
+        // Automatically update shots to match the size selection
+        setSelectedShots(selectedSizeOption.defaultShots);
+      }
+    }
+  }, [selectedSize, coffee]);
+
+  // Calculate current caffeine based on selections - automatically recalculates when selections change
+  const currentCaffeine = useMemo(() => getCurrentCaffeine(), [selectedSize, selectedShots, selectedTeaspoons, coffee]);
 
   const handleQuickLog = async () => {
     if (!showDialog) {
@@ -47,9 +113,9 @@ const QuickLogButton = ({
         const success = await quickLog(
           coffee.id,
           coffee.name,
-          dynamicCaffeine,
-          servingSize,
-          shots,
+          currentCaffeine,
+          selectedSize,
+          selectedShots as 1 | 2 | 3,
           undefined, // notes
           consumedAt
         );
@@ -57,7 +123,7 @@ const QuickLogButton = ({
         if (success) {
           // Show success toast
           toast.success(`${coffee.name} logged!`, {
-            description: `+${dynamicCaffeine}mg caffeine added to your daily intake`,
+            description: `+${currentCaffeine}mg caffeine added to your daily intake`,
             duration: 4000,
           });
           
@@ -94,20 +160,20 @@ const QuickLogButton = ({
   const handleLogWithDetails = async () => {
     setIsLogging(true);
     try {
-      const success = await addLog({
-        coffeeId: coffee.id,
-        coffeeName: coffee.name,
-        caffeineMg: dynamicCaffeine,
-        servingSize,
-        shots,
-        timestamp: Date.now(),
-        consumedAt
-      });
+              const success = await addLog({
+          coffeeId: coffee.id,
+          coffeeName: coffee.name,
+          caffeineMg: currentCaffeine,
+          servingSize: selectedSize,
+          shots: selectedShots as 1 | 2 | 3,
+          timestamp: Date.now(),
+          consumedAt
+        });
       
       if (success) {
         // Show success toast
         toast.success(`${coffee.name} logged!`, {
-          description: `+${dynamicCaffeine}mg caffeine added to your daily intake`,
+          description: `+${currentCaffeine }mg caffeine added to your daily intake`,
           duration: 4000,
         });
         
@@ -219,17 +285,120 @@ const QuickLogButton = ({
              
              <div className="space-y-4">
                {/* Compact Drink Info */}
-               <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
+               {/* <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
                  <div className="flex-1">
                    <div className="flex items-center gap-2">
                      <span className="font-medium text-gray-900">{coffee.name}</span>
                      <Badge variant="outline" className="border-amber-200 text-amber-700 text-xs">
-                       {dynamicCaffeine}mg
+                       {currentCaffeine}mg
                      </Badge>
                    </div>
-                   <p className="text-xs text-gray-500 mt-1">{servingSize}oz</p>
+                   <p className="text-xs text-gray-500 mt-1">
+                     {coffee.scalingType === 'teaspoon' ? `${selectedTeaspoons} tsp` : `${selectedSize}oz`}
+                                            {coffee.scalingType === 'shots_only' || coffee.scalingType === 'both_size_shots' ? `, ${selectedShots} shot${Number(selectedShots) > 1 ? 's' : ''}` : ''}
+                   </p>
                  </div>
-               </div>
+               </div> */}
+
+               {/* Serving Customization Controls */}
+               {coffee.scalingType !== 'fixed_size' && (
+                 <div className="space-y-3 p-3 bg-amber-50 rounded-lg border border-gray-200">
+                   <h4 className="text-sm font-medium text-gray-700">Customize Serving</h4>
+                   
+                   {/* Size Controls - Always separate from shots */}
+                   {(coffee.scalingType === 'size_only' || coffee.scalingType === 'both_size_shots') && coffee.sizeOptions && (
+                     <div className="space-y-2">
+                       <Label className="text-xs text-gray-600">Serving Size</Label>
+                       <Select value={selectedSize.toString()} onValueChange={(value) => setSelectedSize(parseInt(value))}>
+                         <SelectTrigger className="h-8 text-sm">
+                           <SelectValue />
+                         </SelectTrigger>
+                         <SelectContent>
+                           {coffee.sizeOptions.map((option) => (
+                             <SelectItem key={option.oz} value={option.oz.toString()}>
+                               {option.size} ({option.oz}oz) - {option.caffeine}mg
+                             </SelectItem>
+                           ))}
+                         </SelectContent>
+                       </Select>
+                     </div>
+                   )}
+
+                   {/* Shot Controls - Always separate from size */}
+                   {(coffee.scalingType === 'shots_only' || coffee.scalingType === 'both_size_shots') && coffee.shotOptions && (
+                     <div className="space-y-2">
+                       <div className="flex items-center justify-between">
+                         <Label className="text-xs text-gray-600">Number of Shots</Label>
+                         {coffee.scalingType === 'both_size_shots' && (
+                           <span className="text-xs text-amber-600 bg-amber-100 px-2 py-1 rounded">
+                             Auto-updated
+                           </span>
+                         )}
+                       </div>
+                       <Select value={selectedShots.toString()} onValueChange={(value) => setSelectedShots(parseInt(value))}>
+                         <SelectTrigger className="h-8 text-sm">
+                           <SelectValue />
+                         </SelectTrigger>
+                         <SelectContent>
+                           {coffee.shotOptions
+                             .filter((option) => option.shots <= 4) // Limit to maximum 4 shots
+                             .map((option) => {
+                               // Use the exact values from sizeAndShotOptions for both_size_shots drinks
+                               let dynamicCaffeine = option.caffeine;
+                               if (coffee.scalingType === 'both_size_shots' && coffee.sizeAndShotOptions) {
+                                 const sizeOption = coffee.sizeAndShotOptions.find(s => s.oz === selectedSize);
+                                 if (sizeOption) {
+                                   // Use the exact baseCaffeine value from sizeAndShotOptions
+                                   dynamicCaffeine = sizeOption.baseCaffeine;
+                                 }
+                               }
+                               
+                               return (
+                                 <SelectItem key={option.shots} value={option.shots.toString()}>
+                                   {option.shots} shot{option.shots > 1 ? 's' : ''} ({dynamicCaffeine}mg)
+                                 </SelectItem>
+                               );
+                             })}
+                         </SelectContent>
+                       </Select>
+                       {coffee.scalingType === 'both_size_shots' && (
+                         <p className="text-xs text-gray-500">
+                           Shots automatically update based on serving size selection
+                         </p>
+                       )}
+                     </div>
+                   )}
+
+                   {/* Teaspoon Controls */}
+                   {coffee.scalingType === 'teaspoon' && coffee.teaspoonOptions && (
+                     <div className="space-y-2">
+                       <Label className="text-xs text-gray-600">Teaspoons</Label>
+                       <Select value={selectedTeaspoons.toString()} onValueChange={(value) => setSelectedTeaspoons(parseInt(value))}>
+                         <SelectTrigger className="h-8 text-sm">
+                           <SelectValue />
+                         </SelectTrigger>
+                         <SelectContent>
+                           {coffee.teaspoonOptions
+                             .filter((option) => option.teaspoons > 0) // Remove 0tsp option
+                             .map((option) => (
+                               <SelectItem key={option.teaspoons} value={option.teaspoons.toString()}>
+                                 {option.teaspoons} tsp ({option.caffeine}mg)
+                               </SelectItem>
+                             ))}
+                         </SelectContent>
+                       </Select>
+                     </div>
+                   )}
+
+                   {/* Updated Caffeine Display */}
+                   <div className="pt-2 border-t border-gray-200">
+                     <div className="flex items-center justify-between">
+                       <span className="text-xs text-gray-600">Total Caffeine:</span>
+                       <span className="text-sm font-semibold text-blue-600">{currentCaffeine}mg</span>
+                     </div>
+                   </div>
+                 </div>
+               )}
 
                {/* Time Selection */}
                <div className="space-y-3">

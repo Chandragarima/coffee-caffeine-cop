@@ -13,6 +13,7 @@ const CoffeeIcon = ({ iconId, className = "" }: { iconId: string, className?: st
     // 'strong-coffee': { svg: '/icons/strong-coffee.svg', emoji: '☕' },
     'brewed': { svg: '/icons/brewed.svg', emoji: '☕' },
     'milk': { svg: '/icons/milk-based.svg', emoji: '🥛' },
+    'instant': { svg: '/icons/brewed.svg', emoji: '☕' },
     'tea': { svg: '/icons/tea.svg', emoji: '🫖' },
     'iced': { svg: '/icons/iced.svg', emoji: '🧊' },
     'specialty': { svg: '/icons/speciality.svg', emoji: '✨' },
@@ -47,8 +48,6 @@ const CoffeeIcon = ({ iconId, className = "" }: { iconId: string, className?: st
 
 interface RecommendationCardProps {
   coffee: CoffeeItem;
-  sizeOz: SizeOz;
-  shots: 1 | 2 | 3;
   hoursUntilBed: number;
   bedtime: string;
   currentTime: TimeOfDay;
@@ -67,6 +66,7 @@ const getCoffeeIcon = (coffee: CoffeeItem): string => {
   switch (category) {
     case 'espresso': categoryIcon = 'espresso'; break;
     case 'milk': categoryIcon = 'milk'; break;
+    case 'instant': categoryIcon = 'instant'; break;
     case 'tea': categoryIcon = 'tea'; break;
     case 'cold': categoryIcon = 'iced'; break;
     case 'specialty': categoryIcon = 'specialty'; break;
@@ -119,8 +119,6 @@ const getRecommendationContext = (index: number, coffee: CoffeeItem, verdict: an
 
 export const RecommendationCard = ({ 
   coffee, 
-  sizeOz, 
-  shots, 
   hoursUntilBed, 
   bedtime,
   currentTime,
@@ -128,7 +126,7 @@ export const RecommendationCard = ({
   onSelect, 
   onLogSuccess 
 }: RecommendationCardProps) => {
-  const mgAdj = adjustedMg(coffee, sizeOz, shots);
+  const mgAdj = coffee.caffeineMg;
   const v = getSleepVerdict(mgAdj, hoursUntilBed, HALF_LIFE_HOURS);
   const context = getRecommendationContext(index, coffee, v, currentTime, bedtime);
 

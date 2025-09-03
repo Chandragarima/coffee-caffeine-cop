@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { COFFEES, CoffeeCategory, CoffeeItem, byCategory } from "@/data/coffees";
-import { SizeOz } from "@/lib/serving";
+
 import { CoffeeCard } from "@/components/CoffeeCard";
 import { useDynamicCoffee } from "@/hooks/useDynamicCaffeine";
 import { toast } from "@/components/ui/sonner";
@@ -15,6 +15,7 @@ const categoryLabels: Record<CoffeeCategory, string> = {
   brewed: "Brewed",
   espresso: "Espresso-Based",
   milk: "Milk-Based", 
+  instant: "Instant Coffee",
   cold: "Iced",
   tea: "Tea",
   specialty: "Specialty",
@@ -23,16 +24,12 @@ const categoryLabels: Record<CoffeeCategory, string> = {
 };
 
 interface CoffeeBrowseSectionProps {
-  sizeOz: SizeOz;
-  shots: 1 | 2 | 3;
   hoursUntilBed: number;
   onSelect: (coffee: CoffeeItem) => void;
   onLogSuccess: () => void;
 }
 
 export const CoffeeBrowseSection = ({ 
-  sizeOz, 
-  shots, 
   hoursUntilBed,
   onSelect, 
   onLogSuccess 
@@ -188,7 +185,7 @@ export const CoffeeBrowseSection = ({
       <div className="mb-6 sm:mb-8">
         <div className="flex items-center justify-between mb-3 sm:mb-2">
           <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Browse all drinks</h3>
-          <button
+          {/* <button
             onClick={() => {
               toast.info("Serving Size & Shot Preferences", {
                 description: "Some drinks (like Single Espresso, Ristretto, Cortado) have fixed sizes and caffeine amounts that don't change with your preferences. This is because these drinks are typically served in standard sizes at coffee shops.",
@@ -201,7 +198,7 @@ export const CoffeeBrowseSection = ({
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-          </button>
+          </button> */}
         </div>
         <p className="text-sm sm:text-base text-gray-600 hidden sm:block">Discover your perfect brew from our extensive collection</p>
       </div>
@@ -253,8 +250,10 @@ export const CoffeeBrowseSection = ({
           <div className="relative">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-full flex items-center justify-between pl-12 pr-12 h-12 sm:h-14 bg-white border-2 border-gray-200 rounded-2xl text-left hover:border-gray-300 transition-all duration-200 shadow-sm"
+              className="w-full flex items-center justify-between text-base sm:text-base pl-12 pr-12 h-10 sm:h-14 bg-white border-2 border-gray-200 rounded-2xl text-left hover:border-gray-300 transition-all duration-200 shadow-sm"
             >
+                          {/* className="pl-12 pr-12 h-10 sm:h-14 text-base sm:text-base bg-white border-2 border-gray-200 focus:border-amber-400 focus:ring-amber-400/20 rounded-2xl shadow-sm transition-all duration-200" */}
+
               <span className="text-base font-medium text-gray-900">
                 {activeTab === "all" ? "All Categories" : categoryLabels[activeTab as CoffeeCategory]}
               </span>
@@ -338,8 +337,6 @@ export const CoffeeBrowseSection = ({
                   <CoffeeCard
                     key={coffee.id}
                     coffee={coffee}
-                    sizeOz={sizeOz}
-                    shots={shots}
                     hoursUntilBed={hoursUntilBed}
                     onSelect={onSelect}
                     onLogSuccess={onLogSuccess}
@@ -353,8 +350,6 @@ export const CoffeeBrowseSection = ({
                   <CoffeeCard
                     key={coffee.id}
                     coffee={coffee}
-                    sizeOz={sizeOz}
-                    shots={shots}
                     hoursUntilBed={hoursUntilBed}
                     onSelect={onSelect}
                     onLogSuccess={onLogSuccess}
@@ -366,8 +361,6 @@ export const CoffeeBrowseSection = ({
           ) : (
             <SmartNoResults
               searchQuery={query}
-              sizeOz={sizeOz}
-              shots={shots}
               hoursUntilBed={hoursUntilBed}
               onSelect={onSelect}
               onLogSuccess={onLogSuccess}
@@ -442,8 +435,6 @@ export const CoffeeBrowseSection = ({
                   <CoffeeCard
                     key={coffee.id}
                     coffee={coffee}
-                    sizeOz={sizeOz}
-                    shots={shots}
                     hoursUntilBed={hoursUntilBed}
                     onSelect={onSelect}
                     onLogSuccess={onLogSuccess}
@@ -452,22 +443,20 @@ export const CoffeeBrowseSection = ({
                 ))}
             </div>
           ) : (
-            <div className="space-y-2 sm:space-y-4">
-              {(activeTab === "all" ? COFFEES : byCategory(activeTab as CoffeeCategory))
-                .slice(0, 12)
-                .map(coffee => (
-                  <CoffeeCard
-                    key={coffee.id}
-                    coffee={coffee}
-                    sizeOz={sizeOz}
-                    shots={shots}
-                    hoursUntilBed={hoursUntilBed}
-                    onSelect={onSelect}
-                    onLogSuccess={onLogSuccess}
-                    viewMode="list"
-                  />
-                ))}
-            </div>
+                         <div className="space-y-2 sm:space-y-4">
+               {(activeTab === "all" ? COFFEES : byCategory(activeTab as CoffeeCategory))
+                 .slice(0, 12)
+                 .map(coffee => (
+                   <CoffeeCard
+                     key={coffee.id}
+                     coffee={coffee}
+                     hoursUntilBed={hoursUntilBed}
+                     onSelect={onSelect}
+                     onLogSuccess={onLogSuccess}
+                     viewMode="list"
+                   />
+                 ))}
+             </div>
           )}
 
           {(activeTab === "all" ? COFFEES : byCategory(activeTab as CoffeeCategory)).length > 12 && (

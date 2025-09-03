@@ -12,8 +12,6 @@ interface RecommendationsSectionProps {
   currentEnergy: EnergyLevel;
   hoursUntilBed: number;
   bedtime: string;
-  sizeOz: SizeOz;
-  shots: 1 | 2 | 3;
   refreshCount: number;
   isRefreshing: boolean;
   onRefresh: () => void;
@@ -26,8 +24,6 @@ export const RecommendationsSection = ({
   currentEnergy,
   hoursUntilBed,
   bedtime,
-  sizeOz,
-  shots,
   refreshCount,
   isRefreshing,
   onRefresh,
@@ -35,8 +31,8 @@ export const RecommendationsSection = ({
   onLogSuccess
 }: RecommendationsSectionProps) => {
   const best = useMemo(() => 
-    bestPicksForTime(currentTime, currentEnergy, hoursUntilBed, HALF_LIFE_HOURS, sizeOz, shots), 
-    [currentTime, currentEnergy, hoursUntilBed, sizeOz, shots, refreshCount]
+    bestPicksForTime(currentTime, currentEnergy, hoursUntilBed, HALF_LIFE_HOURS), 
+    [currentTime, currentEnergy, hoursUntilBed, refreshCount]
   );
 
   // Sleep Warning Logic
@@ -44,7 +40,7 @@ export const RecommendationsSection = ({
   const decaf = COFFEES.find((c) => c.id === "decaf_coffee");
   const herbal = COFFEES.find((c) => c.id === "herbal_tea");
   const coldBrew = COFFEES.find((c) => c.id === "cold_brew");
-  const remainingCold = coldBrew ? Math.round(caffeineRemaining(adjustedMg(coldBrew, sizeOz, shots), hoursUntilBed, HALF_LIFE_HOURS)) : undefined;
+  const remainingCold = coldBrew ? Math.round(caffeineRemaining(coldBrew.caffeineMg, hoursUntilBed, HALF_LIFE_HOURS)) : undefined;
 
   return (
     <div className="mb-4 sm:mb-8">
@@ -154,8 +150,6 @@ export const RecommendationsSection = ({
           <RecommendationCard
             key={coffee.id}
             coffee={coffee}
-            sizeOz={sizeOz}
-            shots={shots}
             hoursUntilBed={hoursUntilBed}
             bedtime={bedtime}
             currentTime={currentTime}

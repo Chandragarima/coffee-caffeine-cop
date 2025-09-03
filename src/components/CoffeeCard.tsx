@@ -1,15 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { CoffeeItem, HALF_LIFE_HOURS } from "@/data/coffees";
 import { getSleepVerdict } from "@/lib/sleepVerdict";
-import { adjustedMg, SizeOz } from "@/lib/serving";
 import { caffeineRemaining } from "@/lib/caffeine";
 import QuickLogButton from "@/components/QuickLogButton";
-import { useDynamicCaffeine } from "@/hooks/useDynamicCaffeine";
 
 interface CoffeeCardProps {
   coffee: CoffeeItem;
-  sizeOz: SizeOz;
-  shots: 1 | 2 | 3;
   hoursUntilBed: number;
   onSelect: (coffee: CoffeeItem) => void;
   onLogSuccess: () => void;
@@ -18,15 +14,17 @@ interface CoffeeCardProps {
 
 export const CoffeeCard = ({ 
   coffee, 
-  sizeOz, 
-  shots, 
   hoursUntilBed, 
   onSelect, 
   onLogSuccess,
   viewMode = 'grid'
 }: CoffeeCardProps) => {
-  const dynamicCaffeine = useDynamicCaffeine(coffee);
-  const v = getSleepVerdict(dynamicCaffeine, hoursUntilBed, HALF_LIFE_HOURS);
+  // Get the default caffeine value (smallest size)
+  const defaultCaffeine = coffee.defaultSize ? 
+    (coffee.sizeOptions?.[coffee.defaultSize] || coffee.caffeineMg) : 
+    coffee.caffeineMg;
+  
+  const v = getSleepVerdict(defaultCaffeine, hoursUntilBed, HALF_LIFE_HOURS);
 
   if (viewMode === 'list') {
     return (
@@ -64,7 +62,7 @@ export const CoffeeCard = ({
               {/* Bottom row with caffeine and button */}
               <div className="flex items-center justify-between">
                 <span className="text-xs sm:text-sm font-medium text-blue-600 bg-blue-50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md">
-                  {dynamicCaffeine}mg
+                  {defaultCaffeine}mg
                 </span>
                 <div onClick={(e) => e.stopPropagation()}>
                   <QuickLogButton 
@@ -118,7 +116,7 @@ export const CoffeeCard = ({
         {/* Caffeine amount - standalone */}
         <div className="mb-2 sm:mb-4">
           <span className="text-xs sm:text-sm font-medium text-blue-600 bg-blue-50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md">
-            {dynamicCaffeine}mg
+            {defaultCaffeine}mg
           </span>
         </div>
         
