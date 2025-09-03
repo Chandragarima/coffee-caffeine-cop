@@ -142,13 +142,22 @@ All colors MUST be HSL.
 
 @layer utilities {
   /* Enhanced Interactive Elements */
-  .hover-scale { @apply transition-all duration-300 ease-[var(--ease-spring)] hover:scale-105 hover:shadow-[var(--shadow-medium)]; }
-  .hover-lift { @apply transition-all duration-300 ease-[var(--ease-smooth)] hover:-translate-y-1 hover:shadow-[var(--shadow-medium)]; }
+  .hover-scale { 
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-[var(--shadow-medium)]; 
+    transition-timing-function: var(--ease-spring);
+  }
+  .hover-lift { 
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-medium)]; 
+    transition-timing-function: var(--ease-smooth);
+  }
   .hover-glow { @apply transition-all duration-300 hover:shadow-[var(--shadow-glow)]; }
   
   /* Advanced Cards */
   .card-elevated { @apply bg-[var(--gradient-card)] shadow-[var(--shadow-soft)] border border-[hsl(var(--border))] backdrop-blur-sm; }
-  .card-interactive { @apply hover:shadow-[var(--shadow-medium)] hover:-translate-y-1 transition-all duration-300 ease-[var(--ease-smooth)] cursor-pointer; }
+  .card-interactive { 
+    @apply hover:shadow-[var(--shadow-medium)] hover:-translate-y-1 transition-all duration-300 cursor-pointer; 
+    transition-timing-function: var(--ease-smooth);
+  }
   .card-glow { @apply shadow-[var(--shadow-glow)] border-[hsl(var(--coffee-accent)_/_0.3)]; }
 
   /* Gradient Backgrounds */
