@@ -150,7 +150,7 @@ const Ask = () => {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-subtle">
+    <main className="min-h-screen bg-background">
       <section className="px-4 sm:px-6 py-6 sm:py-8 max-w-6xl mx-auto">
         <header className="mb-4 sm:mb-8 text-center">
           <div className="relative">
@@ -161,7 +161,7 @@ const Ask = () => {
                   <Button
                     onClick={handleInstallClick}
                     size="sm"
-                    variant="coffee"
+                    variant="outline"
                     className="text-xs px-3 py-1.5 h-8"
                   >
                     📱 Install
@@ -172,17 +172,14 @@ const Ask = () => {
             </div>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 mb-4 sm:mb-6">
-              <div className="relative animate-float">
-                <img
-                  src="/lovable-uploads/64b50735-018a-49d7-8568-11d380b32163.png"
-                  alt="CoffeePolice mascot logo"
-                  className="h-18 w-18 sm:h-20 sm:w-20 rounded-2xl shadow-[var(--shadow-medium)] hover:shadow-[var(--shadow-glow)] transition-all duration-500"
-                  loading="lazy"
-                />
-                <div className="absolute -inset-2 bg-gradient-primary rounded-2xl blur-lg opacity-30"></div>
-              </div>
+              <img
+                src="/lovable-uploads/64b50735-018a-49d7-8568-11d380b32163.png"
+                alt="CoffeePolice mascot logo"
+                className="h-18 w-18 sm:h-20 sm:w-20 rounded-2xl shadow-md"
+                loading="lazy"
+              />
               <div className="text-center sm:text-left">
-                <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-gradient mb-2">Coffee Police</h1>
+                <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground mb-2">Coffee Police</h1>
                 <p className="text-muted-foreground text-sm sm:text-lg font-medium hidden sm:block">Policing your caffeine intake with time-smart picks</p>
                 <Button
                   variant="ghost"
@@ -199,11 +196,11 @@ const Ask = () => {
 
                                    {/* Preferences Section - Always Visible */}
           <section className="mb-6 sm:mb-10">
-            <div className="card-elevated rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-medium)] hover:shadow-[var(--shadow-strong)] transition-all duration-500">
+            <div className="bg-card rounded-lg border p-6 sm:p-8">
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                                  <div>
-                   <h2 className="text-base sm:text-lg font-semibold text-gray-900">Smart Preferences</h2>
-                   <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">No caffeine 8+ hours before bedtime ensures sound sleep.</p>
+                   <h2 className="text-base sm:text-lg font-semibold text-foreground">Smart Preferences</h2>
+                   <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">No caffeine 8+ hours before bedtime ensures sound sleep.</p>
                  </div>
             <Button 
               variant="ghost" 
@@ -289,11 +286,11 @@ const Ask = () => {
 
         {/* Enhanced Caffeine Tracking Section */}
         <section className="mb-10">
-          <div className="card-elevated rounded-3xl p-6 sm:p-8 shadow-[var(--shadow-medium)] hover:shadow-[var(--shadow-strong)] transition-all duration-500">
+          <div className="bg-card rounded-lg border p-6 sm:p-8">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">Caffeine Tracking</h3>
-                <p className="hidden sm:block text-sm text-gray-600">Monitor your daily caffeine intake and sleep impact</p>
+                <h3 className="text-lg font-semibold text-foreground mb-1">Caffeine Tracking</h3>
+                <p className="hidden sm:block text-sm text-muted-foreground">Monitor your daily caffeine intake and sleep impact</p>
               </div>
               <Button
                 variant="ghost"
@@ -326,9 +323,7 @@ const Ask = () => {
 
                                    {/* Coffee Recommendations & Browse Section */}
           <article className="mb-16">
-            <div className="relative mb-12">
-              <div className="absolute inset-0 bg-gradient-to-r from-amber-100/30 via-transparent to-orange-100/30 rounded-3xl blur-3xl"></div>
-              <div className="relative card-elevated rounded-4xl p-8 sm:p-10 shadow-[var(--shadow-strong)] hover:shadow-[var(--shadow-glow)] transition-all duration-700">
+            <div className="bg-card rounded-lg border p-8 sm:p-10">
               
                             {/* Caffeine Guidance Warning */}
               {/* {caffeineStatus && (
@@ -363,9 +358,7 @@ const Ask = () => {
                 onSelect={setSelected}
                 onLogSuccess={refreshStats}
               />
-              
-             </div>
-          </div>
+            </div>
         </article>
 
 
