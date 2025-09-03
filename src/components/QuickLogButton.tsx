@@ -211,170 +211,150 @@ const QuickLogButton = ({
 
 
       {showDialog && (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogContent className="w-[95%] max-w-md mx-auto p-0 gap-0 overflow-hidden">
-            <DialogHeader className="p-6 pb-4 bg-gradient-to-r from-primary/5 to-primary/10">
-              <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-                <span className="text-2xl">☕</span>
-                Log {coffee.name}
-              </DialogTitle>
-            </DialogHeader>
-            
-            <div className="p-6 space-y-6">
-              {/* Coffee Info Card */}
-              <div className="p-4 bg-card rounded-xl border border-border/50 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground text-lg">{coffee.name}</h3>
-                    <div className="flex items-center gap-3 mt-2">
-                      <Badge variant="secondary" className="bg-primary/10 text-primary font-medium">
-                        {dynamicCaffeine}mg caffeine
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">{servingSize}oz serving</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                 <Dialog open={isOpen} onOpenChange={setIsOpen}>
+           <DialogContent className="w-[95%] max-w-sm mx-auto max-h-[90vh] overflow-y-auto !p-6">
+             <DialogHeader className="pb-3">
+               <DialogTitle className="text-lg">Log {coffee.name}</DialogTitle>
+             </DialogHeader>
+             
+             <div className="space-y-4">
+               {/* Compact Drink Info */}
+               <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
+                 <div className="flex-1">
+                   <div className="flex items-center gap-2">
+                     <span className="font-medium text-gray-900">{coffee.name}</span>
+                     <Badge variant="outline" className="border-amber-200 text-amber-700 text-xs">
+                       {dynamicCaffeine}mg
+                     </Badge>
+                   </div>
+                   <p className="text-xs text-gray-500 mt-1">{servingSize}oz</p>
+                 </div>
+               </div>
 
-              {/* Time Selection */}
-              <div className="space-y-4">
-                <h4 className="font-medium text-foreground">When did you have this?</h4>
-                
-                {/* Quick Time Options */}
-                <div className="grid grid-cols-2 gap-3">
-                  {(() => {
-                    const now = new Date();
-                    const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-                    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
-                    const morning = new Date(now);
-                    morning.setHours(8, 0, 0, 0);
-                    
-                    return [
-                      { label: 'Just now', time: now.getTime(), icon: '⚡' },
-                      { label: '1 hour ago', time: hourAgo.getTime(), icon: '🕐' },
-                      { label: '2 hours ago', time: twoHoursAgo.getTime(), icon: '🕑' },
-                      { label: 'This morning', time: morning.getTime(), icon: '🌅' },
-                    ];
-                  })().map((option) => {
-                    const isSelected = Math.abs(consumedAt - option.time) < 60000;
-                    return (
-                      <Button
-                        key={option.label}
-                        variant={isSelected ? 'default' : 'outline'}
-                        size="lg"
-                        onClick={() => setConsumedAt(option.time)}
-                        className={`h-16 flex-col gap-1 text-xs font-medium transition-all ${
-                          isSelected ? 'ring-2 ring-primary/20 scale-[1.02]' : 'hover:scale-[1.01]'
-                        }`}
-                      >
-                        <span className="text-lg">{option.icon}</span>
-                        {option.label}
-                      </Button>
-                    );
-                  })}
-                </div>
-                
-                {/* Custom Time Picker */}
-                <div className="space-y-3">
-                  <div className="text-sm font-medium text-muted-foreground">Or choose a specific time:</div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <label className="text-xs text-muted-foreground uppercase tracking-wide">Time</label>
-                      <select
-                        value={new Date(consumedAt).toLocaleTimeString('en-US', { 
-                          hour12: false, 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
-                        onChange={(e) => {
-                          const [hours, minutes] = e.target.value.split(':');
-                          const customTime = new Date(consumedAt);
-                          customTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-                          setConsumedAt(customTime.getTime());
-                        }}
-                        className="w-full px-3 py-3 border border-border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                      >
-                        {Array.from({ length: 24 }, (_, hour) => 
-                          ['00', '15', '30', '45'].map(minute => {
-                            const timeString = `${hour.toString().padStart(2, '0')}:${minute}`;
-                            return (
-                              <option key={timeString} value={timeString}>
-                                {new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
-                                  hour: 'numeric',
-                                  minute: '2-digit',
-                                  hour12: true
-                                })}
-                              </option>
-                            );
-                          })
-                        ).flat()}
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs text-muted-foreground uppercase tracking-wide">Date</label>
-                      <input
-                        type="date"
-                        value={new Date(consumedAt).toISOString().split('T')[0]}
-                        onChange={(e) => {
-                          const selectedDate = new Date(e.target.value);
-                          const currentTime = new Date(consumedAt);
-                          selectedDate.setHours(currentTime.getHours(), currentTime.getMinutes(), 0, 0);
-                          setConsumedAt(selectedDate.getTime());
-                        }}
-                        max={new Date().toISOString().split('T')[0]}
-                        className="w-full px-3 py-3 border border-border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Selected Time Display */}
-                <div className="p-3 bg-muted/30 rounded-lg text-center">
-                  <span className="text-sm text-muted-foreground">Selected time: </span>
-                  <span className="font-medium text-foreground">
-                    {new Date(consumedAt).toLocaleString('en-US', {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      hour12: true
-                    })}
-                  </span>
-                </div>
-              </div>
+               {/* Time Selection */}
+               <div className="space-y-3">
+                 <div className="grid grid-cols-2 gap-2">
+                   {(() => {
+                     const now = new Date();
+                     const morning = new Date(now);
+                     morning.setHours(8, 0, 0, 0);
+                     const afternoon = new Date(now);
+                     afternoon.setHours(14, 0, 0, 0);
+                     
+                     return [
+                       { label: 'This morning', time: morning.getTime() },
+                       { label: 'This afternoon', time: afternoon.getTime() },
+                       { label: 'Just now', time: now.getTime() },
+                       { label: '1 hour ago', time: now.getTime() - 60 * 60 * 1000 },
+                     ];
+                   })().map((option) => (
+                     <Button
+                       key={option.label}
+                       variant={(() => {
+                         if (option.label === 'Just now') {
+                           return Math.abs(consumedAt - Date.now()) < 60000 ? 'default' : 'outline';
+                         } else if (option.label === '1 hour ago') {
+                           return Math.abs(consumedAt - (Date.now() - 60 * 60 * 1000)) < 60000 ? 'default' : 'outline';
+                         } else {
+                           return consumedAt === option.time ? 'default' : 'outline';
+                         }
+                       })()}
+                       size="sm"
+                       onClick={() => setConsumedAt(option.time)}
+                       className={`h-12 relative ${(() => {
+                         if (option.label === 'Just now') {
+                           return Math.abs(consumedAt - Date.now()) < 60000 ? 'ring-2 ring-amber-500' : '';
+                         } else if (option.label === '1 hour ago') {
+                           return Math.abs(consumedAt - (Date.now() - 60 * 60 * 1000)) < 60000 ? 'ring-2 ring-amber-500' : '';
+                         } else {
+                           return consumedAt === option.time ? 'ring-2 ring-amber-500' : '';
+                         }
+                       })()}`}
+                     >
+                       {option.label}
+                       {(() => {
+                         if (option.label === 'Just now') {
+                           return Math.abs(consumedAt - Date.now()) < 60000;
+                         } else if (option.label === '1 hour ago') {
+                           return Math.abs(consumedAt - (Date.now() - 60 * 60 * 1000)) < 60000;
+                         } else {
+                           return consumedAt === option.time;
+                         }
+                       })() && (
+                         <span className="absolute -top-1 -right-1 bg-amber-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                           ✓
+                         </span>
+                       )}
+                     </Button>
+                   ))}
+                 </div>
+                 
+                 {/* Custom time - only show if needed */}
+                 <div className="border-t pt-3">
+                   <div className="flex gap-2">
+                     <input
+                       type="time"
+                       value={new Date(consumedAt).toLocaleTimeString('en-US', { 
+                         hour12: false, 
+                         hour: '2-digit', 
+                         minute: '2-digit' 
+                       })}
+                       onChange={(e) => {
+                         const [hours, minutes] = e.target.value.split(':');
+                         const customTime = new Date();
+                         customTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                         setConsumedAt(customTime.getTime());
+                       }}
+                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                     />
+                     <input
+                       type="date"
+                       value={new Date(consumedAt).toISOString().split('T')[0]}
+                       onChange={(e) => {
+                         const selectedDate = new Date(e.target.value);
+                         const currentTime = new Date(consumedAt);
+                         selectedDate.setHours(currentTime.getHours(), currentTime.getMinutes(), 0, 0);
+                         setConsumedAt(selectedDate.getTime());
+                       }}
+                       max={new Date().toISOString().split('T')[0]}
+                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                     />
+                   </div>
+                 </div>
+                 
+                 {/* Selected time - compact */}
+                 <p className="text-xs text-gray-500 text-center">
+                   {new Date(consumedAt).toLocaleString()}
+                 </p>
+               </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsOpen(false)}
-                  className="flex-1 h-12"
-                  disabled={isLogging}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleLogWithDetails}
-                  disabled={isLogging}
-                  className="flex-1 h-12 font-medium"
-                >
-                  {isLogging ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
-                      Logging...
-                    </>
-                  ) : (
-                    <>
-                      <span className="mr-2">✓</span>
-                      Log Coffee
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+               {/* Actions */}
+               <div className="flex gap-2 pt-2">
+                 <Button
+                   variant="outline"
+                   onClick={() => setIsOpen(false)}
+                   className="flex-1"
+                 >
+                   Cancel
+                 </Button>
+                 <Button
+                   onClick={handleLogWithDetails}
+                   disabled={isLogging}
+                   className="flex-1"
+                 >
+                   {isLogging ? (
+                     <>
+                       <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2"></div>
+                       Logging...
+                     </>
+                   ) : (
+                     'Log'
+                   )}
+                 </Button>
+               </div>
+             </div>
+           </DialogContent>
+         </Dialog>
       )}
     </>
   );

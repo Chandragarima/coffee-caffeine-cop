@@ -19,6 +19,7 @@ import { CaffeineGuidanceBanner } from "@/components/CaffeineGuidanceBanner";
 import { useCaffeineTracker } from "@/hooks/useCaffeineTracker";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const Ask = () => {
   const isMobile = useIsMobile();
@@ -149,34 +150,37 @@ const Ask = () => {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-50/30">
-      <section className="px-3 sm:px-6 py-4 sm:py-8 max-w-6xl mx-auto">
+    <main className="min-h-screen bg-background">
+      <section className="px-4 sm:px-6 py-6 sm:py-8 max-w-6xl mx-auto">
         <header className="mb-4 sm:mb-8 text-center">
           <div className="relative">
-            {/* Install button - top right corner for mobile */}
-            {isMobile && !isInstalled && (deferredPrompt || isIOS) && (
-              <Button
-                onClick={handleInstallClick}
-                size="sm"
-                className="absolute top-0 right-0 bg-amber-600 hover:bg-amber-700 text-white text-xs px-2 py-1 h-7 z-10"
-              >
-                📱 Install
-              </Button>
-            )}
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-3 sm:mb-4">
-              <div className="relative">
-                <img
-                  src="/lovable-uploads/64b50735-018a-49d7-8568-11d380b32163.png"
-                  alt="CoffeePolice mascot logo"
-                  className="h-16 w-16 sm:h-16 sm:w-16 rounded-xl shadow-lg"
-                  loading="lazy"
-                />
-                <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 to-amber-600 rounded-xl blur opacity-20"></div>
+            {/* Top controls */}
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex gap-2">
+                {isMobile && !isInstalled && (deferredPrompt || isIOS) && (
+                  <Button
+                    onClick={handleInstallClick}
+                    size="sm"
+                    variant="outline"
+                    className="text-xs px-3 py-1.5 h-8"
+                  >
+                    📱 Install
+                  </Button>
+                )}
               </div>
-              <div>
-                <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-gray-900">Coffee Police</h1>
-                <p className="text-gray-600 text-sm sm:text-base hidden sm:block">Policing your caffeine intake with time-smart picks</p>
+              <ThemeToggle />
+            </div>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 mb-4 sm:mb-6">
+              <img
+                src="/lovable-uploads/64b50735-018a-49d7-8568-11d380b32163.png"
+                alt="CoffeePolice mascot logo"
+                className="h-18 w-18 sm:h-20 sm:w-20 rounded-2xl shadow-md"
+                loading="lazy"
+              />
+              <div className="text-center sm:text-left">
+                <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground mb-2">Coffee Police</h1>
+                <p className="text-muted-foreground text-sm sm:text-lg font-medium hidden sm:block">Policing your caffeine intake with time-smart picks</p>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -191,12 +195,12 @@ const Ask = () => {
          </header>
 
                                    {/* Preferences Section - Always Visible */}
-          <section className="mb-4 sm:mb-8">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-xl border border-amber-100/50">
+          <section className="mb-6 sm:mb-10">
+            <div className="bg-card rounded-lg border p-6 sm:p-8">
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                                  <div>
-                   <h2 className="text-base sm:text-lg font-semibold text-gray-900">Smart Preferences</h2>
-                   <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">No caffeine 8+ hours before bedtime ensures sound sleep.</p>
+                   <h2 className="text-base sm:text-lg font-semibold text-foreground">Smart Preferences</h2>
+                   <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">No caffeine 8+ hours before bedtime ensures sound sleep.</p>
                  </div>
             <Button 
               variant="ghost" 
@@ -280,13 +284,13 @@ const Ask = () => {
           </div>
         </section>
 
-        {/* Caffeine Tracking Section - Redesigned */}
-        <section className="mb-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-amber-100/50">
+        {/* Enhanced Caffeine Tracking Section */}
+        <section className="mb-10">
+          <div className="bg-card rounded-lg border p-6 sm:p-8">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">Caffeine Tracking</h3>
-                <p className="hidden sm:block text-sm text-gray-600">Monitor your daily caffeine intake and sleep impact</p>
+                <h3 className="text-lg font-semibold text-foreground mb-1">Caffeine Tracking</h3>
+                <p className="hidden sm:block text-sm text-muted-foreground">Monitor your daily caffeine intake and sleep impact</p>
               </div>
               <Button
                 variant="ghost"
@@ -319,9 +323,7 @@ const Ask = () => {
 
                                    {/* Coffee Recommendations & Browse Section */}
           <article className="mb-16">
-            <div className="relative mb-12">
-              <div className="absolute inset-0 bg-gradient-to-r from-amber-100/30 via-transparent to-orange-100/30 rounded-3xl blur-3xl"></div>
-              <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-amber-100/50 shadow-xl">
+            <div className="bg-card rounded-lg border p-8 sm:p-10">
               
                             {/* Caffeine Guidance Warning */}
               {/* {caffeineStatus && (
@@ -356,9 +358,7 @@ const Ask = () => {
                 onSelect={setSelected}
                 onLogSuccess={refreshStats}
               />
-              
-             </div>
-          </div>
+            </div>
         </article>
 
 
