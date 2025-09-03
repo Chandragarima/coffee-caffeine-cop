@@ -92,126 +92,90 @@ const EnhancedCaffeineTracker: React.FC<EnhancedCaffeineTrackerProps> = ({ class
   return (
     <div className={`space-y-4 sm:space-y-6 ${className}`}>
       {/* Hero Status Card */}
-      <Card className="relative overflow-hidden border-0 shadow-xl bg-card/80 backdrop-blur-xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10" />
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 to-secondary/50" />
-        
-        <CardContent className="relative p-4 sm:p-8">
+      <Card className="relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-background via-background to-primary/5">
+        <div className={`absolute inset-0 bg-gradient-to-br ${getCaffeineGradient(caffeineTracker.currentLevel, caffeineTracker.dailyLimit)}`} />
+        <CardContent className="relative p-4 sm:p-6">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-2xl transition-all duration-700 ${isAnimating ? 'scale-110 rotate-12' : ''}`}>
-                <Coffee className="h-8 w-8 sm:h-10 sm:w-10 text-primary-foreground" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center shadow-lg transition-transform duration-500 ${isAnimating ? 'scale-110' : ''}`}>
+                <Coffee className="h-6 w-6 sm:h-7 sm:w-7 text-primary-foreground" />
               </div>
-              <div className="space-y-1">
-                <h2 className="text-xl sm:text-2xl font-bold text-foreground">Smart Tracker</h2>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  <p className="text-sm sm:text-base text-muted-foreground font-medium">
-                    {insights.coffeePersonality.type}
-                  </p>
-                </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground">Smart Tracker</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {insights.coffeePersonality.type}
+                </p>
               </div>
             </div>
-            <div className="text-right">
-              <Badge 
-                variant="secondary" 
-                className="text-lg sm:text-xl font-black px-4 py-2 sm:px-6 sm:py-3 rounded-2xl shadow-lg bg-card/90 backdrop-blur-sm border border-primary/20"
-              >
-                {Math.round(caffeineTracker.currentLevel)}mg
-              </Badge>
-              <p className="text-xs text-muted-foreground mt-1">current level</p>
-            </div>
+            <Badge 
+              variant="secondary" 
+              className="text-base sm:text-lg font-bold px-3 py-1 sm:px-4 sm:py-2 rounded-xl shadow-sm"
+            >
+              {Math.round(caffeineTracker.currentLevel)}mg
+            </Badge>
           </div>
 
           {/* Current Level Display */}
-          <div className="text-center mb-8">
-            <div className="relative inline-block">
-              <div className={`text-6xl sm:text-7xl font-black ${getCaffeineStatusColor(caffeineTracker.currentLevel, caffeineTracker.dailyLimit)} ${isAnimating ? 'animate-pulse scale-110' : ''} transition-all duration-500 mb-3`}>
-                {Math.round(caffeineTracker.caffeineLevelPercentage)}%
-              </div>
-              <div className="absolute inset-0 blur-3xl opacity-20 bg-primary rounded-full" />
+          <div className="text-center mb-6">
+            <div className={`text-4xl sm:text-5xl font-black ${getCaffeineStatusColor(caffeineTracker.currentLevel, caffeineTracker.dailyLimit)} ${isAnimating ? 'animate-pulse' : ''} mb-2`}>
+              {Math.round(caffeineTracker.caffeineLevelPercentage)}%
             </div>
-            <p className="text-muted-foreground text-base sm:text-lg font-medium">current caffeine level</p>
+            <p className="text-muted-foreground text-sm">current caffeine level</p>
           </div>
 
           {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="flex justify-between text-sm font-medium text-muted-foreground mb-3">
+          <div className="mb-6">
+            <div className="flex justify-between text-xs text-muted-foreground mb-2">
               <span>0mg</span>
-              <span className="text-primary">Safe Zone</span>
               <span>{caffeineTracker.dailyLimit}mg</span>
             </div>
-            <div className="relative h-4 bg-muted/30 rounded-full overflow-hidden">
-              <div 
-                className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${Math.min(caffeineTracker.caffeineLevelPercentage, 100)}%` }}
+            <div className="relative">
+              <Progress 
+                value={caffeineTracker.caffeineLevelPercentage} 
+                className="h-3 sm:h-4 bg-muted/50"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-40 rounded-full" />
-              {/* Safe zone indicator */}
-              <div className="absolute top-0 right-0 w-1 h-full bg-emerald-500/50 rounded-r-full" />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-30" />
             </div>
           </div>
 
-          {/* Quick Stats Grid - Mobile Optimized */}
-          <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2 sm:grid-cols-4'}`}>
-            {/* Next Coffee - Always visible */}
-            <div className="group bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl rounded-2xl p-4 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Timer className="h-5 w-5 text-amber-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">Next Coffee</p>
-                  <p className="text-lg sm:text-xl font-black text-amber-600">
-                    {caffeineTracker.timeToNextCoffeeFormatted}
-                  </p>
-                </div>
+          {/* Quick Stats Grid */}
+          <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-4 gap-4'} text-center`}>
+            <div className="bg-card/50 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+              <div className="flex items-center justify-center mb-1">
+                <Target className="h-4 w-4 text-primary mr-1" />
+                <span className="text-lg sm:text-xl font-bold text-primary">{insights.habitScore}</span>
               </div>
+              <p className="text-xs text-muted-foreground">Habit Score</p>
             </div>
-
-            {/* Habit Score - Always visible */}
-            <div className="group bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl rounded-2xl p-4 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Target className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">Habit Score</p>
-                  <p className="text-lg sm:text-xl font-black text-primary">{insights.habitScore}/10</p>
-                </div>
+            <div className="bg-card/50 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+              <div className="flex items-center justify-center mb-1">
+                <Timer className="h-4 w-4 text-amber-600 mr-1" />
+                <span className="text-lg sm:text-xl font-bold text-amber-600">
+                  {caffeineTracker.timeToNextCoffeeFormatted}
+                </span>
               </div>
+              <p className="text-xs text-muted-foreground">Next Coffee</p>
             </div>
-
-            {/* Desktop Additional Stats */}
             {!isMobile && (
               <>
-                <div className="group bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl rounded-2xl p-4 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <Moon className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">To Bedtime</p>
-                      <p className="text-lg sm:text-xl font-black text-blue-600">
-                        {caffeineTracker.timeToBedtimeFormatted}
-                      </p>
-                    </div>
+                <div className="bg-card/50 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+                  <div className="flex items-center justify-center mb-1">
+                    <Moon className="h-4 w-4 text-blue-600 mr-1" />
+                    <span className="text-lg sm:text-xl font-bold text-blue-600">
+                      {caffeineTracker.timeToBedtimeFormatted}
+                    </span>
                   </div>
+                  <p className="text-xs text-muted-foreground">To Bedtime</p>
                 </div>
-                
-                <div className="group bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl rounded-2xl p-4 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <Activity className="h-5 w-5 text-emerald-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">Daily Avg</p>
-                      <p className="text-lg sm:text-xl font-black text-emerald-600">
-                        {insights.consumptionPatterns.averageDailyCaffeine}mg
-                      </p>
-                    </div>
+                <div className="bg-card/50 backdrop-blur-sm rounded-xl p-3 border border-white/10">
+                  <div className="flex items-center justify-center mb-1">
+                    <Activity className="h-4 w-4 text-emerald-600 mr-1" />
+                    <span className="text-lg sm:text-xl font-bold text-emerald-600">
+                      {insights.consumptionPatterns.averageDailyCaffeine}mg
+                    </span>
                   </div>
+                  <p className="text-xs text-muted-foreground">Daily Avg</p>
                 </div>
               </>
             )}
@@ -221,72 +185,66 @@ const EnhancedCaffeineTracker: React.FC<EnhancedCaffeineTrackerProps> = ({ class
 
       {/* Insights Tabs */}
       <Tabs defaultValue="insights" className="w-full">
-        <TabsList className={`grid w-full ${isMobile ? 'grid-cols-2 h-14' : 'grid-cols-4 h-16'} bg-card/80 backdrop-blur-xl rounded-2xl p-2 border border-border/50 shadow-lg`}>
+        <TabsList className={`grid w-full ${isMobile ? 'grid-cols-2 h-12' : 'grid-cols-4 h-14'} bg-muted/50 backdrop-blur-sm rounded-xl p-1`}>
           <TabsTrigger 
             value="insights" 
-            className="rounded-xl font-semibold text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-300 hover:bg-muted/50"
+            className="rounded-lg font-medium text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
           >
-            <Brain className="h-4 w-4 mr-2" />
+            <Brain className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             {isMobile ? 'Tips' : 'Insights'}
           </TabsTrigger>
           <TabsTrigger 
             value="personality" 
-            className="rounded-xl font-semibold text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-300 hover:bg-muted/50"
+            className="rounded-lg font-medium text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
           >
-            <Coffee className="h-4 w-4 mr-2" />
+            <Coffee className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             Profile
           </TabsTrigger>
           {!isMobile && (
             <>
               <TabsTrigger 
                 value="energy" 
-                className="rounded-xl font-semibold text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-300 hover:bg-muted/50"
+                className="rounded-lg font-medium text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
-                <Zap className="h-4 w-4 mr-2" />
+                <Zap className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 Energy
               </TabsTrigger>
               <TabsTrigger 
                 value="mood" 
-                className="rounded-xl font-semibold text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-300 hover:bg-muted/50"
+                className="rounded-lg font-medium text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
-                <Heart className="h-4 w-4 mr-2" />
+                <Heart className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 Mood
               </TabsTrigger>
             </>
           )}
         </TabsList>
 
-        <TabsContent value="insights" className="space-y-6 mt-6">
+        <TabsContent value="insights" className="space-y-4 mt-4">
           {/* Weekly Insights */}
           {insights.weeklyInsights.length > 0 && (
-            <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-xl">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 flex items-center justify-center">
-                    <TrendingUp className="h-6 w-6 text-emerald-600" />
+            <Card className="border-0 shadow-md bg-gradient-to-br from-card to-card/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                    <TrendingUp className="h-4 w-4 text-emerald-600" />
                   </div>
                   Weekly Insights
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 {insights.weeklyInsights.map((insight, index) => (
-                  <div key={index} className="group p-5 rounded-2xl bg-gradient-to-br from-card/90 to-card/60 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
-                    <div className="flex items-start gap-4">
-                      <div className={`w-5 h-5 rounded-full mt-1 shadow-lg flex-shrink-0 ${
-                        insight.type === 'positive' ? 'bg-gradient-to-br from-emerald-400 to-emerald-600' :
-                        insight.type === 'warning' ? 'bg-gradient-to-br from-amber-400 to-amber-600' : 
-                        'bg-gradient-to-br from-blue-400 to-blue-600'
-                      }`} />
-                      <div className="flex-1 min-w-0 space-y-2">
-                        <h4 className="font-bold text-base sm:text-lg text-foreground group-hover:text-primary transition-colors duration-300">{insight.title}</h4>
-                        <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{insight.message}</p>
-                        {insight.action && (
-                          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
-                            <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                            <p className="text-sm text-primary font-semibold">{insight.action}</p>
-                          </div>
-                        )}
-                      </div>
+                  <div key={index} className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-muted/50 to-muted/30 border border-border/50">
+                    <div className={`w-3 h-3 rounded-full mt-1.5 shadow-sm ${
+                      insight.type === 'positive' ? 'bg-emerald-500' :
+                      insight.type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
+                    }`} />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm sm:text-base text-foreground">{insight.title}</h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">{insight.message}</p>
+                      {insight.action && (
+                        <p className="text-xs sm:text-sm text-primary mt-2 font-medium">{insight.action}</p>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -295,23 +253,23 @@ const EnhancedCaffeineTracker: React.FC<EnhancedCaffeineTrackerProps> = ({ class
           )}
 
           {/* Personalized Recommendations */}
-          <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-xl">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-lg sm:text-xl">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/30 flex items-center justify-center">
-                  <Brain className="h-6 w-6 text-primary" />
+          <Card className="border-0 shadow-md bg-gradient-to-br from-card to-card/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                  <Brain className="h-4 w-4 text-blue-600" />
                 </div>
                 Smart Recommendations
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {insights.personalizedRecommendations.map((rec, index) => (
-                  <div key={index} className="group flex items-start gap-4 p-5 rounded-2xl bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/20 hover:border-primary/40 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/30 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                      <Zap className="h-5 w-5 text-primary" />
+                  <div key={index} className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20">
+                    <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+                      <Zap className="h-3 w-3 text-primary" />
                     </div>
-                    <p className="text-sm sm:text-base text-foreground leading-relaxed font-medium pt-2">{rec}</p>
+                    <p className="text-xs sm:text-sm text-foreground leading-relaxed">{rec}</p>
                   </div>
                 ))}
               </div>
