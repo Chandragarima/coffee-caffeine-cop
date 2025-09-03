@@ -9,6 +9,7 @@ import Ask from "./pages/Ask";
 import CaffeineTrackerPage from "./pages/CaffeineTrackerPage";
 import SmartTrackerPage from "./pages/SmartTrackerPage";
 import CoffeeLogDemo from "./pages/CoffeeLogDemo";
+import CoffeeGuide from "./pages/CoffeeGuide";
 import InstallPrompt from "./components/InstallPrompt";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/caffeine-tracker" element={<CaffeineTrackerPage />} />
           <Route path="/smart-tracker" element={<SmartTrackerPage />} />
           <Route path="/coffee-log-demo" element={<CoffeeLogDemo />} />
+          <Route path="/coffee-guide" element={<CoffeeGuide />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
