@@ -34,7 +34,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "1-Cup Moka Pot", 
     category: "brewed", 
     caffeineMg: 110, 
-    description: "Stovetop pressure-brewed coffee.", 
+    description: "Strong, concentrated coffee brewed with steam pressure in a small stovetop device.", 
     scalingType: "fixed_size"
   },
   { 
@@ -42,7 +42,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Starbucks Brewed Coffee", 
     category: "brewed", 
     caffeineMg: 155, 
-    description: "Classic medium roast brewed coffee at Starbucks.", 
+    description: "Regular drip coffee made from Starbucks beans", 
     scalingType: "size_only",
     sizeOptions: [
       { size: "Short", oz: 8, caffeine: 155 },
@@ -57,7 +57,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Brewed Coffee", 
     category: "brewed", 
     caffeineMg: 95, 
-    description: "Classic brewed coffee at home with the drip machine.", 
+    description: "Standard drip coffee made by pouring hot water over ground coffee.", 
     scalingType: "size_only",
     sizeOptions: [
       { size: "Short", oz: 8, caffeine: 95 },
@@ -72,7 +72,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Caffè Americano", 
     category: "brewed", 
     caffeineMg: 75, 
-    description: "Espresso shots diluted with hot water.", 
+    description: "Espresso shots diluted with hot water, similar strength to drip coffee.", 
     scalingType: "both_size_shots",
     sizeOptions: [
       { size: "Short", oz: 8, caffeine: 75 },
@@ -100,7 +100,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Pour Over", 
     category: "brewed", 
     caffeineMg: 125, 
-    description: "Hand-poured filter coffee.", 
+    description: "Coffee made by slowly pouring hot water over grounds in a filter for clean, bright flavor.", 
     scalingType: "size_only",
     sizeOptions: [
       { size: "Short", oz: 8, caffeine: 125 },
@@ -114,7 +114,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "French Press", 
     category: "brewed", 
     caffeineMg: 107, 
-    description: "Full-bodied coffee steeped in hot water, then pressed.", 
+    description: "Full-bodied coffee made by steeping coarse grounds in hot water, then pressing down a filter.", 
     scalingType: "size_only",
     sizeOptions: [
       { size: "Short", oz: 8, caffeine: 107 },
@@ -128,7 +128,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Decaf Drip", 
     category: "brewed", 
     caffeineMg: 3, 
-    description: "Decaffeinated drip coffee.", 
+    description: "Regular drip coffee with caffeine removed.", 
     tags: ["decaf", "low_caffeine"],
     scalingType: "size_only",
     sizeOptions: [
@@ -145,7 +145,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Espresso", 
     category: "espresso", 
     caffeineMg: 75, 
-    description: "Single concentrated shot of coffee (1oz).", 
+    description: "Small, concentrated shot of coffee brewed under high pressure.", 
     scalingType: "shots_only",
     shotOptions: [
       { shots: 1, caffeine: 75 },
@@ -159,7 +159,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Affogato", 
     category: "espresso", 
     caffeineMg: 75, 
-    description: "Espresso shot over ice cream (3-4oz).", 
+    description: "Vanilla ice cream drowned with a hot espresso shot.", 
     scalingType: "shots_only",
     shotOptions: [
       { shots: 1, caffeine: 75 },
@@ -173,7 +173,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Ristretto Shot", 
     category: "espresso", 
     caffeineMg: 65, 
-    description: "Short extraction espresso shot with concentrated flavor (1oz).", 
+    description: "Short espresso with less water, more concentrated and sweeter flavor.", 
     scalingType: "shots_only",
     shotOptions: [
       { shots: 1, caffeine: 65 },
@@ -187,7 +187,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Decaf Espresso", 
     category: "espresso", 
     caffeineMg: 3, 
-    description: "Decaffeinated espresso shot (1oz).", 
+    description: "Espresso shot with caffeine removed.", 
     tags: ["decaf", "low_caffeine"],
     scalingType: "shots_only",
     shotOptions: [
@@ -204,7 +204,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Cappuccino", 
     category: "milk", 
     caffeineMg: 75, 
-    description: "Espresso shot-based scaling with steamed milk and foam.", 
+    description: "Equal parts espresso, steamed milk, and thick milk foam.", 
     scalingType: "both_size_shots",
     sizeOptions: [
       { size: "Short", oz: 8, caffeine: 75 },
@@ -230,7 +230,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Café au Lait", 
     category: "milk", 
     caffeineMg: 70, 
-    description: "Espresso shot-based scaling with steamed milk.", 
+    description: "Equal parts strong coffee and hot milk.", 
     scalingType: "size_only",
     sizeOptions: [
       { size: "Short", oz: 8, caffeine: 70 },
@@ -244,7 +244,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Cortado", 
     category: "milk", 
     caffeineMg: 130, 
-    description: "Double shot espresso with equal parts warm milk (4oz).", 
+    description: "Espresso cut with equal parts warm milk, minimal foam.", 
     scalingType: "fixed_size"
   },
   { 
@@ -260,7 +260,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Caffè Latte", 
     category: "milk", 
     caffeineMg: 75, 
-    description: "Espresso shot-based scaling with steamed milk and light foam.", 
+    description: "Espresso with lots of steamed milk and light foam layer.", 
     scalingType: "both_size_shots",
     sizeOptions: [
       { size: "Short", oz: 8, caffeine: 75 },
@@ -286,7 +286,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Blonde Latte", 
     category: "milk", 
     caffeineMg: 85, 
-    description: "Blonde espresso shot-based scaling with steamed milk.", 
+    description: "Latte made with lighter roasted espresso for milder flavor.", 
     scalingType: "both_size_shots",
     sizeOptions: [
       { size: "Short", oz: 8, caffeine: 85 },
@@ -312,7 +312,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Caramel Macchiato", 
     category: "milk", 
     caffeineMg: 75, 
-    description: "Espresso shot-based scaling with steamed milk, vanilla, and caramel drizzle.", 
+    description: "Espresso shot blended with steamed milk, vanilla, and caramel drizzle.", 
     scalingType: "both_size_shots",
     sizeOptions: [
       { size: "Short", oz: 8, caffeine: 75 },
@@ -338,7 +338,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Caffè Mocha", 
     category: "milk", 
     caffeineMg: 95, 
-    description: "Single shot espresso with chocolate and steamed milk.", 
+    description: "Espresso with chocolate syrup, steamed milk, and whipped cream", 
     scalingType: "both_size_shots",
     sizeOptions: [
       { size: "Short", oz: 8, caffeine: 95 },
@@ -364,7 +364,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Flat White", 
     category: "milk", 
     caffeineMg: 130, 
-    description: "Ristretto shot-based scaling with velvety microfoam.", 
+    description: "Double espresso with steamed milk, no foam.", 
     scalingType: "both_size_shots",
     sizeOptions: [
       { size: "Short", oz: 8, caffeine: 130 },
@@ -419,7 +419,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Nescafé Gold", 
     category: "instant", 
     caffeineMg: 50, 
-    description: "Classic instant coffee, teaspoon-based.", 
+    description: "Classic instant coffee that dissolves in hot water/milk.", 
     scalingType: "teaspoon",
     teaspoonOptions: [
       { teaspoons: 1, caffeine: 50 },
@@ -433,7 +433,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Bru Instant", 
     category: "instant", 
     caffeineMg: 60, 
-    description: "Popular Indian instant coffee, teaspoon-based.", 
+    description: "Popular Indian instant coffee that dissolves in hot water/milk.", 
     scalingType: "teaspoon",
     teaspoonOptions: [
       { teaspoons: 1, caffeine: 60 },
@@ -447,7 +447,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Folgers", 
     category: "instant", 
     caffeineMg: 72, 
-    description: "American instant coffee, teaspoon-based.", 
+    description: "American instant coffee that dissolves in hot water/milk.", 
     scalingType: "teaspoon",
     teaspoonOptions: [
       { teaspoons: 1, caffeine: 72 },
@@ -461,7 +461,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Maxwell House", 
     category: "instant", 
     caffeineMg: 61, 
-    description: "Classic American instant coffee, teaspoon-based.", 
+    description: "Classic American instant coffee that dissolves in hot water/milk.", 
     scalingType: "teaspoon",
     teaspoonOptions: [
       { teaspoons: 1, caffeine: 61 },
@@ -477,7 +477,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Iced Coffee", 
     category: "cold", 
     caffeineMg: 135, 
-    description: "Brewed coffee served over ice.", 
+    description: "Regular brewed coffee served over ice.", 
     scalingType: "size_only",
     sizeOptions: [
       { size: "Tall", oz: 12, caffeine: 135 },
@@ -491,7 +491,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Cold Brew", 
     category: "cold", 
     caffeineMg: 155, 
-    description: "Slow-steeped, super smooth cold coffee.", 
+    description: " Coffee grounds steeped in cold water for 12+ hours, smooth and less acidic.", 
     scalingType: "size_only",
     sizeOptions: [
       { size: "Tall", oz: 12, caffeine: 155 },
@@ -505,7 +505,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Nitro Cold Brew", 
     category: "cold", 
     caffeineMg: 215, 
-    description: "Cold brew infused with nitrogen for creamy texture.", 
+    description: "Cold brew coffee infused with nitrogen gas for creamy, beer-like texture.", 
     scalingType: "size_only",
     sizeOptions: [
       { size: "Tall", oz: 12, caffeine: 215 },
@@ -518,7 +518,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Iced Shaken Espresso", 
     category: "cold", 
     caffeineMg: 150, 
-    description: "Espresso shots shaken with ice and milk.", 
+    description: "Espresso shots shaken with ice and simple syrup, served over ice.", 
     scalingType: "both_size_shots",
     sizeOptions: [
       { size: "Tall", oz: 12, caffeine: 150 },
@@ -568,7 +568,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Iced Caffè Mocha", 
     category: "cold", 
     caffeineMg: 95, 
-    description: "Espresso shots with chocolate and cold milk over ice.", 
+    description: "Espresso shots with chocolate syrup, cold milk, and whipped cream over ice.", 
     scalingType: "both_size_shots",
     sizeOptions: [
       { size: "Tall", oz: 12, caffeine: 95 },
@@ -789,7 +789,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Turkish Coffee", 
     category: "specialty", 
     caffeineMg: 60, 
-    description: "Unfiltered coffee simmered in a cezve.", 
+    description: "Finely ground coffee boiled with water (and sugar) in a special pot, served unfiltered with grounds settled at bottom.", 
     scalingType: "size_only",
     sizeOptions: [
       { size: "Small", oz: 2, caffeine: 60 },
@@ -803,7 +803,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Vietnamese Coffee", 
     category: "specialty", 
     caffeineMg: 100, 
-    description: "Strong dark roast coffee with sweetened condensed milk.", 
+    description: "Strong coffee brewed through a metal filter, typically served with sweetened condensed milk.", 
     scalingType: "size_only",
     sizeOptions: [
       { size: "Small", oz: 2, caffeine: 100 },
@@ -817,7 +817,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Coffee Frappuccino", 
     category: "specialty", 
     caffeineMg: 65, 
-    description: "Blended iced coffee sweetened with flavored syrup.", 
+    description: "Blended iced drink with coffee, milk, ice, and whipped cream.", 
     scalingType: "size_only",
     sizeOptions: [
       { size: "Tall", oz: 12, caffeine: 65 },
@@ -831,7 +831,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Mocha Frappuccino", 
     category: "specialty", 
     caffeineMg: 70, 
-    description: "Blended iced coffee with chocolate and flavored syrup.", 
+    description: "Blended drink combining coffee, chocolate, milk, ice, and whipped cream.", 
     scalingType: "size_only",
     sizeOptions: [
       { size: "Tall", oz: 12, caffeine: 70 },
@@ -845,7 +845,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Caramel Frappuccino", 
     category: "specialty", 
     caffeineMg: 65, 
-    description: "Blended iced coffee with caramel and flavored syrup.", 
+    description: "Blended coffee drink with caramel flavoring, milk, ice, and whipped cream.", 
     scalingType: "size_only",
     sizeOptions: [
       { size: "Tall", oz: 12, caffeine: 65 },
@@ -859,7 +859,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Espresso Frappuccino", 
     category: "specialty", 
     caffeineMg: 130, 
-    description: "Blended iced coffee with extra espresso shots.", 
+    description: "Blended drink with espresso shots, milk, ice, and whipped cream for stronger coffee flavor.", 
     scalingType: "size_only",
     sizeOptions: [
       { size: "Tall", oz: 12, caffeine: 130 },
@@ -873,7 +873,7 @@ export const COFFEES: CoffeeItem[] = [
     name: "Matcha Crème Frappuccino", 
     category: "specialty", 
     caffeineMg: 40, 
-    description: "Blended iced matcha with cream and flavored syrup.", 
+    description: "Blended drink with green tea matcha powder, milk, ice, and whipped cream.", 
     scalingType: "size_only",
     sizeOptions: [
       { size: "Tall", oz: 12, caffeine: 40 },

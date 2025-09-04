@@ -159,7 +159,7 @@ const Ask = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-3 sm:mb-4">
               <div className="relative">
                 <img
-                  src="/lovable-uploads/64b50735-018a-49d7-8568-11d380b32163.png"
+                  src="/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
                   alt="CoffeePolice mascot logo"
                   className="h-16 w-16 sm:h-16 sm:w-16 rounded-xl shadow-lg"
                   loading="lazy"
@@ -217,12 +217,13 @@ const Ask = () => {
                    </div>
                  </div>
                                  <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-green-50/50 rounded-xl border border-green-100">
-                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-100 rounded-lg flex items-center justify-center">
                      <span className="text-green-600 text-xs sm:text-sm">🛡️</span>
                    </div>
                    <div className="min-w-0">
                      <p className="text-xs text-gray-500 font-medium">Safe Limit</p>
                      <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">≤50mg sleep</p>
+                     {/* <p className="text-xs text-gray-500">8hrs before bed</p> */}
                    </div>
                  </div>
                                                     <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-purple-50/50 rounded-xl border border-purple-100">
@@ -256,7 +257,7 @@ const Ask = () => {
                   <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
                     <span className="text-amber-600 text-lg">⚙️</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Edit Your Preferences</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Edit Sleep Time</h3>
                 </div>
                                   <div className="grid grid-cols-1 gap-6">
                     <BedtimeControl value={localBedtime} onChange={setLocalBedtime} />

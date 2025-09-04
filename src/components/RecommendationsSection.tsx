@@ -6,6 +6,7 @@ import { EnergyLevel, bestPicksForTime } from "@/lib/recommendation";
 import { SizeOz, adjustedMg } from "@/lib/serving";
 import { caffeineRemaining } from "@/lib/caffeine";
 import { RecommendationCard } from "@/components/RecommendationCard";
+import { CaffeineScienceExplanation } from "@/components/CaffeineScienceExplanation";
 
 interface RecommendationsSectionProps {
   currentTime: TimeOfDay;
@@ -55,9 +56,9 @@ export const RecommendationsSection = ({
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                 Top Picks for You
               </h2>
-              <p className="text-gray-600 text-xs sm:text-sm mt-1 hidden sm:block">
-                Based on preferences • Time of the day • Caffeine amount
-              </p>
+              {/* <p className="text-gray-600 text-xs sm:text-sm mt-1 hidden sm:block">
+                Based on Smart Preferences • Caffeine amount
+              </p> */}
             </div>
           </div>
         </div>
@@ -80,6 +81,11 @@ export const RecommendationsSection = ({
           <span className="hidden sm:inline">{isRefreshing ? 'Refreshing...' : 'Get new picks'}</span>
           {/* <span className="sm:hidden">Refresh</span> */}
         </Button>
+      </div>
+
+      {/* Caffeine Science Explanation */}
+      <div className="mb-6 sm:mb-8">
+        <CaffeineScienceExplanation />
       </div>
 
       {/* Sleep Warning Section */}
