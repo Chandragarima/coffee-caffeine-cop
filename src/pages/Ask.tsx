@@ -154,7 +154,7 @@ const Ask = () => {
       <section className="px-4 sm:px-6 py-6 sm:py-8 max-w-6xl mx-auto">
         <header className="mb-8 sm:mb-12">
           {/* Top controls */}
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex justify-start items-center mb-8">
             <div className="flex gap-2">
               {isMobile && !isInstalled && (deferredPrompt || isIOS) && (
                 <Button
@@ -167,7 +167,6 @@ const Ask = () => {
                 </Button>
               )}
             </div>
-            <ThemeToggle />
           </div>
 
           {/* Hero section */}
@@ -198,7 +197,7 @@ const Ask = () => {
 
             {/* Tagline and CTA */}
             <div className="max-w-2xl mx-auto space-y-4">
-              <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
+              <p className="hidden sm:block text-lg sm:text-xl text-muted-foreground leading-relaxed">
                 Policing your caffeine intake with <span className="text-amber-600 font-semibold">time-smart picks</span> and personalized recommendations
               </p>
               
@@ -213,7 +212,7 @@ const Ask = () => {
                 </Button>
                 
                 {caffeineStatus && (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="hidden sm:block text-sm text-muted-foreground">
                     Current caffeine: <span className="font-semibold text-amber-600">{caffeineStatus.currentLevel}mg</span>
                   </div>
                 )}
