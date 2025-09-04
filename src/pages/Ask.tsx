@@ -142,80 +142,71 @@ const Ask = () => {
   };
 
   return (
-    <main className="min-h-screen bg-background">
-      <section className="px-4 sm:px-6 py-6 sm:py-8 max-w-6xl mx-auto">
-        <header className="mb-8 sm:mb-12">
-          {/* Top controls */}
-          <div className="flex justify-start items-center mb-8">
-            <div className="flex gap-2">
-              {isMobile && !isInstalled && (deferredPrompt || isIOS) && (
-                <Button
-                  onClick={handleInstallClick}
-                  size="sm"
-                  variant="outline"
-                  className="text-xs px-3 py-1.5 h-8"
-                >
-                  📱 Install
-                </Button>
-              )}
+    <main className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-50/30">
+      <section className="px-3 sm:px-6 py-3 sm:py-8 max-w-6xl mx-auto">
+        <header className="mb-4 sm:mb-12 relative">
+          {/* Install button positioned absolutely at top right */}
+          {isMobile && !isInstalled && (deferredPrompt || isIOS) && (
+            <div className="absolute top-0 right-0 z-10">
+              <Button
+                onClick={handleInstallClick}
+                size="sm"
+                variant="outline"
+                className="text-xs px-3 py-1.5 h-8"
+              >
+                📱 Install
+              </Button>
             </div>
-          </div>
+          )}
 
           {/* Hero section */}
-          <div className="text-center space-y-6">
+          <div className="text-center space-y-4 sm:space-y-6">
             {/* Logo and branding */}
-            <div className="inline-flex items-center gap-4 p-6 bg-gradient-to-r from-amber-50/80 to-orange-50/60 rounded-3xl border border-amber-100/50 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6">
               <div className="relative">
                 <img
                   src="/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
                   alt="CoffeePolice mascot logo"
-                  className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl shadow-lg"
+                  className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl shadow-md"
                   loading="lazy"
                 />
-                <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
                   <span className="text-white text-xs">⚡</span>
                 </div>
               </div>
               
-              <div className="text-left">
-                <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-gray-900 mb-1">
+              <div className="text-center sm:text-left space-y-1 sm:space-y-2">
+                <h1 className="text-2xl sm:text-5xl font-black tracking-tight text-gray-900">
                   Coffee Police
                 </h1>
-                <p className="text-gray-600 text-base sm:text-xl font-medium">
+                <p className="text-gray-600 text-sm sm:text-lg font-medium">
                   Smart caffeine tracking
                 </p>
               </div>
             </div>
 
             {/* Tagline and CTA */}
-            <div className="max-w-2xl mx-auto space-y-4">
-              <p className="hidden sm:block text-lg sm:text-xl text-muted-foreground leading-relaxed">
-                Policing your caffeine intake with <span className="text-amber-600 font-semibold">time-smart picks</span> and personalized recommendations
+            <div className="max-w-2xl mx-auto space-y-3 sm:space-y-4">
+              <p className="hidden sm:block text-gray-600 text-sm sm:text-base leading-relaxed">
+                Policing your caffeine intake with{" "}
+                <span className="text-amber-600 font-semibold">time-smart picks</span> and personalized recommendations
               </p>
               
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Button
-                  variant="default"
-                  size="lg"
-                  onClick={() => setShowCoffeeGuide(true)}
-                  className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 text-base font-medium"
-                >
-                  📋 Explore Coffee Guide
-                </Button>
-                
-                {caffeineStatus && (
-                  <div className="hidden sm:block text-sm text-muted-foreground">
-                    Current caffeine: <span className="font-semibold text-amber-600">{caffeineStatus.currentLevel}mg</span>
-                  </div>
-                )}
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCoffeeGuide(true)}
+                className="text-amber-600 hover:text-amber-700 hover:bg-amber-50/50 text-sm px-4 py-2 rounded-lg border border-amber-200/50 hover:border-amber-300 transition-all duration-200"
+              >
+                📋 Coffee Guide
+              </Button>
             </div>
           </div>
-         </header>
+        </header>
 
-                                   {/* Preferences Section - Always Visible */}
-          <section className="mb-6 sm:mb-10">
-            <div className="bg-card rounded-lg border p-6 sm:p-8">
+                                           {/* Preferences Section - Always Visible */}
+        <section className="mb-4 sm:mb-10">
+          <div className="bg-card rounded-lg border p-4 sm:p-8">
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                                  <div>
                    <h2 className="text-base sm:text-lg font-semibold text-foreground">Smart Preferences</h2>
@@ -304,8 +295,8 @@ const Ask = () => {
         </section>
 
         {/* Enhanced Caffeine Tracking Section */}
-        <section className="mb-10">
-          <div className="bg-card rounded-lg border p-6 sm:p-8">
+        <section className="mb-6 sm:mb-10">
+          <div className="bg-card rounded-lg border p-4 sm:p-8">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="text-lg font-semibold text-foreground mb-1">Caffeine Tracking</h3>
@@ -332,17 +323,17 @@ const Ask = () => {
           </div>
         </section>
             
-        {/* Recently Logged Coffees with Undo */}
-        <section className="mb-8">
+                {/* Recently Logged Coffees with Undo */}
+        <section className="mb-6 sm:mb-8">
           <RecentLogUndo 
             showCount={3} 
             onUndo={refreshStats}
           />
         </section>
 
-                                   {/* Coffee Recommendations & Browse Section */}
-          <article className="mb-16">
-            <div className="bg-card rounded-lg border p-8 sm:p-10">
+        {/* Coffee Recommendations & Browse Section */}
+        <article className="mb-8 sm:mb-16">
+          <div className="bg-card rounded-lg border p-6 sm:p-10">
               
                             {/* Caffeine Guidance Warning */}
               {/* {caffeineStatus && (
