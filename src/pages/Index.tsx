@@ -28,7 +28,19 @@ const Index = () => {
 
         <div className="mt-6 sm:mt-10 text-left mx-auto max-w-xl">
           <h2 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2">What's CoffeePolice?</h2>
-          <p className="text-sm sm:text-base text-muted-foreground">A playful guide to keep your caffeine in check. Browse coffees, see caffeine charts, and get smart recommendations.</p>
+          <p className="text-sm sm:text-base text-muted-foreground mb-4">A playful guide to keep your caffeine in check. Browse coffees, see caffeine charts, and get smart recommendations.</p>
+          
+          {/* Science-based explanation */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+            <h3 className="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
+              <span className="text-lg">🧪</span>
+              Science-Based Recommendations
+            </h3>
+            <p className="text-xs text-blue-700 leading-relaxed">
+              Our recommendations follow <strong>nutritionist guidelines</strong> to ensure you get the energy you need while protecting your sleep. 
+              We use the <strong>8-hour rule</strong> and <strong>50mg threshold</strong> to keep your bedtime caffeine low for optimal sleep quality.
+            </p>
+          </div>
         </div>
       </section>
     </main>

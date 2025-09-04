@@ -6,14 +6,13 @@ import { EnergyLevel, bestPicksForTime } from "@/lib/recommendation";
 import { SizeOz, adjustedMg } from "@/lib/serving";
 import { caffeineRemaining } from "@/lib/caffeine";
 import { RecommendationCard } from "@/components/RecommendationCard";
+import { CaffeineScienceExplanation } from "@/components/CaffeineScienceExplanation";
 
 interface RecommendationsSectionProps {
   currentTime: TimeOfDay;
   currentEnergy: EnergyLevel;
   hoursUntilBed: number;
   bedtime: string;
-  sizeOz: SizeOz;
-  shots: 1 | 2 | 3;
   refreshCount: number;
   isRefreshing: boolean;
   onRefresh: () => void;
@@ -26,8 +25,6 @@ export const RecommendationsSection = ({
   currentEnergy,
   hoursUntilBed,
   bedtime,
-  sizeOz,
-  shots,
   refreshCount,
   isRefreshing,
   onRefresh,
@@ -35,8 +32,8 @@ export const RecommendationsSection = ({
   onLogSuccess
 }: RecommendationsSectionProps) => {
   const best = useMemo(() => 
-    bestPicksForTime(currentTime, currentEnergy, hoursUntilBed, HALF_LIFE_HOURS, sizeOz, shots), 
-    [currentTime, currentEnergy, hoursUntilBed, sizeOz, shots, refreshCount]
+    bestPicksForTime(currentTime, currentEnergy, hoursUntilBed, HALF_LIFE_HOURS), 
+    [currentTime, currentEnergy, hoursUntilBed, refreshCount]
   );
 
   // Sleep Warning Logic
@@ -44,7 +41,7 @@ export const RecommendationsSection = ({
   const decaf = COFFEES.find((c) => c.id === "decaf_coffee");
   const herbal = COFFEES.find((c) => c.id === "herbal_tea");
   const coldBrew = COFFEES.find((c) => c.id === "cold_brew");
-  const remainingCold = coldBrew ? Math.round(caffeineRemaining(adjustedMg(coldBrew, sizeOz, shots), hoursUntilBed, HALF_LIFE_HOURS)) : undefined;
+  const remainingCold = coldBrew ? Math.round(caffeineRemaining(coldBrew.caffeineMg, hoursUntilBed, HALF_LIFE_HOURS)) : undefined;
 
   return (
     <div className="mb-4 sm:mb-8">
@@ -59,9 +56,9 @@ export const RecommendationsSection = ({
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                 Top Picks for You
               </h2>
-              <p className="text-gray-600 text-xs sm:text-sm mt-1 hidden sm:block">
-                Based on preferences • Time of the day • Caffeine amount
-              </p>
+              {/* <p className="text-gray-600 text-xs sm:text-sm mt-1 hidden sm:block">
+                Based on Smart Preferences • Caffeine amount
+              </p> */}
             </div>
           </div>
         </div>
@@ -84,6 +81,11 @@ export const RecommendationsSection = ({
           <span className="hidden sm:inline">{isRefreshing ? 'Refreshing...' : 'Get new picks'}</span>
           {/* <span className="sm:hidden">Refresh</span> */}
         </Button>
+      </div>
+
+      {/* Caffeine Science Explanation */}
+      <div className="mb-6 sm:mb-8">
+        <CaffeineScienceExplanation />
       </div>
 
       {/* Sleep Warning Section */}
@@ -154,8 +156,6 @@ export const RecommendationsSection = ({
           <RecommendationCard
             key={coffee.id}
             coffee={coffee}
-            sizeOz={sizeOz}
-            shots={shots}
             hoursUntilBed={hoursUntilBed}
             bedtime={bedtime}
             currentTime={currentTime}

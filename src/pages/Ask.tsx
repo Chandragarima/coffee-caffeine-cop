@@ -5,8 +5,6 @@ import { TimeOfDay, getTimeOfDay, defaultEnergyForTime } from "@/hooks/useTimeOf
 import { EnergyLevel } from "@/lib/recommendation";
 import { hoursUntilBedtime } from "@/lib/timeUtils";
 import BedtimeControl from "@/components/BedtimeControl";
-import ServingControl from "@/components/ServingControl";
-import { SizeOz } from "@/lib/serving";
 import { usePreferences } from "@/hooks/usePreferences";
 import { useCoffeeLogs } from "@/hooks/useCoffeeLogs";
 import CaffeineTracker from "@/components/CaffeineTracker";
@@ -32,8 +30,6 @@ const Ask = () => {
   // Load user preferences
   const { 
     bedtime, 
-    servingSize, 
-    shots, 
     updatePreference,
     isLoading: preferencesLoading 
   } = usePreferences();
@@ -55,17 +51,13 @@ const Ask = () => {
   
   // Update local state when preferences change
   const [localBedtime, setLocalBedtime] = useState<string>(bedtime);
-  const [localSizeOz, setLocalSizeOz] = useState<SizeOz>(servingSize as SizeOz);
-  const [localShots, setLocalShots] = useState<1 | 2 | 3>(shots);
 
   // Sync local state with preferences
   useEffect(() => {
     if (!preferencesLoading) {
       setLocalBedtime(bedtime);
-      setLocalSizeOz(servingSize as SizeOz);
-      setLocalShots(shots);
     }
-  }, [bedtime, servingSize, shots, preferencesLoading]);
+  }, [bedtime, preferencesLoading]);
 
   const virtualHoursUntilBed = useMemo(() => hoursUntilBedtime(localBedtime), [localBedtime]);
   
@@ -175,7 +167,7 @@ const Ask = () => {
             <div className="inline-flex items-center gap-4 p-6 bg-gradient-to-r from-amber-50/80 to-orange-50/60 rounded-3xl border border-amber-100/50 shadow-sm">
               <div className="relative">
                 <img
-                  src="/lovable-uploads/64b50735-018a-49d7-8568-11d380b32163.png"
+                  src="/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
                   alt="CoffeePolice mascot logo"
                   className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl shadow-lg"
                   loading="lazy"
@@ -256,12 +248,13 @@ const Ask = () => {
                    </div>
                  </div>
                                  <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-green-50/50 rounded-xl border border-green-100">
-                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-100 rounded-lg flex items-center justify-center">
                      <span className="text-green-600 text-xs sm:text-sm">🛡️</span>
                    </div>
                    <div className="min-w-0">
                      <p className="text-xs text-gray-500 font-medium">Safe Limit</p>
                      <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">≤50mg sleep</p>
+                     {/* <p className="text-xs text-gray-500">8hrs before bed</p> */}
                    </div>
                  </div>
                                                     <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-purple-50/50 rounded-xl border border-purple-100">
@@ -295,12 +288,11 @@ const Ask = () => {
                   <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
                     <span className="text-amber-600 text-lg">⚙️</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Edit Your Preferences</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">Edit Sleep Time</h3>
                 </div>
-                <div className="grid grid-cols-1 gap-6">
-                  <BedtimeControl value={localBedtime} onChange={setLocalBedtime} />
-                  <ServingControl sizeOz={localSizeOz} onSizeChange={setLocalSizeOz} shots={localShots} onShotsChange={setLocalShots} />
-                </div>
+                                  <div className="grid grid-cols-1 gap-6">
+                    <BedtimeControl value={localBedtime} onChange={setLocalBedtime} />
+                  </div>
                 <div className="mt-6 pt-4 border-t border-amber-200">
                   <p className="text-sm text-gray-600 leading-relaxed">
                     💡 <strong>Tip:</strong> Changes are automatically saved and will affect your coffee recommendations immediately.
@@ -368,8 +360,6 @@ const Ask = () => {
                 currentEnergy={currentEnergy}
                 hoursUntilBed={virtualHoursUntilBed}
                 bedtime={localBedtime}
-                sizeOz={localSizeOz}
-                shots={localShots}
                 refreshCount={refreshCount}
                 isRefreshing={isRefreshing}
                 onRefresh={handleRefresh}
@@ -379,8 +369,6 @@ const Ask = () => {
 
               {/* Browse Section */}
               <CoffeeBrowseSection
-                sizeOz={localSizeOz}
-                shots={localShots}
                 hoursUntilBed={virtualHoursUntilBed}
                 onSelect={setSelected}
                 onLogSuccess={refreshStats}
@@ -393,8 +381,6 @@ const Ask = () => {
         {/* Coffee Detail Dialog */}
         <CoffeeDetailDialog
           coffee={selected}
-          sizeOz={localSizeOz}
-          shots={localShots}
           hoursUntilBed={virtualHoursUntilBed}
           onClose={() => setSelected(null)}
         />

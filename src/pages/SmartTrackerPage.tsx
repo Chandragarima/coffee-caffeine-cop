@@ -293,6 +293,12 @@ const SmartTrackerPage = () => {
                         Less than 50mg at bedtime ensures good sleep quality
                       </div>
                     </div>
+                    <div className="p-3 bg-white/60 rounded-lg border border-red-100">
+                      <div className="font-medium text-red-900 mb-1">⏰ 8-Hour Rule</div>
+                      <div className="text-gray-600 text-sm">
+                        Nutritionists recommend no caffeine 8+ hours before bedtime
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
