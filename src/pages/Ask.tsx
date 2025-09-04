@@ -152,43 +152,71 @@ const Ask = () => {
   return (
     <main className="min-h-screen bg-background">
       <section className="px-4 sm:px-6 py-6 sm:py-8 max-w-6xl mx-auto">
-        <header className="mb-4 sm:mb-8 text-center">
-          <div className="relative">
-            {/* Top controls */}
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex gap-2">
-                {isMobile && !isInstalled && (deferredPrompt || isIOS) && (
-                  <Button
-                    onClick={handleInstallClick}
-                    size="sm"
-                    variant="outline"
-                    className="text-xs px-3 py-1.5 h-8"
-                  >
-                    📱 Install
-                  </Button>
-                )}
-              </div>
-              <ThemeToggle />
-            </div>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 mb-4 sm:mb-6">
-              <img
-                src="/lovable-uploads/64b50735-018a-49d7-8568-11d380b32163.png"
-                alt="CoffeePolice mascot logo"
-                className="h-18 w-18 sm:h-20 sm:w-20 rounded-2xl shadow-md"
-                loading="lazy"
-              />
-              <div className="text-center sm:text-left">
-                <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-foreground mb-2">Coffee Police</h1>
-                <p className="text-muted-foreground text-sm sm:text-lg font-medium hidden sm:block">Policing your caffeine intake with time-smart picks</p>
+        <header className="mb-8 sm:mb-12">
+          {/* Top controls */}
+          <div className="flex justify-between items-center mb-8">
+            <div className="flex gap-2">
+              {isMobile && !isInstalled && (deferredPrompt || isIOS) && (
                 <Button
-                  variant="ghost"
+                  onClick={handleInstallClick}
                   size="sm"
-                  onClick={() => setShowCoffeeGuide(true)}
-                  className="mt-3 text-amber-700 hover:text-amber-800 hover:bg-amber-50 text-xs sm:text-sm px-3 py-1.5 h-8"
+                  variant="outline"
+                  className="text-xs px-3 py-1.5 h-8"
                 >
-                  📋 Coffee Guide
+                  📱 Install
                 </Button>
+              )}
+            </div>
+            <ThemeToggle />
+          </div>
+
+          {/* Hero section */}
+          <div className="text-center space-y-6">
+            {/* Logo and branding */}
+            <div className="inline-flex items-center gap-4 p-6 bg-gradient-to-r from-amber-50/80 to-orange-50/60 rounded-3xl border border-amber-100/50 shadow-sm">
+              <div className="relative">
+                <img
+                  src="/lovable-uploads/64b50735-018a-49d7-8568-11d380b32163.png"
+                  alt="CoffeePolice mascot logo"
+                  className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl shadow-lg"
+                  loading="lazy"
+                />
+                <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                  <span className="text-white text-xs">⚡</span>
+                </div>
+              </div>
+              
+              <div className="text-left">
+                <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-gray-900 mb-1">
+                  Coffee Police
+                </h1>
+                <p className="text-gray-600 text-base sm:text-xl font-medium">
+                  Smart caffeine tracking
+                </p>
+              </div>
+            </div>
+
+            {/* Tagline and CTA */}
+            <div className="max-w-2xl mx-auto space-y-4">
+              <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
+                Policing your caffeine intake with <span className="text-amber-600 font-semibold">time-smart picks</span> and personalized recommendations
+              </p>
+              
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Button
+                  variant="default"
+                  size="lg"
+                  onClick={() => setShowCoffeeGuide(true)}
+                  className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 text-base font-medium"
+                >
+                  📋 Explore Coffee Guide
+                </Button>
+                
+                {caffeineStatus && (
+                  <div className="text-sm text-muted-foreground">
+                    Current caffeine: <span className="font-semibold text-amber-600">{caffeineStatus.currentLevel}mg</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
