@@ -17,6 +17,7 @@ import { CaffeineGuidanceBanner } from "@/components/CaffeineGuidanceBanner";
 import { useCaffeineTracker } from "@/hooks/useCaffeineTracker";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const Ask = () => {
   const isMobile = useIsMobile();
@@ -141,54 +142,84 @@ const Ask = () => {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-50/30">
-      <section className="px-3 sm:px-6 py-4 sm:py-8 max-w-6xl mx-auto">
-        <header className="mb-4 sm:mb-8 text-center">
-          <div className="relative">
-            {/* Install button - top right corner for mobile */}
-            {isMobile && !isInstalled && (deferredPrompt || isIOS) && (
-              <Button
-                onClick={handleInstallClick}
-                size="sm"
-                className="absolute top-0 right-0 bg-amber-600 hover:bg-amber-700 text-white text-xs px-2 py-1 h-7 z-10"
-              >
-                📱 Install
-              </Button>
-            )}
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-3 sm:mb-4">
+    <main className="min-h-screen bg-background">
+      <section className="px-4 sm:px-6 py-6 sm:py-8 max-w-6xl mx-auto">
+        <header className="mb-8 sm:mb-12">
+          {/* Top controls */}
+          <div className="flex justify-start items-center mb-8">
+            <div className="flex gap-2">
+              {isMobile && !isInstalled && (deferredPrompt || isIOS) && (
+                <Button
+                  onClick={handleInstallClick}
+                  size="sm"
+                  variant="outline"
+                  className="text-xs px-3 py-1.5 h-8"
+                >
+                  📱 Install
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Hero section */}
+          <div className="text-center space-y-6">
+            {/* Logo and branding */}
+            <div className="inline-flex items-center gap-4 p-6 bg-gradient-to-r from-amber-50/80 to-orange-50/60 rounded-3xl border border-amber-100/50 shadow-sm">
               <div className="relative">
                 <img
                   src="/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
                   alt="CoffeePolice mascot logo"
-                  className="h-16 w-16 sm:h-16 sm:w-16 rounded-xl shadow-lg"
+                  className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl shadow-lg"
                   loading="lazy"
                 />
-                <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 to-amber-600 rounded-xl blur opacity-20"></div>
+                <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                  <span className="text-white text-xs">⚡</span>
+                </div>
               </div>
-              <div>
-                <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-gray-900">Coffee Police</h1>
-                <p className="text-gray-600 text-sm sm:text-base hidden sm:block">Policing your caffeine intake with time-smart picks</p>
+              
+              <div className="text-left">
+                <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-gray-900 mb-1">
+                  Coffee Police
+                </h1>
+                <p className="text-gray-600 text-base sm:text-xl font-medium">
+                  Smart caffeine tracking
+                </p>
+              </div>
+            </div>
+
+            {/* Tagline and CTA */}
+            <div className="max-w-2xl mx-auto space-y-4">
+              <p className="hidden sm:block text-lg sm:text-xl text-muted-foreground leading-relaxed">
+                Policing your caffeine intake with <span className="text-amber-600 font-semibold">time-smart picks</span> and personalized recommendations
+              </p>
+              
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Button
-                  variant="ghost"
-                  size="sm"
+                  variant="default"
+                  size="lg"
                   onClick={() => setShowCoffeeGuide(true)}
-                  className="mt-3 text-amber-700 hover:text-amber-800 hover:bg-amber-50 text-xs sm:text-sm px-3 py-1.5 h-8"
+                  className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 text-base font-medium"
                 >
-                  📋 Coffee Guide
+                  📋 Explore Coffee Guide
                 </Button>
+                
+                {caffeineStatus && (
+                  <div className="hidden sm:block text-sm text-muted-foreground">
+                    Current caffeine: <span className="font-semibold text-amber-600">{caffeineStatus.currentLevel}mg</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
          </header>
 
                                    {/* Preferences Section - Always Visible */}
-          <section className="mb-4 sm:mb-8">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-xl border border-amber-100/50">
+          <section className="mb-6 sm:mb-10">
+            <div className="bg-card rounded-lg border p-6 sm:p-8">
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                                  <div>
-                   <h2 className="text-base sm:text-lg font-semibold text-gray-900">Smart Preferences</h2>
-                   <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">No caffeine 8+ hours before bedtime ensures sound sleep.</p>
+                   <h2 className="text-base sm:text-lg font-semibold text-foreground">Smart Preferences</h2>
+                   <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">No caffeine 8+ hours before bedtime ensures sound sleep.</p>
                  </div>
             <Button 
               variant="ghost" 
@@ -272,13 +303,13 @@ const Ask = () => {
           </div>
         </section>
 
-        {/* Caffeine Tracking Section - Redesigned */}
-        <section className="mb-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-amber-100/50">
+        {/* Enhanced Caffeine Tracking Section */}
+        <section className="mb-10">
+          <div className="bg-card rounded-lg border p-6 sm:p-8">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">Caffeine Tracking</h3>
-                <p className="hidden sm:block text-sm text-gray-600">Monitor your daily caffeine intake and sleep impact</p>
+                <h3 className="text-lg font-semibold text-foreground mb-1">Caffeine Tracking</h3>
+                <p className="hidden sm:block text-sm text-muted-foreground">Monitor your daily caffeine intake and sleep impact</p>
               </div>
               <Button
                 variant="ghost"
@@ -311,9 +342,7 @@ const Ask = () => {
 
                                    {/* Coffee Recommendations & Browse Section */}
           <article className="mb-16">
-            <div className="relative mb-12">
-              <div className="absolute inset-0 bg-gradient-to-r from-amber-100/30 via-transparent to-orange-100/30 rounded-3xl blur-3xl"></div>
-              <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-amber-100/50 shadow-xl">
+            <div className="bg-card rounded-lg border p-8 sm:p-10">
               
                             {/* Caffeine Guidance Warning */}
               {/* {caffeineStatus && (
@@ -344,9 +373,7 @@ const Ask = () => {
                 onSelect={setSelected}
                 onLogSuccess={refreshStats}
               />
-              
-             </div>
-          </div>
+            </div>
         </article>
 
 
