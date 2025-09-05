@@ -179,9 +179,9 @@ const Ask = () => {
                 <h1 className="text-2xl sm:text-5xl font-black tracking-tight text-gray-900">
                   Coffee Police
                 </h1>
-                <p className="text-gray-600 text-sm sm:text-lg font-medium">
+                {/* <p className="text-gray-600 text-sm sm:text-lg text-center font-medium">
                   Smart caffeine tracking
-                </p>
+                </p> */}
               </div>
             </div>
 
@@ -209,7 +209,7 @@ const Ask = () => {
           <div className="bg-card rounded-lg border p-4 sm:p-8">
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                                  <div>
-                   <h2 className="text-base sm:text-lg font-semibold text-foreground">Smart Preferences</h2>
+                   <h2 className="text-base sm:text-lg font-semibold text-foreground">Daily Overview</h2>
                    <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">No caffeine 8+ hours before bedtime ensures sound sleep.</p>
                  </div>
             <Button 

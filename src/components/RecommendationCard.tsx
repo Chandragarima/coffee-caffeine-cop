@@ -132,7 +132,7 @@ export const RecommendationCard = ({
 
   return (
     <Card 
-      className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer bg-gradient-to-br from-white via-amber-50/20 to-white backdrop-blur-sm" 
+      className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer bg-gradient-to-br from-white via-amber-50/20 to-white backdrop-blur-sm flex flex-col h-full" 
       onClick={() => onSelect(coffee)}
     >
       {/* Background gradient overlay */}
@@ -167,10 +167,11 @@ export const RecommendationCard = ({
       </CardHeader>
       
       {/* Card Content */}
-      <CardContent className="relative pt-0">
-        <div className="space-y-2 sm:space-y-4">
-          {/* Quick Info */}
-          <div className="flex items-center justify-between text-xs">
+      <CardContent className="relative pt-0 flex flex-col h-full">
+        {/* Description area - flex-grow to push bottom content down */}
+        <div className="flex-grow">
+          {/* Quick Info - status indicators */}
+          <div className="flex items-center justify-between text-xs mb-4">
             <span className="flex items-center gap-1">
               <span className={`w-2 h-2 rounded-full ${
                 v.code === 'green' ? 'bg-green-400' : 
@@ -190,9 +191,12 @@ export const RecommendationCard = ({
               Perfect timing
             </span>
           </div>
-          
+        </div>
+        
+        {/* Bottom section - always at bottom */}
+        <div className="mt-auto space-y-3">
           {/* Quick Log Button */}
-          <div className="pt-1 sm:pt-2" onClick={(e) => e.stopPropagation()}>
+          <div onClick={(e) => e.stopPropagation()}>
             <QuickLogButton 
               coffee={coffee} 
               variant="outline" 

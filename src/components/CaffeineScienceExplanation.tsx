@@ -9,39 +9,25 @@ interface CaffeineScienceExplanationProps {
 }
 
 export const CaffeineScienceExplanation = ({ className = "" }: CaffeineScienceExplanationProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
   return (
     <Card className={`bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 shadow-sm ${className}`}>
-      <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-4 pt-2 sm:pt-3">
-        <div className="flex items-center justify-between gap-2 sm:gap-3">
-          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-xs sm:text-sm">🧪</span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <CardTitle className="text-sm sm:text-lg text-blue-900 font-semibold leading-tight">
-                How We Recommend
-              </CardTitle>
-              <p className="text-blue-700 text-xs leading-tight mt-0.5 hidden sm:block">
-                Based on caffeine content and nutritionist-backed sleep tips
-              </p>
-            </div>
+      <CardHeader className="pb-2 px-3 pt-3">
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 bg-blue-100 rounded-md flex items-center justify-center flex-shrink-0">
+            <span className="text-blue-600 text-xs">🎯</span>
           </div>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-400 text-xs px-2 sm:px-3 py-1 sm:py-2 h-auto flex-shrink-0 whitespace-nowrap"
-          >
-            {isExpanded ? "Hide" : "Learn More"}
-          </Button>
+          <div className="min-w-0 flex-1">
+            <CardTitle className="text-sm text-blue-900 font-medium leading-tight">
+              How We Recommend
+            </CardTitle>
+            {/* <p className="text-blue-700 text-xs leading-tight mt-0.5">
+              Based on caffeine content and nutritionist-backed sleep tips
+            </p> */}
+          </div>
         </div>
       </CardHeader>
       
-      {isExpanded && (
-        <CardContent className="space-y-3 sm:space-y-6 pt-0 px-3 sm:px-6 pb-3 sm:pb-6">
+      <CardContent className="space-y-3 pt-0 px-3 pb-3">
           {/* The 8-Hour Rule */}
           <div className="bg-white/70 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-blue-100">
             <div className="flex items-start gap-2 sm:gap-3 mb-2 sm:mb-3">
@@ -162,7 +148,7 @@ export const CaffeineScienceExplanation = ({ className = "" }: CaffeineScienceEx
           </div>
 
           {/* How We Calculate */}
-          <div className="bg-white/70 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-amber-100">
+          {/* <div className="bg-white/70 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-amber-100">
             <div className="flex items-start gap-2 sm:gap-3">
               <div className="w-6 h-6 sm:w-8 sm:h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
                 <span className="text-amber-600 text-xs sm:text-sm">🧮</span>
@@ -190,7 +176,7 @@ export const CaffeineScienceExplanation = ({ className = "" }: CaffeineScienceEx
                       <span className="sm:hidden">Recommend drinks with &lt;50mg caffeine within 8 hours of bedtime</span>
                       <span className="hidden sm:inline">We only recommend drinks that will leave &lt;50mg at bedtime</span>
                     </span>
-                  </div>
+                  </div> */}
                   {/* <div className="flex items-start gap-2">
                     <span className="text-amber-600 font-medium">4.</span>
                     <span>
@@ -198,10 +184,10 @@ export const CaffeineScienceExplanation = ({ className = "" }: CaffeineScienceEx
                       <span className="hidden sm:inline">We consider your energy preferences and time of day</span>
                     </span> */}
                   {/* </div> */}
-                </div>
+                {/* </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Caffeine Calculation Logic */}
           <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-gray-200">
@@ -227,7 +213,6 @@ export const CaffeineScienceExplanation = ({ className = "" }: CaffeineScienceEx
             </p>
           </div>
         </CardContent>
-      )}
-    </Card>
-  );
+      </Card>
+    );
 };

@@ -266,18 +266,18 @@ export const SmartCaffeineTracker = ({ className = "" }: SmartCaffeineTrackerPro
       </Card>
 
       {/* Detailed Stats Grid */}
-      <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Clearance Rate */}
         <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                <span className="text-purple-600 text-sm">🔄</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-100 rounded-md sm:rounded-lg flex items-center justify-center">
+                <span className="text-purple-600 text-xs sm:text-sm">🔄</span>
               </div>
-              <span className="text-sm font-medium text-gray-700">Clearance Rate</span>
+              <span className="text-xs sm:text-sm font-medium text-gray-700">Clearance Rate</span>
             </div>
             <div className="space-y-1">
-              <span className="text-lg font-bold text-purple-600">
+              <span className="text-base sm:text-lg font-bold text-purple-600">
                 {Math.round(caffeineStatus.currentLevel / 5)}mg/hr
               </span>
               <div className="text-xs text-gray-500">
@@ -289,19 +289,19 @@ export const SmartCaffeineTracker = ({ className = "" }: SmartCaffeineTrackerPro
 
         {/* Caffeine Status */}
         <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                <span className="text-indigo-600 text-sm">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-indigo-100 rounded-md sm:rounded-lg flex items-center justify-center">
+                <span className="text-indigo-600 text-xs sm:text-sm">
                   {caffeineStatus.currentLevel > 50 ? '⏳' : '✅'}
                 </span>
               </div>
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-xs sm:text-sm font-medium text-gray-700">
                 {caffeineStatus.currentLevel > 50 ? 'Time to Sleep-Safe' : 'Sleep Status'}
               </span>
             </div>
             <div className="space-y-1">
-              <span className="text-lg font-bold text-indigo-600">
+              <span className="text-base sm:text-lg font-bold text-indigo-600">
                 {caffeineStatus.currentLevel > 50 
                   ? (() => {
                       // Calculate time to reach 50mg (safe for sleep)
@@ -324,15 +324,15 @@ export const SmartCaffeineTracker = ({ className = "" }: SmartCaffeineTrackerPro
 
         {/* Half-Life Progress */}
         <Card className="bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                <span className="text-orange-600 text-sm">⏱️</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-100 rounded-md sm:rounded-lg flex items-center justify-center">
+                <span className="text-orange-600 text-xs sm:text-sm">⏱️</span>
               </div>
-              <span className="text-sm font-medium text-gray-700">Half-Life</span>
+              <span className="text-xs sm:text-sm font-medium text-gray-700">Half-Life</span>
             </div>
             <div className="space-y-1">
-              <span className="text-lg font-bold text-orange-600">5h</span>
+              <span className="text-base sm:text-lg font-bold text-orange-600">5h</span>
               <div className="text-xs text-gray-500">
                 50% elimination time
               </div>
@@ -343,32 +343,32 @@ export const SmartCaffeineTracker = ({ className = "" }: SmartCaffeineTrackerPro
 
       {/* Scientific Info */}
       <Card className="hidden sm:block bg-gradient-to-r from-gray-50 to-blue-50/30 border border-gray-200 shadow-lg">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <span className="text-white text-lg">🧪</span>
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg sm:rounded-xl flex items-center justify-center">
+              <span className="text-white text-sm sm:text-lg">🧪</span>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">How It Works</h3>
-              <p className="text-sm text-gray-600">Science behind caffeine metabolism</p>
+              <h3 className="text-sm sm:text-base font-semibold text-gray-900">How It Works</h3>
+              <p className="text-xs sm:text-sm text-gray-600">Science behind caffeine metabolism</p>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="p-3 bg-white/60 rounded-lg border border-blue-100">
-              <div className="font-medium text-blue-900 mb-1">⚡ Absorption</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
+            <div className="p-2 sm:p-3 bg-white/60 rounded-lg border border-blue-100">
+              <div className="font-medium text-blue-900 mb-1 text-xs sm:text-sm">⚡ Absorption</div>
               <div className="text-gray-600 text-xs leading-relaxed">
                 Caffeine peaks in your bloodstream 30-60 minutes after consumption
               </div>
             </div>
-            <div className="p-3 bg-white/60 rounded-lg border border-green-100">
-              <div className="font-medium text-green-900 mb-1">🔄 Metabolism</div>
+            <div className="p-2 sm:p-3 bg-white/60 rounded-lg border border-green-100">
+              <div className="font-medium text-green-900 mb-1 text-xs sm:text-sm">🔄 Metabolism</div>
               <div className="text-gray-600 text-xs leading-relaxed">
                 Your liver processes ~50% of caffeine every 5 hours (half-life)
               </div>
             </div>
-            <div className="p-3 bg-white/60 rounded-lg border border-purple-100">
-              <div className="font-medium text-purple-900 mb-1">😴 Sleep Impact</div>
+            <div className="p-2 sm:p-3 bg-white/60 rounded-lg border border-purple-100">
+              <div className="font-medium text-purple-900 mb-1 text-xs sm:text-sm">😴 Sleep Impact</div>
               <div className="text-gray-600 text-xs leading-relaxed">
                 Less than 50mg at bedtime ensures quality sleep
               </div>

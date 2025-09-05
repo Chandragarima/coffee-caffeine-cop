@@ -265,11 +265,8 @@ const EnhancedCaffeineTracker: React.FC<EnhancedCaffeineTrackerProps> = ({ class
               {/* <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 sm:mb-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center">
                 <Coffee className="h-8 w-8 sm:h-10 sm:w-10 text-purple-600" />
               </div> */}
-              <CardTitle className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">You are a {insights.coffeePersonality.type}</CardTitle>
-              <div className="inline-flex items-center gap-0 px-0 py-0.5 sm:px-2 sm:py-2 bg-purple-100 rounded-full">
-                {/* <span className="w-2 h-2 bg-purple-600 rounded-full"></span> */}
-                {/* <p className="text-base sm:text-lg font-semibold text-purple-700"></p> */}
-              </div>
+              <CardTitle className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">{insights.coffeePersonality.type}</CardTitle>
+              <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-200 to-transparent my-2 sm:my-3"></div>
             </CardHeader>
             <CardContent className="space-y-4 sm:space-y-6">
               <div className="text-center">
