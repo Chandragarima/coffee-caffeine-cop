@@ -1,12 +1,36 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { CoffeeItem, HALF_LIFE_HOURS } from "@/data/coffees";
+import { CoffeeItem, HALF_LIFE_HOURS, CoffeeCategory } from "@/data/coffees";
 import { getSleepVerdict } from "@/lib/sleepVerdict";
-import { adjustedMg, SizeOz } from "@/lib/serving";
 import { getMilestones, caffeineRemaining } from "@/lib/caffeine";
 import DecayChart from "@/components/DecayChart";
-import { useDynamicCaffeine } from "@/hooks/useDynamicCaffeine";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+// Function to get the appropriate SVG icon based on coffee category
+const getCoffeeCategoryIcon = (category: CoffeeCategory): string => {
+  switch (category) {
+    case "brewed":
+      return "/icons/brewed.svg";
+    case "espresso":
+      return "/icons/espresso.svg";
+    case "milk":
+      return "/icons/milk-based.svg";
+    case "instant":
+      return "/icons/brewed.svg"; // Fallback to brewed for instant
+    case "cold":
+      return "/icons/iced.svg";
+    case "tea":
+      return "/icons/tea.svg";
+    case "specialty":
+      return "/icons/speciality.svg";
+    case "energy":
+      return "/icons/energy.svg";
+    case "soda":
+      return "/icons/soda.svg";
+    default:
+      return "/icons/brewed.svg"; // Default fallback
+  }
+};
 
 interface CoffeeDetailDialogProps {
   coffee: CoffeeItem | null;
@@ -21,11 +45,10 @@ export const CoffeeDetailDialog = ({
 }: CoffeeDetailDialogProps) => {
   if (!coffee) return null;
 
-  const isMobile = useIsMobile();
-  const dynamicCaffeine = useDynamicCaffeine(coffee);
-  const v = getSleepVerdict(dynamicCaffeine, hoursUntilBed, HALF_LIFE_HOURS);
-  const milestones = getMilestones(dynamicCaffeine, HALF_LIFE_HOURS);
-  const remainingAtBedtime = caffeineRemaining(dynamicCaffeine, hoursUntilBed, HALF_LIFE_HOURS);
+    const isMobile = useIsMobile();
+    const v = getSleepVerdict(coffee.caffeineMg, hoursUntilBed, HALF_LIFE_HOURS);
+    const milestones = getMilestones(coffee.caffeineMg, HALF_LIFE_HOURS);
+    const remainingAtBedtime = caffeineRemaining(coffee.caffeineMg, hoursUntilBed, HALF_LIFE_HOURS);
 
   return (
     <Dialog open={!!coffee} onOpenChange={(o) => !o && onClose()}>
@@ -35,17 +58,25 @@ export const CoffeeDetailDialog = ({
           {isMobile ? (
             // Mobile layout - stacked vertically with better spacing
             <div className="text-center">
-              {/* <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center mx-auto mb-3">
-                <span className="text-white text-2xl">☕</span>
-              </div> */}
+              <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <img 
+                  src={getCoffeeCategoryIcon(coffee.category)} 
+                  alt={`${coffee.category} icon`}
+                  className="w-8 h-8"
+                />
+              </div>
               <DialogTitle className="font-bold text-gray-900 text-xl mb-2">{coffee.name}</DialogTitle>
               <p className="text-gray-600 text-sm leading-relaxed">{coffee.description}</p>
             </div>
           ) : (
             // Desktop layout - horizontal with icon and text side by side
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-xl">☕</span>
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-100 to-orange-300 rounded-xl flex items-center justify-center flex-shrink-0">
+                <img 
+                  src={getCoffeeCategoryIcon(coffee.category)} 
+                  alt={`${coffee.category} icon`}
+                  className="w-8 h-8"
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <DialogTitle className="font-bold text-gray-900 text-2xl mb-1">{coffee.name}</DialogTitle>
@@ -100,7 +131,7 @@ export const CoffeeDetailDialog = ({
                   Caffeine Decay Timeline
                 </h3>
                 <p className={`text-gray-600 mt-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                  How your body processes <span className="font-medium text-amber-700">{dynamicCaffeine}mg</span> of caffeine over time
+                  How your body processes <span className="font-medium text-amber-700">{coffee.caffeineMg}mg</span> of caffeine over time
                 </p>
               </div>
               <div className="text-right flex-shrink-0 ml-2">
@@ -111,7 +142,7 @@ export const CoffeeDetailDialog = ({
 
             {/* Enhanced Chart - Responsive Height */}
             <div className={`bg-gradient-to-b from-blue-50/30 to-transparent rounded-xl p-3 ${isMobile ? 'h-40 mb-3' : 'h-56 mb-4'}`}>
-              <DecayChart mg={dynamicCaffeine} halfLife={HALF_LIFE_HOURS} />
+              <DecayChart mg={coffee.caffeineMg} halfLife={HALF_LIFE_HOURS} />
             </div>
 
             {/* Key Milestones - Essential Info Only */}

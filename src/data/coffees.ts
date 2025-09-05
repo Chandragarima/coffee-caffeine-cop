@@ -214,7 +214,8 @@ export const COFFEES: CoffeeItem[] = [
     ],
     shotOptions: [
       { shots: 1, caffeine: 75 },
-      { shots: 2, caffeine: 150 }
+      { shots: 2, caffeine: 150 },
+      { shots: 3, caffeine: 225 }
     ],
     sizeAndShotOptions: [
       { size: "Short", oz: 8, defaultShots: 1, baseCaffeine: 75 },
@@ -270,7 +271,8 @@ export const COFFEES: CoffeeItem[] = [
     ],
     shotOptions: [
       { shots: 1, caffeine: 75 },
-      { shots: 2, caffeine: 150 }
+      { shots: 2, caffeine: 150 },
+      { shots: 3, caffeine: 225 }
     ],
     sizeAndShotOptions: [
       { size: "Short", oz: 8, defaultShots: 1, baseCaffeine: 75 },
@@ -296,7 +298,8 @@ export const COFFEES: CoffeeItem[] = [
     ],
     shotOptions: [
       { shots: 1, caffeine: 85 },
-      { shots: 2, caffeine: 170 }
+      { shots: 2, caffeine: 170 },
+      { shots: 3, caffeine: 255 }
     ],
     sizeAndShotOptions: [
       { size: "Short", oz: 8, defaultShots: 1, baseCaffeine: 85 },
@@ -322,7 +325,8 @@ export const COFFEES: CoffeeItem[] = [
     ],
     shotOptions: [
       { shots: 1, caffeine: 75 },
-      { shots: 2, caffeine: 150 }
+      { shots: 2, caffeine: 150 },
+      { shots: 3, caffeine: 225 }
     ],
     sizeAndShotOptions: [
       { size: "Short", oz: 8, defaultShots: 1, baseCaffeine: 75 },
@@ -348,7 +352,8 @@ export const COFFEES: CoffeeItem[] = [
     ],
     shotOptions: [
       { shots: 1, caffeine: 95 },
-      { shots: 2, caffeine: 175 }
+      { shots: 2, caffeine: 175 },
+      { shots: 3, caffeine: 255 }
     ],
     sizeAndShotOptions: [
       { size: "Short", oz: 8, defaultShots: 1, baseCaffeine: 95 },
@@ -401,7 +406,8 @@ export const COFFEES: CoffeeItem[] = [
     ],
     shotOptions: [
       { shots: 1, caffeine: 5 },
-      { shots: 2, caffeine: 10 }
+      { shots: 2, caffeine: 10 },
+      { shots: 3, caffeine: 15 }
     ],
     sizeAndShotOptions: [
       { size: "Short", oz: 8, defaultShots: 1, baseCaffeine: 5 },

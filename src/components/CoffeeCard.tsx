@@ -85,10 +85,10 @@ export const CoffeeCard = ({
 
   // Grid view (default)
   return (
-    <Card className="group hover:shadow-md transition-all duration-200 cursor-pointer" onClick={() => onSelect(coffee)}>
-      <CardContent className="p-4 sm:p-6">
+    <Card className="group hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col h-full min-h-0" onClick={() => onSelect(coffee)}>
+      <CardContent className="p-4 sm:p-6 flex flex-col h-full min-h-0">
         {/* Header with title and safety indicator */}
-        <div className="flex items-start justify-between mb-3 sm:mb-4">
+        <div className="flex items-start justify-between mb-3 sm:mb-4 flex-shrink-0">
           <h3 className="text-base sm:text-lg font-semibold text-gray-900 group-hover:text-amber-700 transition-colors leading-tight">
             {coffee.name}
           </h3>
@@ -108,28 +108,32 @@ export const CoffeeCard = ({
           </div>
         </div>
         
-        {/* Description */}
-        <p className="text-sm text-gray-600 leading-relaxed line-clamp-2 mb-4">
+        {/* Description - flex-grow to push bottom content down, clamped to 3 lines for consistency */}
+        <p className="text-sm text-gray-600 leading-relaxed mb-4 flex-grow min-h-0 line-clamp-3">
           {coffee.description}
         </p>
-        {/* Caffeine amount - standalone */}
-        <div className="mb-2 sm:mb-4">
-          <span className="text-xs sm:text-sm font-medium text-blue-600 bg-blue-50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md">
-            {defaultCaffeine}mg
-          </span>
-        </div>
         
-        {/* Log button */}
-        <div onClick={(e) => e.stopPropagation()}>
-          <QuickLogButton 
-            coffee={coffee} 
-            variant="outline" 
-            size="sm" 
-            className="w-full border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors"
-            showDialog={true}
-            onLogSuccess={onLogSuccess}
-            showUndoAfterLog={true}
-          />
+        {/* Bottom section - always at bottom with consistent spacing */}
+        <div className="mt-auto space-y-4 flex-shrink-0">
+          {/* Caffeine amount */}
+          <div>
+            <span className="text-xs sm:text-sm font-medium text-blue-600 bg-blue-50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md">
+              {defaultCaffeine}mg
+            </span>
+          </div>
+          
+          {/* Log button */}
+          <div onClick={(e) => e.stopPropagation()}>
+            <QuickLogButton 
+              coffee={coffee} 
+              variant="outline" 
+              size="sm" 
+              className="w-full border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors"
+              showDialog={true}
+              onLogSuccess={onLogSuccess}
+              showUndoAfterLog={true}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>

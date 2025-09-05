@@ -24,7 +24,7 @@ export const getSleepVerdict = (
     return {
       code: "green",
       chip: "Safe Sip",
-      headline: "Perfect for sleep timing",
+      headline: "Safe for your sleep schedule",
       detail: `Great choice! This gives you energy now and lets you wind down naturally by bedtime (${bedtimeHours}h from now).`,
       suggestion: "You could even go for a larger size if you want more energy.",
       remainingMg: remaining,
@@ -36,7 +36,7 @@ export const getSleepVerdict = (
     return {
       code: "yellow",
       chip: "Suspect Brew",
-      headline: "May delay sleep 1-2 hours",
+      headline: "Could push bedtime back an hour or two",
       detail: `This will energize you now but might keep you awake 1-2 hours past your usual bedtime (${bedtimeHours}h from now).`,
       suggestion: "Try a smaller size or switch to something lighter for better sleep.",
       remainingMg: remaining,
@@ -47,7 +47,7 @@ export const getSleepVerdict = (
   return {
     code: "red",
     chip: "Night Breach",
-    headline: "Won't sleep before 2am",
+    headline: "Will keep you awake past 2am",
     detail: `This much caffeine will keep you wired well past your bedtime (${bedtimeHours}h from now) - you'll be scrolling your phone at 2AM.`,
     suggestion: "Try decaf or tea instead - you'll thank yourself tomorrow.",
     remainingMg: remaining,

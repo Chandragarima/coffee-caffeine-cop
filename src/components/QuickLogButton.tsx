@@ -61,7 +61,9 @@ const QuickLogButton = ({
           const sizeAndShotOption = coffee.sizeAndShotOptions.find(option => option.oz === selectedSize);
           if (sizeAndShotOption) {
             // Use the exact baseCaffeine value from sizeAndShotOptions
-            return sizeAndShotOption.baseCaffeine;
+            const caffeinePerShot = sizeAndShotOption.baseCaffeine / sizeAndShotOption.defaultShots;
+            return caffeinePerShot * selectedShots;
+            // return sizeAndShotOption.baseCaffeine;
           }
         }
         // Fallback to old logic if sizeAndShotOptions not available
@@ -343,29 +345,30 @@ const QuickLogButton = ({
                            {coffee.shotOptions
                              .filter((option) => option.shots <= 4) // Limit to maximum 4 shots
                              .map((option) => {
-                               // Use the exact values from sizeAndShotOptions for both_size_shots drinks
-                               let dynamicCaffeine = option.caffeine;
+                               // Calculate caffeine based on number of shots
+                               let shotCaffeine = option.caffeine;
                                if (coffee.scalingType === 'both_size_shots' && coffee.sizeAndShotOptions) {
                                  const sizeOption = coffee.sizeAndShotOptions.find(s => s.oz === selectedSize);
                                  if (sizeOption) {
-                                   // Use the exact baseCaffeine value from sizeAndShotOptions
-                                   dynamicCaffeine = sizeOption.baseCaffeine;
+                                   // For both_size_shots, multiply base caffeine by number of shots
+                                   const caffeinePerShot = sizeOption.baseCaffeine / sizeOption.defaultShots;
+                                   shotCaffeine = caffeinePerShot * option.shots;
                                  }
                                }
                                
                                return (
                                  <SelectItem key={option.shots} value={option.shots.toString()}>
-                                   {option.shots} shot{option.shots > 1 ? 's' : ''} ({dynamicCaffeine}mg)
+                                   {option.shots} shot{option.shots > 1 ? 's' : ''} ({shotCaffeine}mg)
                                  </SelectItem>
                                );
                              })}
                          </SelectContent>
                        </Select>
-                       {coffee.scalingType === 'both_size_shots' && (
+                       {/* {coffee.scalingType === 'both_size_shots' && (
                          <p className="text-xs text-gray-500">
                            Shots automatically update based on serving size selection
                          </p>
-                       )}
+                       )} */}
                      </div>
                    )}
 
