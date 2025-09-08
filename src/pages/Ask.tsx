@@ -282,7 +282,14 @@ const Ask = () => {
                   <h3 className="text-lg font-semibold text-gray-900">Edit Sleep Time</h3>
                 </div>
                                   <div className="grid grid-cols-1 gap-6">
-                    <BedtimeControl value={localBedtime} onChange={setLocalBedtime} />
+                    <BedtimeControl 
+                      value={localBedtime} 
+                      onChange={(newValue) => {
+                        setLocalBedtime(newValue);
+                        updatePreference('bedtime', newValue);
+                      }}
+                      autoSave={false}
+                    />
                   </div>
                 <div className="mt-6 pt-4 border-t border-amber-200">
                   <p className="text-sm text-gray-600 leading-relaxed">
