@@ -1,308 +1,422 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import DecayChart from "@/components/DecayChart";
-import { COFFEES, CoffeeCategory, CoffeeItem, byCategory, HALF_LIFE_HOURS } from "@/data/coffees";
+import { CoffeeItem } from "@/data/coffees";
 import { TimeOfDay, getTimeOfDay, defaultEnergyForTime } from "@/hooks/useTimeOfDay";
-import { EnergyLevel, bestPicksForTime } from "@/lib/recommendation";
-import { getMilestones, caffeineRemaining } from "@/lib/caffeine";
-import { Input } from "@/components/ui/input";
+import { EnergyLevel } from "@/lib/recommendation";
+import { hoursUntilBedtime } from "@/lib/timeUtils";
 import BedtimeControl from "@/components/BedtimeControl";
-import { getSleepVerdict } from "@/lib/sleepVerdict";
-import ServingControl from "@/components/ServingControl";
-import { adjustedMg, SizeOz } from "@/lib/serving";
-
-const categoryLabels: Record<CoffeeCategory, string> = {
-  espresso: "☕ Espresso",
-  milk: "🥛 Milk Based", 
-  water: "💧 Water Brewed",
-  tea: "🍃 Tea",
-  cold: "🧊 Cold",
-  specialty: "✨ Specialty",
-};
-
-// hoursUntil: compute hours from now until a given HH:mm bedtime (today or tomorrow)
-const hoursUntil = (timeStr: string, now: Date = new Date()): number => {
-  const [hh, mm] = timeStr.split(":").map(Number);
-  const bed = new Date(now);
-  bed.setHours(hh ?? 23, mm ?? 0, 0, 0);
-  if (bed.getTime() <= now.getTime()) {
-    bed.setDate(bed.getDate() + 1);
-  }
-  const ms = bed.getTime() - now.getTime();
-  return Math.max(0, ms / 36e5);
-};
-
-// Map time-of-day to anchor HH:mm used as "virtual now"
-const anchorForTime: Record<TimeOfDay, string> = {
-  morning: "09:00",
-  afternoon: "15:00",
-  evening: "19:00",
-  late_night: "22:00",
-};
-
-// Compute hours from an anchor HH:mm to a bedtime HH:mm within 24h window
-const hoursBetween = (bedHHMM: string, anchorHHMM: string): number => {
-  const [bh, bm] = bedHHMM.split(":").map(Number);
-  const [ah, am] = anchorHHMM.split(":").map(Number);
-  const bedMin = (bh ?? 23) * 60 + (bm ?? 0);
-  const anchorMin = (ah ?? 0) * 60 + (am ?? 0);
-  let diff = bedMin - anchorMin;
-  if (diff < 0) diff += 24 * 60; // wrap to next day
-  return diff / 60;
-};
+import { usePreferences } from "@/hooks/usePreferences";
+import { useCoffeeLogs } from "@/hooks/useCoffeeLogs";
+import CaffeineTracker from "@/components/CaffeineTracker";
+import RecentLogUndo from "@/components/RecentLogUndo";
+import { RecommendationsSection } from "@/components/RecommendationsSection";
+import { CoffeeBrowseSection } from "@/components/CoffeeBrowseSection";
+import { CoffeeDetailDialog } from "@/components/CoffeeDetailDialog";
+import EnhancedCaffeineTracker from "@/components/EnhancedCaffeineTracker";
+import { CaffeineGuidanceBanner } from "@/components/CaffeineGuidanceBanner";
+import { useCaffeineTracker } from "@/hooks/useCaffeineTracker";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const Ask = () => {
-  const [time, setTime] = useState<TimeOfDay>(getTimeOfDay());
-  const [energy, setEnergy] = useState<EnergyLevel>(defaultEnergyForTime[time]);
-  const [activeTab, setActiveTab] = useState<string>("all");
+  const isMobile = useIsMobile();
+  
+  // Install functionality
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+
+  // Load user preferences
+  const { 
+    bedtime, 
+    updatePreference,
+    isLoading: preferencesLoading 
+  } = usePreferences();
+
+  // Load coffee logs
+  const { stats: coffeeStats, refreshStats } = useCoffeeLogs();
+  const { caffeineStatus } = useCaffeineTracker();
+
+  // Auto-detect time of day and energy level from local time
+  const [currentTime, setCurrentTime] = useState<TimeOfDay>(getTimeOfDay());
+  const [currentEnergy, setCurrentEnergy] = useState<EnergyLevel>(defaultEnergyForTime[getTimeOfDay()]);
+  
   const [selected, setSelected] = useState<CoffeeItem | null>(null);
-  const [bedtime, setBedtime] = useState<string>("23:00");
-  const [query, setQuery] = useState<string>("");
-  const [sizeOz, setSizeOz] = useState<SizeOz>(16);
-  const [shots, setShots] = useState<1 | 2>(1);
+  const [showPreferences, setShowPreferences] = useState<boolean>(false);
+  const [refreshCount, setRefreshCount] = useState<number>(0);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [showSmartTracker, setShowSmartTracker] = useState<boolean>(false);
+  const [showCoffeeGuide, setShowCoffeeGuide] = useState<boolean>(false);
+  
+  // Update local state when preferences change
+  const [localBedtime, setLocalBedtime] = useState<string>(bedtime);
 
-  const virtualHoursUntilBed = useMemo(() => hoursBetween(bedtime, anchorForTime[time]), [bedtime, time]);
-  const best = useMemo(() => bestPicksForTime(time, energy, virtualHoursUntilBed, HALF_LIFE_HOURS, sizeOz, shots), [time, energy, virtualHoursUntilBed, sizeOz, shots]);
+  // Sync local state with preferences
+  useEffect(() => {
+    if (!preferencesLoading) {
+      setLocalBedtime(bedtime);
+    }
+  }, [bedtime, preferencesLoading]);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [] as CoffeeItem[];
-    return COFFEES.filter((c) =>
-      c.name.toLowerCase().includes(q) ||
-      c.description.toLowerCase().includes(q) ||
-      (c.tags?.some((t) => t.includes(q)) ?? false)
-    );
-  }, [query]);
+  const virtualHoursUntilBed = useMemo(() => hoursUntilBedtime(localBedtime), [localBedtime]);
+  
+  // Refresh handler
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setRefreshCount(prev => prev + 1);
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
+  
+  // Auto-update time and energy level every minute
+  useEffect(() => {
+    const updateTimeAndEnergy = () => {
+      const newTime = getTimeOfDay();
+      setCurrentTime(newTime);
+      setCurrentEnergy(defaultEnergyForTime[newTime]);
+    };
+
+    // Update immediately
+    updateTimeAndEnergy();
+
+    // Update every minute
+    const interval = setInterval(updateTimeAndEnergy, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     document.title = "Ask CoffeePolice – Smart coffee picks";
     const meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute("content", "Browse coffees, see half-life charts, and get time-smart picks.");
   }, []);
 
-  const renderCard = (c: CoffeeItem) => {
-    const mgAdj = adjustedMg(c, sizeOz, shots);
-    const v = getSleepVerdict(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
-    return (
-      <Card key={c.id} className="hover-scale cursor-pointer" onClick={() => setSelected(c)}>
-        <CardContent className="py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <div className="font-medium text-foreground">{c.name}</div>
-              <div className="text-xs text-muted-foreground">{c.description}</div>
-            </div>
-          </div>
-          <div className="mt-2">
-            <Badge variant="secondary" className="text-xs">{v.chip}</Badge>
-          </div>
-        </CardContent>
-      </Card>
-    );
+  // Install functionality
+  useEffect(() => {
+    // Check if app is already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+      return;
+    }
+
+    // Check if user is on iOS
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
+    setIsIOS(isIOSDevice);
+
+    // Listen for beforeinstallprompt event
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    // Listen for appinstalled event
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+        setIsInstalled(true);
+      } else {
+        console.log('User dismissed the install prompt');
+      }
+      
+      setDeferredPrompt(null);
+    }
   };
 
   return (
-    <main className="min-h-screen bg-background">
-      <section className="px-4 py-6 max-w-screen-md mx-auto">
-        <header className="mb-6 animate-enter">
-          <div className="flex items-center gap-3">
-            <img
-              src="/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
-              alt="CoffeePolice mascot logo"
-              className="h-10 w-10 rounded-md"
-              loading="lazy"
-            />
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">Ask CoffeePolice</h1>
-              <p className="text-muted-foreground text-sm">Time‑aware picks with caffeine half‑life guidance.</p>
+    <main className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-50/30">
+      <section className="px-3 sm:px-6 py-3 sm:py-8 max-w-6xl mx-auto">
+        <header className="mb-4 sm:mb-12 relative">
+          {/* Install button positioned absolutely at top right */}
+          {isMobile && !isInstalled && (deferredPrompt || isIOS) && (
+            <div className="absolute top-0 right-0 z-10">
+              <Button
+                onClick={handleInstallClick}
+                size="sm"
+                variant="outline"
+                className="text-xs px-3 py-1.5 h-8"
+              >
+                📱 Install
+              </Button>
+            </div>
+          )}
+
+          {/* Hero section */}
+          <div className="text-center space-y-4 sm:space-y-6">
+            {/* Logo and branding */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6">
+              <div className="relative">
+                <img
+                  src="/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
+                  alt="CoffeePolice mascot logo"
+                  className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl shadow-md"
+                  loading="lazy"
+                />
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                  <span className="text-white text-xs">⚡</span>
+                </div>
+              </div>
+              
+              <div className="text-center sm:text-left space-y-1 sm:space-y-2">
+                <h1 className="text-2xl sm:text-5xl font-black tracking-tight text-gray-900">
+                  Coffee Police
+                </h1>
+                {/* <p className="text-gray-600 text-sm sm:text-lg text-center font-medium">
+                  Smart caffeine tracking
+                </p> */}
+              </div>
+            </div>
+
+            {/* Tagline and CTA */}
+            <div className="max-w-2xl mx-auto space-y-3 sm:space-y-4">
+              <p className="hidden sm:block text-gray-600 text-sm sm:text-base leading-relaxed">
+                Policing your caffeine intake with{" "}
+                <span className="text-amber-600 font-semibold">time-smart picks</span> and personalized recommendations
+              </p>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCoffeeGuide(true)}
+                className="text-amber-600 hover:text-amber-700 hover:bg-amber-50/50 text-sm px-4 py-2 rounded-lg border border-amber-200/50 hover:border-amber-300 transition-all duration-200"
+              >
+                📋 Coffee Guide
+              </Button>
             </div>
           </div>
         </header>
 
-        <section className="mb-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
-          <div>
-            <label className="block text-sm mb-1 text-muted-foreground">Time of day</label>
-            <Select value={time} onValueChange={(v: TimeOfDay) => { setTime(v); setEnergy(defaultEnergyForTime[v]); }}>
-              <SelectTrigger className="w-full"><SelectValue placeholder="Select time" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="morning">Morning</SelectItem>
-                <SelectItem value="afternoon">Afternoon</SelectItem>
-                <SelectItem value="evening">Evening</SelectItem>
-                <SelectItem value="late_night">Late night</SelectItem>
-              </SelectContent>
-            </Select>
+                                           {/* Preferences Section - Always Visible */}
+        <section className="mb-4 sm:mb-10">
+          <div className="bg-card rounded-lg border p-4 sm:p-8">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                                 <div>
+                   <h2 className="text-base sm:text-lg font-semibold text-foreground">Daily Overview</h2>
+                   <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">No caffeine 8+ hours before bedtime ensures sound sleep.</p>
+                 </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowPreferences(!showPreferences)}
+                  className="text-amber-700 hover:text-amber-800 hover:bg-amber-50 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"
+                >
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span className="hidden sm:inline">{showPreferences ? "Hide" : "Edit"}</span>
+                  {/* <span className="sm:hidden">⚙️</span> */}
+            </Button>
           </div>
-          <div>
-            <label className="block text-sm mb-1 text-muted-foreground">Energy level</label>
-            <Select value={energy} onValueChange={(v: EnergyLevel) => setEnergy(v)}>
-              <SelectTrigger className="w-full"><SelectValue placeholder="Select energy" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <BedtimeControl value={bedtime} onChange={setBedtime} />
-          <div>
-            <ServingControl sizeOz={sizeOz} onSizeChange={setSizeOz} shots={shots} onShotsChange={setShots} />
+              
+                             {/* Current Settings Summary */}
+               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-3 sm:mb-4">
+                 <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-blue-50/50 rounded-xl border border-blue-100">
+                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                     <span className="text-blue-600 text-xs sm:text-sm">⚡</span>
+                   </div>
+                   <div className="min-w-0">
+                     <p className="text-xs text-gray-500 font-medium">Time of Day</p>
+                     <p className="text-xs sm:text-sm font-semibold text-gray-900 capitalize truncate">{currentTime}</p>
+                   </div>
+                 </div>
+                                 <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-green-50/50 rounded-xl border border-green-100">
+                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                     <span className="text-green-600 text-xs sm:text-sm">🛡️</span>
+                   </div>
+                   <div className="min-w-0">
+                     <p className="text-xs text-gray-500 font-medium">Safe Limit</p>
+                     <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">≤50mg sleep</p>
+                     {/* <p className="text-xs text-gray-500">8hrs before bed</p> */}
+                   </div>
+                 </div>
+                                                    <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-purple-50/50 rounded-xl border border-purple-100">
+                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                     <span className="text-purple-600 text-xs sm:text-sm">🛏️</span>
+                   </div>
+                   <div className="min-w-0">
+                     <p className="text-xs text-gray-500 font-medium">Bed time</p>
+                     <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">{localBedtime}</p>
+                   </div>
+                 </div>
+                 
+                                   {/* Coffee Stats Summary */}
+                  {coffeeStats && (
+                    <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-amber-50/50 rounded-xl border border-amber-100">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span className="text-amber-600 text-xs sm:text-sm">📊</span>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs text-gray-500 font-medium">Today's Caffeine</p>
+                        <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">{coffeeStats.totalCaffeineToday}mg</p>
+                      </div>
+                    </div>
+                  )}
+                   </div>
+                   
+            {/* Expandable Preferences - Improved Design */}
+            {showPreferences && (
+              <div className="p-6 bg-gradient-to-r from-amber-50/70 to-orange-50/50 rounded-xl border border-amber-200 shadow-sm">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <span className="text-amber-600 text-lg">⚙️</span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Edit Sleep Time</h3>
+                </div>
+                                  <div className="grid grid-cols-1 gap-6">
+                    <BedtimeControl value={localBedtime} onChange={setLocalBedtime} />
+                  </div>
+                <div className="mt-6 pt-4 border-t border-amber-200">
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    💡 <strong>Tip:</strong> Changes are automatically saved and will affect your coffee recommendations immediately.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
-        <article className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-semibold text-foreground">Best pick right now</h2>
-            <Badge variant="secondary" className="hover-scale">{time.replace("_", " ")} · {energy}</Badge>
+        {/* Enhanced Caffeine Tracking Section */}
+        <section className="mb-6 sm:mb-10">
+          <div className="bg-card rounded-lg border p-4 sm:p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-foreground mb-1">Caffeine Tracking</h3>
+                <p className="hidden sm:block text-sm text-muted-foreground">Monitor your daily caffeine intake and sleep impact</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSmartTracker(!showSmartTracker)}
+                className="text-blue-700 hover:text-blue-800 hover:bg-blue-50 flex items-center gap-2 px-3 py-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                {showSmartTracker ? "Simple View" : "Smart View"}
+              </Button>
+            </div>
+          
+            {showSmartTracker ? (
+              <EnhancedCaffeineTracker />
+            ) : (
+              <CaffeineTracker compact={true} />
+            )}
           </div>
-          {(() => {
-            const warn = time === "late_night" && energy === "high" && virtualHoursUntilBed < 3;
-            if (!warn) return null;
-            const decaf = COFFEES.find((c) => c.id === "decaf_coffee");
-            const herbal = COFFEES.find((c) => c.id === "herbal_tea");
-            const coldBrew = COFFEES.find((c) => c.id === "cold_brew");
-            const remainingCold = coldBrew ? Math.round(caffeineRemaining(adjustedMg(coldBrew, sizeOz, shots), virtualHoursUntilBed, HALF_LIFE_HOURS)) : undefined;
-            return (
-              <div className="mb-4 p-4 rounded-lg border bg-muted/40 animate-enter">
-                <h3 className="font-semibold text-foreground mb-1">Heads up! It's too late for high energy</h3>
-                <p className="text-sm text-muted-foreground mb-3">Your {bedtime} bedtime is just around the corner. A high‑caffeine drink now would seriously impact your sleep.</p>
-                <div className="grid sm:grid-cols-3 grid-cols-1 gap-3">
-                  {decaf && (
-                    <Card className="border-dashed">
-                      <CardHeader className="pb-2"><CardTitle className="text-base">The only safe choice: {decaf.name} (~{decaf.caffeineMg}mg)</CardTitle></CardHeader>
-                      <CardContent className="text-sm text-muted-foreground">If you're craving the flavor, this is the way to go. Virtually no impact on sleep. ✅</CardContent>
-                    </Card>
-                  )}
-                  {herbal && (
-                    <Card className="border-dashed">
-                      <CardHeader className="pb-2"><CardTitle className="text-base">Zero‑caffeine option: {herbal.name} ({herbal.caffeineMg}mg)</CardTitle></CardHeader>
-                      <CardContent className="text-sm text-muted-foreground">A perfect, calming drink to help you wind down. Guaranteed sleep‑friendly.</CardContent>
-                    </Card>
-                  )}
-                  {coldBrew && (
-                    <Card className="border-destructive">
-                      <CardHeader className="pb-2"><CardTitle className="text-base">Your requested energy: Cold Brew ({coldBrew.caffeineMg}mg)</CardTitle></CardHeader>
-                      <CardContent className="text-sm text-muted-foreground">🚫 High sleep risk! {remainingCold !== undefined ? `~${remainingCold}mg` : "A lot"} would still be in your system at bedtime.</CardContent>
-                    </Card>
-                  )}
+        </section>
+            
+                {/* Recently Logged Coffees with Undo */}
+        <section className="mb-6 sm:mb-8">
+          <RecentLogUndo 
+            showCount={3} 
+            onUndo={refreshStats}
+          />
+        </section>
+
+        {/* Coffee Recommendations & Browse Section */}
+        <article className="mb-8 sm:mb-16">
+          <div className="bg-card rounded-lg border p-6 sm:p-10">
+              
+                            {/* Caffeine Guidance Warning */}
+              {/* {caffeineStatus && (
+                <CaffeineGuidanceBanner 
+                  currentCaffeine={caffeineStatus.currentLevel}
+                  timeToBedtime={virtualHoursUntilBed * 60}
+                  dailyProgress={caffeineStatus.dailyProgress}
+                  className="mb-8"
+                />
+              )} */}
+
+              {/* Recommendations Section */}
+              <RecommendationsSection
+                currentTime={currentTime}
+                currentEnergy={currentEnergy}
+                hoursUntilBed={virtualHoursUntilBed}
+                bedtime={localBedtime}
+                refreshCount={refreshCount}
+                isRefreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                onSelect={setSelected}
+                onLogSuccess={refreshStats}
+              />
+
+              {/* Browse Section */}
+              <CoffeeBrowseSection
+                hoursUntilBed={virtualHoursUntilBed}
+                onSelect={setSelected}
+                onLogSuccess={refreshStats}
+              />
+            </div>
+        </article>
+
+
+
+        {/* Coffee Detail Dialog */}
+        <CoffeeDetailDialog
+          coffee={selected}
+          hoursUntilBed={virtualHoursUntilBed}
+          onClose={() => setSelected(null)}
+        />
+
+        {/* Coffee Guide Dialog */}
+        <Dialog open={showCoffeeGuide} onOpenChange={setShowCoffeeGuide}>
+          <DialogContent className="w-[95%] max-w-4xl max-h-[90vh] overflow-y-auto !p-6">
+            <DialogHeader className="pb-4">
+              <DialogTitle className="text-xl">Coffee Guide - What's What?</DialogTitle>
+            </DialogHeader>
+            
+                          <div className="space-y-6">
+                <div className="text-center">
+                {/* <p className="text-sm text-gray-600 mb-4">
+                  Click on the image below to see what different coffee drinks look like and their typical caffeine content.
+                </p> */}
+                <div className="relative inline-block">
+                  <img
+                    src="/lovable-uploads/poster.png"
+                    alt="Coffee Guide - Different types of coffee drinks and their content"
+                    className="w-[95%] sm:w-full max-w-2xl rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-300"
+                    onClick={() => {
+                      // Open image in new tab for full view
+                      window.open('/lovable-uploads/poster.png', '_blank');
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300 rounded-lg flex items-center justify-center">
+                    {/* <div className="opacity-0 hover:opacity-100 transition-opacity duration-300 bg-white bg-opacity-90 rounded-full p-3">
+                      <span className="text-gray-700 text-sm font-medium">🔍 Click to enlarge</span>
+                    </div> */}
+                  </div>
                 </div>
               </div>
-            );
-          })()}
-          <div className="grid sm:grid-cols-3 grid-cols-1 gap-3">
-            {best.map((c) => {
-              const mgAdj = adjustedMg(c, sizeOz, shots);
-              const v = getSleepVerdict(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
-              return (
-                <Card key={c.id} className="animate-enter hover-scale cursor-pointer" onClick={() => setSelected(c)}>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">{c.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-sm text-muted-foreground">
-                    {c.description}
-                    <div className="mt-3">
-                      <Badge variant="secondary" className="text-xs">{v.chip}</Badge>
-                      <p className="text-xs text-foreground mt-1">{v.detail}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </article>
-
-        <article>
-          <div className="mb-3">
-            <label className="block text-sm mb-1 text-muted-foreground">Search</label>
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search coffees (e.g., latte, decaf, tea)"
-            />
-          </div>
-
-          {query ? (
-            <>
-              <h2 className="text-lg font-semibold text-foreground mb-3">Results for "{query}"</h2>
-              {filtered.length > 0 ? (
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {filtered.map(renderCard)}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No matches. Try decaf, tea, latte, or espresso.</p>
-              )}
-            </>
-          ) : (
-            <>
-              <h2 className="text-lg font-semibold text-foreground mb-3">Browse by category</h2>
-              <Tabs value={activeTab} onValueChange={setActiveTab} defaultValue="all" className="w-full">
-                <TabsList className="flex flex-wrap">
-                  <TabsTrigger value="all">All</TabsTrigger>
-                  {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
-                    <TabsTrigger key={cat} value={cat}>{categoryLabels[cat]}</TabsTrigger>
-                  ))}
-                </TabsList>
-                <TabsContent value="all" className="mt-4">
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {COFFEES.map(renderCard)}
-                  </div>
-                </TabsContent>
-                {(Object.keys(categoryLabels) as CoffeeCategory[]).map((cat) => (
-                  <TabsContent key={cat} value={cat} className="mt-4">
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      {byCategory(cat).map(renderCard)}
-                    </div>
-                  </TabsContent>
-                ))}
-              </Tabs>
-            </>
-          )}
-        </article>
-
-        <div className="mt-8 text-center">
-          <Link to="/">
-            <Button variant="ghost">Back to Home</Button>
-          </Link>
-        </div>
-
-        <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-          <DialogContent className="sm:max-w-lg">
-            {selected && (
-              <>
-                <DialogHeader>
-                  <DialogTitle>{selected.name}</DialogTitle>
-                </DialogHeader>
-                <p className="text-sm text-muted-foreground">{selected.description}</p>
-                {(() => {
-                  const mgAdj = adjustedMg(selected, sizeOz, shots);
-                  const v = getSleepVerdict(mgAdj, virtualHoursUntilBed, HALF_LIFE_HOURS);
-                  return (
-                    <div className="mt-4 p-4 rounded-lg bg-muted/50">
-                      <Badge variant="secondary" className="mb-2">{v.chip}</Badge>
-                      <p className="text-sm text-foreground font-medium mb-1">{v.detail}</p>
-                      <p className="text-xs text-muted-foreground">{v.suggestion}</p>
-                    </div>
-                  );
-                })()}
-                <details className="mt-4">
-                  <summary className="text-sm font-medium cursor-pointer text-muted-foreground hover:text-foreground">View caffeine science</summary>
-                  <div className="mt-3">
-                    <DecayChart mg={adjustedMg(selected, sizeOz, shots)} halfLife={HALF_LIFE_HOURS} />
-                    <ul className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                      {getMilestones(adjustedMg(selected, sizeOz, shots), HALF_LIFE_HOURS).map((m) => (
-                        <li key={m.label} className="rounded-md border p-2">
-                          <div className="font-medium">{m.label}</div>
-                          <div className="text-muted-foreground">{m.remaining} mg</div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </details>
-              </>
-            )}
+              
+              {/* <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                <h3 className="font-semibold text-amber-800 mb-2">💡 How to use this guide:</h3>
+                <ul className="text-sm text-amber-700 space-y-1">
+                  <li>• <strong>Espresso-based drinks</strong> - Concentrated caffeine, quick energy</li>
+                  <li>• <strong>Milk-based drinks</strong> - Balanced caffeine with creamy texture</li>
+                  <li>• <strong>Brewed coffee</strong> - Traditional coffee with varying strengths</li>
+                  <li>• <strong>Caffeine amounts</strong> shown are typical ranges for standard servings</li>
+                </ul>
+              </div> */}
+            </div>
           </DialogContent>
         </Dialog>
       </section>
@@ -311,4 +425,3 @@ const Ask = () => {
 };
 
 export default Ask;
-

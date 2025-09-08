@@ -14,38 +14,27 @@ export default defineConfig(({ mode }) => ({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png'],
-      manifest: {
-        name: 'CoffeePolice',
-        short_name: 'CoffeePolice',
-        start_url: '/',
-        display: 'standalone',
-        background_color: '#ffffff',
-        theme_color: '#0f172a',
-        icons: [
-          { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
-        ]
-      },
+      includeAssets: ['icons/*.png', 'icons/*.svg'],
+      manifest: false,
       workbox: {
         runtimeCaching: [
           {
-            urlPattern: ({ request }) => request.mode === 'navigate',
-            handler: 'NetworkFirst',
-            options: { cacheName: 'pages' },
-          },
-          {
-            urlPattern: ({ request }) => request.destination === 'style' || request.destination === 'script',
-            handler: 'StaleWhileRevalidate',
+            urlPattern: /^https:\/\/.*\.(js|css|png|jpg|jpeg|svg|gif|webp)$/,
+            handler: 'CacheFirst',
             options: { cacheName: 'assets' },
           },
           {
-            urlPattern: /\/src\/data\/coffees\.ts$/,
-            handler: 'CacheFirst',
-            options: { cacheName: 'data' },
+            urlPattern: /^https:\/\/.*\/api\/.*/,
+            handler: 'NetworkFirst',
+            options: { cacheName: 'api' },
           },
         ],
+        skipWaiting: true,
+        clientsClaim: true,
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module',
       },
     }),
     mode === 'development' && componentTagger(),
