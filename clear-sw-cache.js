@@ -32,3 +32,4 @@ Object.keys(localStorage).forEach(key => {
 });
 
 console.log('Done! Please refresh the page.');
+
