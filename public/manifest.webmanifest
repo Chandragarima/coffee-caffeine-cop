@@ -2,7 +2,7 @@
   "name": "CoffeePolice",
   "short_name": "CoffeePolice",
   "description": "Smart coffee recommendations with caffeine guidance",
-  "start_url": "/",
+  "start_url": "/coffee-caffeine-cop",
   "display": "standalone",
   "background_color": "#fef3c7",
   "theme_color": "#f59e0b",
