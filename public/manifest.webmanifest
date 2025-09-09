@@ -65,7 +65,7 @@
       "name": "Get Coffee Recommendations",
       "short_name": "Recommendations",
       "description": "Get personalized coffee picks based on time and preferences",
-      "url": "/coffee-caffeine-cop/ask",
+      "url": "/coffee-caffeine-cop/",
       "icons": [
         {
           "src": "./PWA/android/android-launchericon-96-96.png",
