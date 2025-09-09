@@ -7,54 +7,54 @@
   "background_color": "#fef3c7",
   "theme_color": "#f59e0b",
   "orientation": "portrait-primary",
-  "scope": "/",
+  "scope": "/coffee-caffeine-cop/",
   "lang": "en",
   "categories": ["lifestyle", "health", "productivity"],
   "icons": [
     {
-      "src": "/PWA/android/android-launchericon-72-72.png",
+      "src": "./PWA/android/android-launchericon-72-72.png",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/PWA/android/android-launchericon-96-96.png",
+      "src": "./PWA/android/android-launchericon-96-96.png",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/PWA/ios/128.png",
+      "src": "./PWA/ios/128.png",
       "sizes": "128x128",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/PWA/android/android-launchericon-144-144.png",
+      "src": "./PWA/android/android-launchericon-144-144.png",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/PWA/ios/152.png",
+      "src": "./PWA/ios/152.png",
       "sizes": "152x152",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/PWA/android/android-launchericon-192-192.png",
+      "src": "./PWA/android/android-launchericon-192-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/PWA/ios/384.png",
+      "src": "./PWA/ios/384.png",
       "sizes": "384x384",
       "type": "image/png",
       "purpose": "maskable any"
     },
     {
-      "src": "/PWA/android/android-launchericon-512-512.png",
+      "src": "./PWA/android/android-launchericon-512-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable any"
@@ -65,10 +65,10 @@
       "name": "Get Coffee Recommendations",
       "short_name": "Recommendations",
       "description": "Get personalized coffee picks based on time and preferences",
-      "url": "/ask",
+      "url": "/coffee-caffeine-cop/ask",
       "icons": [
         {
-          "src": "/PWA/android/android-launchericon-96-96.png",
+          "src": "./PWA/android/android-launchericon-96-96.png",
           "sizes": "96x96"
         }
       ]
@@ -77,10 +77,10 @@
       "name": "Caffeine Calculator",
       "short_name": "Calculator",
       "description": "Calculate caffeine half-life and sleep impact",
-      "url": "/calculator",
+      "url": "/coffee-caffeine-cop/calculator",
       "icons": [
         {
-          "src": "/PWA/android/android-launchericon-96-96.png",
+          "src": "./PWA/android/android-launchericon-96-96.png",
           "sizes": "96x96"
         }
       ]
