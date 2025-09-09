@@ -80,7 +80,7 @@ export const calculateTimeToNextCoffee = (
   const now = new Date();
   const [bedHour, bedMinute] = bedtime.split(':').map(Number);
   const bedtimeDate = new Date(now);
-  bedtimeDate.setHours(bedHour || 23, bedMinute || 0, 0, 0);
+  bedtimeDate.setHours(bedHour ?? 23, bedMinute ?? 0, 0, 0);
   
   // If bedtime is earlier today, it means tomorrow
   if (bedtimeDate.getTime() <= now.getTime()) {
@@ -145,17 +145,17 @@ export const getCaffeineGuidance = (
     sleepRisk = 'low';
     color = 'green';
     iconPath = '/icons/low.svg';
-    reason = 'Low sleep risk';
+    reason = 'Sleep looks good';
   } else if (projectedAtBedtime <= 90) {
     sleepRisk = 'medium';
     color = 'yellow';
     iconPath = '/icons/medium.svg';
-    reason = 'Medium sleep risk';
+    reason = 'May affect sleep';
   } else {
     sleepRisk = 'high';
     color = 'red';
     iconPath = '/icons/high.svg';
-    reason = 'High sleep risk';
+    reason = 'Sleep at risk';
   }
   
   // Generate recommendation based on sleep risk and current status
@@ -166,7 +166,7 @@ export const getCaffeineGuidance = (
     // No wait time - safe to have coffee now
     if (dailyProgress >= 90) {
       canHaveCoffee = false;
-      reason = 'Daily limit nearly reached';
+      reason = 'Daily limit reached';
       recommendation = 'You\'ve had enough caffeine today. Consider decaf or herbal tea.';
       color = 'yellow';
       iconPath = '/icons/medium.svg';
@@ -188,19 +188,19 @@ export const getCaffeineGuidance = (
     const waitTime = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
     
     if (timeToNextCoffee < 60) {
-      reason = 'Wait a bit longer';
-      recommendation = `Wait about ${Math.ceil(timeToNextCoffee)} minutes to avoid exceeding daily limits.`;
+      reason = 'Almost ready for coffee';
+      recommendation = `Just ${Math.ceil(timeToNextCoffee)} more minutes to avoid exceeding your daily limit.`;
     } else {
       // Be specific about why they need to wait based on sleep risk
       if (sleepRisk === 'high') {
-        reason = 'Too much for good sleep';
-        recommendation = `Wait ${waitTime} - more coffee now would leave ${Math.round(projectedAtBedtime)}mg+ at bedtime, disrupting sleep.`;
+        reason = 'Too late for coffee';
+        recommendation = `Wait ${waitTime} - coffee now would leave ${Math.round(projectedAtBedtime)}mg+ at bedtime, disrupting your sleep.`;
       } else if (sleepRisk === 'medium') {
-        reason = 'Moderate sleep impact';
+        reason = 'Coffee timing warning';
         recommendation = `Wait ${waitTime} to keep bedtime caffeine under 50mg for better sleep quality.`;
       } else {
-        reason = 'Pacing for optimal timing';
-        recommendation = `Wait ${waitTime} to maintain good sleep while maximizing your daily caffeine benefit.`;
+        reason = 'Wait for next coffee';
+        recommendation = `Wait ${waitTime} to maintain good sleep while getting the most from your daily caffeine.`;
       }
     }
   }
@@ -257,7 +257,7 @@ export const getCaffeineStatus = (
   const now = new Date();
   const [bedHour, bedMinute] = bedtime.split(':').map(Number);
   const bedtimeDate = new Date(now);
-  bedtimeDate.setHours(bedHour || 23, bedMinute || 0, 0, 0);
+  bedtimeDate.setHours(bedHour ?? 23, bedMinute ?? 0, 0, 0);
   
   if (bedtimeDate.getTime() <= now.getTime()) {
     bedtimeDate.setDate(bedtimeDate.getDate() + 1);

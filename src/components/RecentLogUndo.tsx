@@ -7,6 +7,84 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { CoffeeLogEntry } from '@/lib/coffeeLog';
 import { addCoffeeLoggedListener, addCoffeeDeletedListener } from '@/lib/events';
 import { toast } from '@/components/ui/sonner';
+import { CoffeeItem, COFFEES } from '@/data/coffees';
+
+// Helper component to render coffee icons (SVG or emoji fallback)
+const CoffeeIcon = ({ iconId, className = "" }: { iconId: string, className?: string }) => {
+  // Mapping of icon IDs to SVG paths and emoji fallbacks
+  const iconMap = {
+    'espresso': { svg: '/icons/espresso.svg', emoji: '☕' },
+    'brewed': { svg: '/icons/brewed.svg', emoji: '☕' },
+    'milk': { svg: '/icons/milk-based.svg', emoji: '🥛' },
+    'instant': { svg: '/icons/instant.svg', emoji: '☕' },
+    'tea': { svg: '/icons/tea.svg', emoji: '🫖' },
+    'iced': { svg: '/icons/iced.svg', emoji: '🧊' },
+    'specialty': { svg: '/icons/speciality.svg', emoji: '✨' },
+    'energy': { svg: '/icons/energy.svg', emoji: '⚡' },
+    'soda': { svg: '/icons/soda.svg', emoji: '🥤' },
+    'chocolate': { svg: '/icons/speciality.svg', emoji: '🍫' },
+    'boba': { svg: '/icons/boba.svg', emoji: '🌿' },
+    'default': { svg: '/icons/brewed.svg', emoji: '☕' }
+  };
+
+  const icon = iconMap[iconId as keyof typeof iconMap] || iconMap.default;
+  
+  return (
+    <img 
+      src={icon.svg} 
+      alt={iconId}
+      className={`w-full h-full object-contain ${className}`}
+      onError={(e) => {
+        // Fallback to emoji if SVG fails to load
+        const target = e.target as HTMLImageElement;
+        target.style.display = 'none';
+        const emojiSpan = document.createElement('span');
+        emojiSpan.textContent = icon.emoji;
+        emojiSpan.className = className;
+        target.parentNode?.replaceChild(emojiSpan, target);
+      }}
+    />
+  );
+};
+
+// Get coffee-specific icon ID based on category and name
+const getCoffeeIcon = (coffeeName: string, category?: string): string => {
+  const name = coffeeName.toLowerCase();
+  
+  // PRIORITY 1: Category-based icons (primary mapping)
+  let categoryIcon: string;
+  switch (category) {
+    case 'espresso': categoryIcon = 'espresso'; break;
+    case 'milk': categoryIcon = 'milk'; break;
+    case 'instant': categoryIcon = 'instant'; break;
+    case 'tea': categoryIcon = 'tea'; break;
+    case 'cold': categoryIcon = 'iced'; break;
+    case 'specialty': categoryIcon = 'specialty'; break;
+    case 'energy': categoryIcon = 'energy'; break;
+    case 'soda': categoryIcon = 'soda'; break;
+    case 'brewed': categoryIcon = 'brewed'; break;
+    default: categoryIcon = 'default'; break;
+  }
+  
+  // PRIORITY 2: Special name-based overrides (only for specific cases)
+  // High caffeine drinks get special strong-coffee icon regardless of category
+  if (name.includes('red eye') || name.includes('black eye') || name.includes('dead eye') || name.includes('cold brew')) {
+    return 'brewed'; // Use brewed icon for strong coffee
+  }
+  
+  // Iced drinks get iced icon regardless of category (visual priority)
+  if (name.includes('iced') || name.includes('frappé') || name.includes('cold')) {
+    return 'iced';
+  }
+  
+  // Boba tea gets special boba icon
+  if (name.includes('boba') || name.includes('bubble tea')) {
+    return 'boba';
+  }
+  
+  // Default to category-based icon
+  return categoryIcon;
+};
 
 interface RecentLogUndoProps {
   className?: string;
@@ -145,9 +223,10 @@ const RecentLogUndo = ({
               >
                 <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-amber-600 text-xs sm:text-sm">
-                      {getMoodIcon(log.mood)}
-                    </span>
+                    <CoffeeIcon 
+                      iconId={getCoffeeIcon(log.coffeeName, COFFEES.find(c => c.id === log.coffeeId)?.category)} 
+                      className="w-4 h-4 sm:w-5 sm:h-5" 
+                    />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1 sm:gap-2">

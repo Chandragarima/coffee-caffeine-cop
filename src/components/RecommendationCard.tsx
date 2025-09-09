@@ -13,7 +13,7 @@ const CoffeeIcon = ({ iconId, className = "" }: { iconId: string, className?: st
     // 'strong-coffee': { svg: '/icons/strong-coffee.svg', emoji: '☕' },
     'brewed': { svg: '/icons/brewed.svg', emoji: '☕' },
     'milk': { svg: '/icons/milk-based.svg', emoji: '🥛' },
-    'instant': { svg: '/icons/brewed.svg', emoji: '☕' },
+    'instant': { svg: '/icons/instant.svg', emoji: '☕' },
     'tea': { svg: '/icons/tea.svg', emoji: '🫖' },
     'iced': { svg: '/icons/iced.svg', emoji: '🧊' },
     'specialty': { svg: '/icons/speciality.svg', emoji: '✨' },

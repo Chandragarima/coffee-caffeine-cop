@@ -14,7 +14,13 @@ export default defineConfig(({ mode }) => ({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/*.png', 'icons/*.svg'],
+      includeAssets: [
+        'PWA/**/*.png', 
+        'icons/*.png', 
+        'icons/*.svg',
+        'lovable-uploads/*.png',
+        'manifest.webmanifest'
+      ],
       manifest: false,
       workbox: {
         runtimeCaching: [
@@ -31,9 +37,10 @@ export default defineConfig(({ mode }) => ({
         ],
         skipWaiting: true,
         clientsClaim: true,
+        cleanupOutdatedCaches: true,
       },
       devOptions: {
-        enabled: true,
+        enabled: false, // Disable PWA in development to avoid these errors
         type: 'module',
       },
     }),
