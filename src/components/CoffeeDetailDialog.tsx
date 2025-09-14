@@ -10,25 +10,25 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const getCoffeeCategoryIcon = (category: CoffeeCategory): string => {
   switch (category) {
     case "brewed":
-      return "/icons/brewed.svg";
+      return "/coffee-caffeine-cop/icons/brewed.svg";
     case "espresso":
-      return "/icons/espresso.svg";
+      return "/coffee-caffeine-cop/icons/espresso.svg";
     case "milk":
-      return "/icons/milk-based.svg";
+      return "/coffee-caffeine-cop/icons/milk-based.svg";
     case "instant":
-      return "/icons/instant.svg"; // Fallback to brewed for instant
+      return "/coffee-caffeine-cop/icons/instant.svg"; // Fallback to brewed for instant
     case "cold":
-      return "/icons/iced.svg";
+      return "/coffee-caffeine-cop/icons/iced.svg";
     case "tea":
-      return "/icons/tea.svg";
+      return "/coffee-caffeine-cop/icons/tea.svg";
     case "specialty":
-      return "/icons/speciality.svg";
+      return "/coffee-caffeine-cop/icons/speciality.svg";
     case "energy":
-      return "/icons/energy.svg";
+      return "/coffee-caffeine-cop/icons/energy.svg";
     case "soda":
-      return "/icons/soda.svg";
+      return "/coffee-caffeine-cop/icons/soda.svg";
     default:
-      return "/icons/brewed.svg"; // Default fallback
+      return "/coffee-caffeine-cop/icons/brewed.svg"; // Default fallback
   }
 };
 

@@ -144,17 +144,17 @@ export const getCaffeineGuidance = (
   if (projectedAtBedtime < 50) {
     sleepRisk = 'low';
     color = 'green';
-    iconPath = '/icons/low.svg';
+    iconPath = '/coffee-caffeine-cop/icons/low.svg';
     reason = 'Sleep looks good';
   } else if (projectedAtBedtime <= 90) {
     sleepRisk = 'medium';
     color = 'yellow';
-    iconPath = '/icons/medium.svg';
+    iconPath = '/coffee-caffeine-cop/icons/medium.svg';
     reason = 'May affect sleep';
   } else {
     sleepRisk = 'high';
     color = 'red';
-    iconPath = '/icons/high.svg';
+    iconPath = '/coffee-caffeine-cop/icons/high.svg';
     reason = 'Sleep at risk';
   }
   
@@ -169,7 +169,7 @@ export const getCaffeineGuidance = (
       reason = 'Daily limit reached';
       recommendation = 'You\'ve had enough caffeine today. Consider decaf or herbal tea.';
       color = 'yellow';
-      iconPath = '/icons/medium.svg';
+      iconPath = '/coffee-caffeine-cop/icons/medium.svg';
     } else if (sleepRisk === 'low') {
       canHaveCoffee = true;
       recommendation = 'Go ahead and enjoy your coffee! It will clear well before bedtime.';
