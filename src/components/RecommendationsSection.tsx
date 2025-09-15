@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { TimeOfDay } from "@/hooks/useTimeOfDay";
 import { EnergyLevel } from "@/lib/recommendation";
 import { SizeOz, adjustedMg } from "@/lib/serving";
 import { RecommendationCard } from "@/components/RecommendationCard";
+import { ChevronLeft, ChevronRight, Circle } from "lucide-react";
 
 interface RecommendationsSectionProps {
   currentTime: TimeOfDay;
@@ -35,11 +36,74 @@ export const RecommendationsSection = ({
   onLogSuccess
 }: RecommendationsSectionProps) => {
   const [showExplanation, setShowExplanation] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   const best = useMemo(() => 
-    bestPicksForTime(currentTime, currentEnergy, hoursUntilBed, HALF_LIFE_HOURS), 
+    bestPicksForTime(currentTime, currentEnergy, hoursUntilBed, HALF_LIFE_HOURS, 12, 1, 12), 
     [currentTime, currentEnergy, hoursUntilBed, refreshCount]
   );
+
+  // Carousel navigation functions
+  const scrollToIndex = (index: number) => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const isMobile = window.innerWidth < 640; // sm breakpoint
+      const isTablet = window.innerWidth >= 640 && window.innerWidth < 1024; // lg breakpoint
+      
+      let cardWidth;
+      if (isMobile) {
+        cardWidth = container.offsetWidth; // Full width on mobile
+      } else if (isTablet) {
+        cardWidth = 320; // w-80 = 20rem = 320px
+      } else {
+        cardWidth = 384; // w-96 = 24rem = 384px
+      }
+      
+      container.scrollTo({
+        left: index * cardWidth,
+        behavior: 'smooth'
+      });
+      setCurrentIndex(index);
+    }
+  };
+
+  const nextSlide = () => {
+    const nextIndex = (currentIndex + 1) % best.length;
+    scrollToIndex(nextIndex);
+  };
+
+  const prevSlide = () => {
+    const prevIndex = currentIndex === 0 ? best.length - 1 : currentIndex - 1;
+    scrollToIndex(prevIndex);
+  };
+
+  // Auto-scroll detection
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const isMobile = window.innerWidth < 640; // sm breakpoint
+      const isTablet = window.innerWidth >= 640 && window.innerWidth < 1024; // lg breakpoint
+      
+      let cardWidth;
+      if (isMobile) {
+        cardWidth = container.offsetWidth; // Full width on mobile
+      } else if (isTablet) {
+        cardWidth = 320; // w-80 = 20rem = 320px
+      } else {
+        cardWidth = 384; // w-96 = 24rem = 384px
+      }
+      
+      const scrollLeft = container.scrollLeft;
+      const newIndex = Math.round(scrollLeft / cardWidth);
+      setCurrentIndex(newIndex);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [best.length]);
 
   // Sleep Warning Logic
   const showSleepWarning = currentTime === "late_night" && currentEnergy === "high" && hoursUntilBed < 3;
@@ -50,8 +114,10 @@ export const RecommendationsSection = ({
 
   return (
     <div className="mb-4 sm:mb-8">
+      {/* Divider for cleaner mobile tab layout */}
+      <div className="border-t border-amber-100 pt-4 sm:pt-8 mb-4 sm:mb-6 sm:hidden"></div>
       {/* Section Header */}
-      <div className="flex items-center justify-between gap-3 sm:gap-6 mb-4 sm:mb-6">
+      <div className="flex items-start justify-between gap-3 sm:gap-6 mb-4 sm:mb-6">
         <div className="flex-1">
           <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center">
@@ -68,23 +134,39 @@ export const RecommendationsSection = ({
           </div>
         </div>
         
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onRefresh}
-          disabled={isRefreshing}
-          className="border-2 border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-300 transition-all duration-300 disabled:opacity-50 shadow-sm hover:shadow-md text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-3 flex-shrink-0"
-        >
-          <svg 
-            className={`w-4 h-4 sm:w-5 sm:h-5 ${isRefreshing ? 'animate-spin' : ''}`} 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
+        {/* Action Buttons - Responsive */}
+        <div className="flex items-start gap-2 pt-0">
+          {/* Learn More Button - Same size as coffee cup icon */}
+          <Button
+            variant="outline"
+            onClick={() => setShowExplanation(!showExplanation)}
+            className="bg-blue-50 hover:bg-blue-100 border-blue-200 hover:border-blue-300 text-blue-600 hover:text-blue-700 transition-all duration-200 group w-8 h-8 sm:w-10 sm:h-10 p-0 flex items-center justify-center rounded-xl shadow-sm hover:shadow-md"
+            title="Learn more about our recommendations"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          <span className="hidden sm:inline ml-1 sm:ml-2">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
-        </Button>
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </Button>
+
+          {/* Refresh Button - Desktop Only */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="hidden sm:flex border-2 border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-300 transition-all duration-300 disabled:opacity-50 shadow-sm hover:shadow-md text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-3 flex-shrink-0"
+          >
+            <svg 
+              className={`w-4 h-4 sm:w-5 sm:h-5 ${isRefreshing ? 'animate-spin' : ''}`} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span className="ml-1 sm:ml-2">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+          </Button>
+        </div>
       </div>
 
       {/* Caffeine Science Explanation */}
@@ -94,44 +176,99 @@ export const RecommendationsSection = ({
         </div>
       )}
 
-      {/* Coffee Recommendations */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-        {best.map((coffee, index) => (
-          <RecommendationCard
-            key={coffee.id}
-            coffee={coffee}
-            onSelect={onSelect}
-            onLogSuccess={onLogSuccess}
-            currentTime={currentTime}
-            hoursUntilBed={hoursUntilBed}
-            bedtime={bedtime}
-            index={index}
-          />
-        ))}
-      </div>
+      {/* Coffee Recommendations - Carousel for All Screen Sizes */}
+      <div className="mb-6 sm:mb-8">
+        {/* Carousel View - All Screen Sizes */}
+        <div>
+          {/* Carousel Container */}
+          <div className="relative">
+            <div 
+              ref={scrollContainerRef}
+              className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory gap-4 pb-4"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {best.map((coffee, index) => (
+                <div 
+                  key={coffee.id} 
+                  className="flex-shrink-0 w-full sm:w-80 lg:w-96 snap-center"
+                >
+                  <RecommendationCard
+                    coffee={coffee}
+                    onSelect={onSelect}
+                    onLogSuccess={onLogSuccess}
+                    currentTime={currentTime}
+                    hoursUntilBed={hoursUntilBed}
+                    bedtime={bedtime}
+                    index={index}
+                  />
+                </div>
+              ))}
+            </div>
 
-      {/* Subtle Learn More Section - After Recommendations */}
-      <div className="flex justify-center mb-6 sm:mb-8">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowExplanation(!showExplanation)}
-          className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 group px-4 py-2 h-auto flex items-center gap-2 text-sm"
-          title="Learn more about our recommendations"
-        >
-          <svg className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-          </svg>
-          <span>{showExplanation ? 'Hide Details' : 'Learn More'}</span>
-        </Button>
-      </div>
+            {/* Modern Navigation - Compact Design for 12 Items */}
+            <div className="flex items-center justify-between mt-4">
+              {/* Left Arrow */}
+              <button
+                onClick={prevSlide}
+                className="flex items-center justify-center w-10 h-10 bg-white/90 backdrop-blur-sm border border-amber-200 rounded-full shadow-lg hover:shadow-xl hover:bg-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={currentIndex === 0}
+              >
+                <ChevronLeft className="w-5 h-5 text-amber-600" />
+              </button>
 
-      {/* Caffeine Science Explanation - Conditionally Rendered */}
-      {showExplanation && (
-        <div className="mb-6 sm:mb-8">
-          <CaffeineScienceExplanation />
+              {/* Compact Dot Indicators - Show only 5 dots max */}
+              <div className="flex items-center gap-1">
+                {best.length <= 5 ? (
+                  // Show all dots if 5 or fewer
+                  best.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => scrollToIndex(index)}
+                      className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                        index === currentIndex 
+                          ? 'bg-amber-500 w-6' 
+                          : 'bg-amber-200 hover:bg-amber-300'
+                      }`}
+                    />
+                  ))
+                ) : (
+                  // Show compact dots for more items
+                  <>
+                    {currentIndex > 0 && (
+                      <div className="w-1 h-1 bg-amber-300 rounded-full" />
+                    )}
+                    <div className="w-3 h-2 bg-amber-500 rounded-full" />
+                    {currentIndex < best.length - 1 && (
+                      <div className="w-1 h-1 bg-amber-300 rounded-full" />
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Right Arrow */}
+              <button
+                onClick={nextSlide}
+                className="flex items-center justify-center w-10 h-10 bg-white/90 backdrop-blur-sm border border-amber-200 rounded-full shadow-lg hover:shadow-xl hover:bg-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={currentIndex === best.length - 1}
+              >
+                <ChevronRight className="w-5 h-5 text-amber-600" />
+              </button>
+            </div>
+
+            {/* Progress Indicator with Total Count */}
+            <div className="mt-3">
+              <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+                <span>{currentIndex + 1}</span>
+                <span>/</span>
+                <span>{best.length}</span>
+                {/* <span className="text-gray-400 ml-1">recommendations</span> */}
+              </div>
+            </div>
+          </div>
         </div>
-      )}
+      </div>
+
+
 
       {/* Sleep Warning Section */}
       {showSleepWarning && (

@@ -18,6 +18,7 @@ import { useCaffeineTracker } from "@/hooks/useCaffeineTracker";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Ask = () => {
   const isMobile = useIsMobile();
@@ -48,6 +49,7 @@ const Ask = () => {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [showSmartTracker, setShowSmartTracker] = useState<boolean>(false);
   const [showCoffeeGuide, setShowCoffeeGuide] = useState<boolean>(false);
+  const [mobileTab, setMobileTab] = useState<string>("recommendations");
   
   // Update local state when preferences change
   const [localBedtime, setLocalBedtime] = useState<string>(bedtime);
@@ -282,13 +284,18 @@ const Ask = () => {
                   <h3 className="text-lg font-semibold text-gray-900">Edit Sleep Time</h3>
                 </div>
                                   <div className="grid grid-cols-1 gap-6">
-                    <BedtimeControl value={localBedtime} onChange={setLocalBedtime} />
+                    <BedtimeControl 
+                      value={localBedtime} 
+                      onChange={setLocalBedtime} 
+                      showSaveButton={true}
+                      autoSave={false}
+                    />
                   </div>
-                <div className="mt-6 pt-4 border-t border-amber-200">
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                {/* <div className="mt-6 pt-4 border-t border-amber-200"> */}
+                  {/* <p className="text-sm text-gray-600 leading-relaxed">
                     💡 <strong>Tip:</strong> Changes are automatically saved and will affect your coffee recommendations immediately.
-                  </p>
-                </div>
+                  </p> */}
+                {/* </div> */}
               </div>
             )}
           </div>
@@ -334,37 +341,91 @@ const Ask = () => {
         {/* Coffee Recommendations & Browse Section */}
         <article className="mb-8 sm:mb-16">
           <div className="bg-card rounded-lg border p-6 sm:p-10">
-              
-                            {/* Caffeine Guidance Warning */}
-              {/* {caffeineStatus && (
-                <CaffeineGuidanceBanner 
-                  currentCaffeine={caffeineStatus.currentLevel}
-                  timeToBedtime={virtualHoursUntilBed * 60}
-                  dailyProgress={caffeineStatus.dailyProgress}
-                  className="mb-8"
-                />
-              )} */}
-
-              {/* Recommendations Section */}
-              <RecommendationsSection
-                currentTime={currentTime}
-                currentEnergy={currentEnergy}
-                hoursUntilBed={virtualHoursUntilBed}
-                bedtime={localBedtime}
-                refreshCount={refreshCount}
-                isRefreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                onSelect={setSelected}
-                onLogSuccess={refreshStats}
-              />
-
-              {/* Browse Section */}
-              <CoffeeBrowseSection
-                hoursUntilBed={virtualHoursUntilBed}
-                onSelect={setSelected}
-                onLogSuccess={refreshStats}
-              />
+            
+            {/* Mobile Tab Layout */}
+            <div className="sm:hidden">
+              <Tabs value={mobileTab} onValueChange={setMobileTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-100 p-1 rounded-2xl h-12">
+                  <TabsTrigger 
+                    value="recommendations" 
+                    className="text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-300 ease-out data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-md data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:text-gray-800 data-[state=inactive]:hover:bg-gray-50"
+                  >
+                    Recommendations
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="search" 
+                    className="text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-300 ease-out data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-md data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:text-gray-800 data-[state=inactive]:hover:bg-gray-50"
+                  >
+                    Explore
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="recommendations" className="mt-0">
+                  <RecommendationsSection
+                    currentTime={currentTime}
+                    currentEnergy={currentEnergy}
+                    hoursUntilBed={virtualHoursUntilBed}
+                    bedtime={localBedtime}
+                    refreshCount={refreshCount}
+                    isRefreshing={isRefreshing}
+                    onRefresh={handleRefresh}
+                    onSelect={setSelected}
+                    onLogSuccess={refreshStats}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="search" className="mt-0">
+                  <CoffeeBrowseSection
+                    hoursUntilBed={virtualHoursUntilBed}
+                    onSelect={setSelected}
+                    onLogSuccess={refreshStats}
+                  />
+                </TabsContent>
+              </Tabs>
             </div>
+
+            {/* Desktop & Tablet Tab Layout */}
+            <div className="hidden sm:block">
+              <Tabs value={mobileTab} onValueChange={setMobileTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-100 p-1 rounded-2xl h-12">
+                  <TabsTrigger 
+                    value="recommendations" 
+                    className="text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-300 ease-out data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-md data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:text-gray-800 data-[state=inactive]:hover:bg-gray-50"
+                  >
+                    Recommendations
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="search" 
+                    className="text-sm font-semibold px-4 py-2 rounded-xl transition-all duration-300 ease-out data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-md data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:text-gray-800 data-[state=inactive]:hover:bg-gray-50"
+                  >
+                    Explore
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="recommendations" className="mt-0">
+                  <RecommendationsSection
+                    currentTime={currentTime}
+                    currentEnergy={currentEnergy}
+                    hoursUntilBed={virtualHoursUntilBed}
+                    bedtime={localBedtime}
+                    refreshCount={refreshCount}
+                    isRefreshing={isRefreshing}
+                    onRefresh={handleRefresh}
+                    onSelect={setSelected}
+                    onLogSuccess={refreshStats}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="search" className="mt-0">
+                  <CoffeeBrowseSection
+                    hoursUntilBed={virtualHoursUntilBed}
+                    onSelect={setSelected}
+                    onLogSuccess={refreshStats}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
         </article>
 
 

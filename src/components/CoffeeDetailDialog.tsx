@@ -58,11 +58,11 @@ export const CoffeeDetailDialog = ({
           {isMobile ? (
             // Mobile layout - stacked vertically with better spacing
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center mx-auto mb-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center mx-auto mb-3">
                 <img 
                   src={getCoffeeCategoryIcon(coffee.category)} 
                   alt={`${coffee.category} icon`}
-                  className="w-8 h-8"
+                  className="w-10 h-10"
                 />
               </div>
               <DialogTitle className="font-bold text-gray-900 text-xl mb-2">{coffee.name}</DialogTitle>

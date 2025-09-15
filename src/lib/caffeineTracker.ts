@@ -27,8 +27,27 @@ export interface CaffeineGuidance {
   color: 'green' | 'yellow' | 'red';
 }
 
-// Calculate current caffeine level in system
+// Calculate current caffeine level in system (today's logs only)
 export const calculateCurrentCaffeine = (
+  logs: CoffeeLogEntry[],
+  currentTime: number = Date.now()
+): number => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const startOfToday = today.getTime();
+  
+  // Only consider logs from today for current level display
+  const todayLogs = logs.filter(log => log.consumedAt >= startOfToday);
+  
+  return todayLogs.reduce((total, log) => {
+    const hoursSinceConsumption = (currentTime - log.consumedAt) / (1000 * 60 * 60);
+    const remaining = caffeineRemaining(log.caffeineMg, hoursSinceConsumption, HALF_LIFE_HOURS);
+    return total + remaining;
+  }, 0);
+};
+
+// Calculate total caffeine level including all historical logs (for sleep risk calculations)
+export const calculateTotalCaffeine = (
   logs: CoffeeLogEntry[],
   currentTime: number = Date.now()
 ): number => {
@@ -217,13 +236,13 @@ export const getCaffeineGuidance = (
   };
 };
 
-// Get sleep risk assessment
+// Get sleep risk assessment (uses total caffeine including previous days for accuracy)
 export const getSleepRisk = (
-  currentLevel: number,
+  totalCaffeineLevel: number,
   timeToBedtime: number
 ): { risk: 'low' | 'medium' | 'high'; message: string } => {
   const hoursToBed = timeToBedtime / 60;
-  const projectedLevel = caffeineRemaining(currentLevel, hoursToBed, HALF_LIFE_HOURS);
+  const projectedLevel = caffeineRemaining(totalCaffeineLevel, hoursToBed, HALF_LIFE_HOURS);
   
   if (projectedLevel < 50) {
     return {
@@ -249,7 +268,8 @@ export const getCaffeineStatus = (
   bedtime: string = '23:00',
   dailyLimit: number = 400
 ): CaffeineStatus => {
-  const currentLevel = calculateCurrentCaffeine(logs);
+  const currentLevel = calculateCurrentCaffeine(logs); // Today's caffeine only
+  const totalCaffeineLevel = calculateTotalCaffeine(logs); // All historical caffeine
   const peakLevel = calculatePeakCaffeine(logs);
   const timeToNextCoffee = calculateTimeToNextCoffee(currentLevel, dailyLimit, bedtime);
   
@@ -273,8 +293,8 @@ export const getCaffeineStatus = (
   const totalConsumedToday = todayLogs.reduce((sum, log) => sum + log.caffeineMg, 0);
   const dailyProgress = (totalConsumedToday / dailyLimit) * 100;
   
-  // Get sleep risk
-  const sleepRisk = getSleepRisk(currentLevel, timeToBedtime);
+  // Get sleep risk using total caffeine (including previous days) for accuracy
+  const sleepRisk = getSleepRisk(totalCaffeineLevel, timeToBedtime);
   
   // Generate next coffee recommendation
   const guidance = getCaffeineGuidance(currentLevel, timeToNextCoffee, dailyLimit, dailyProgress, timeToBedtime);

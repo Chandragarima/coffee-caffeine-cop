@@ -47,7 +47,8 @@ export const bestPicksForTime = (
   hoursUntilBed?: number,
   halfLife = 5,
   sizeOz = 12,
-  shots = 1
+  shots = 1,
+  maxRecommendations = 3
 ): CoffeeItem[] => {
   // Step 1: Apply scientific 8-hour rule based on time until bedtime
   let pool: CoffeeItem[] = [];
@@ -95,7 +96,7 @@ export const bestPicksForTime = (
   }
   
   // Step 3: Return varied selection
-  let result = pickVaried(pool, 3, energy);
+  let result = pickVaried(pool, maxRecommendations, energy);
   
   // If we have a very small pool (< 10 items), consider expanding the search
   // to get more variety while still respecting sleep safety
@@ -109,7 +110,7 @@ export const bestPicksForTime = (
     });
     
     if (expandedPool.length > pool.length) {
-      result = pickVaried(expandedPool, 3, energy);
+      result = pickVaried(expandedPool, maxRecommendations, energy);
     }
   }
   

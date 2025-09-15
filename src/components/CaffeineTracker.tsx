@@ -85,22 +85,43 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
             </div>
           </div>
           
-          {/* Streamlined Progress Section */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Daily Progress</span>
-              <span className="text-sm font-semibold text-gray-900">{Math.round(caffeineStatus.dailyProgress)}%</span>
+          {/* Dual Progress Section */}
+          <div className="space-y-4">
+            {/* Active Caffeine in System */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Active in System</span>
+                <span className="text-sm font-semibold text-gray-900">{Math.round(caffeineStatus.currentLevel)}mg</span>
+              </div>
+              <Progress 
+                value={(caffeineStatus.currentLevel / caffeineStatus.dailyLimit) * 100} 
+                className={`h-2 transition-all duration-500 ${
+                  caffeineStatus.currentLevel < caffeineStatus.dailyLimit * 0.3 ? 'bg-blue-100' :
+                  caffeineStatus.currentLevel < caffeineStatus.dailyLimit * 0.6 ? 'bg-blue-200' :
+                  caffeineStatus.currentLevel < caffeineStatus.dailyLimit * 0.9 ? 'bg-blue-300' : 'bg-blue-400'
+                }`}
+              />
             </div>
-            <Progress 
-              value={caffeineStatus.dailyProgress} 
-              className={`h-2 transition-all duration-500 ${
-                caffeineStatus.dailyProgress < 30 ? 'bg-green-100' :
-                caffeineStatus.dailyProgress < 60 ? 'bg-yellow-100' :
-                caffeineStatus.dailyProgress < 90 ? 'bg-orange-100' : 'bg-red-100'
-              }`}
-            />
-            <div className="text-sm text-gray-600">
-              {Math.round(Math.max(0, caffeineStatus.dailyLimit - (caffeineStatus.dailyProgress / 100 * caffeineStatus.dailyLimit)))}mg remaining
+
+            {/* Daily Consumption Progress */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Consumption</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {Math.round(caffeineStatus.dailyProgress * caffeineStatus.dailyLimit / 100)}mg / {caffeineStatus.dailyLimit}mg
+                </span>
+              </div>
+              <Progress 
+                value={caffeineStatus.dailyProgress} 
+                className={`h-2 transition-all duration-500 ${
+                  caffeineStatus.dailyProgress < 30 ? 'bg-green-100' :
+                  caffeineStatus.dailyProgress < 60 ? 'bg-yellow-100' :
+                  caffeineStatus.dailyProgress < 90 ? 'bg-orange-100' : 'bg-red-100'
+                }`}
+              />
+              <div className="text-sm text-gray-600">
+                {Math.round(Math.max(0, caffeineStatus.dailyLimit - (caffeineStatus.dailyProgress / 100 * caffeineStatus.dailyLimit)))}mg remaining today
+              </div>
             </div>
           </div>
           
@@ -157,16 +178,37 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
           <div className="lg:col-span-2">
             <div className="bg-gradient-to-br from-gray-50 to-amber-50/30 rounded-2xl p-8 border border-gray-100">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-800">Current Caffeine Level</h3>
+                <h3 className="text-lg font-semibold text-gray-800">Today's Caffeine Level</h3>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${caffeineBgColor}`}>
                   <GuidanceIcon guidance={guidance} className="text-lg" />
                 </div>
               </div>
               <div className="text-center">
-                <div className={`text-6xl font-black ${caffeineColor} ${isAnimating ? 'animate-bounce' : ''} tracking-tight mb-2`}>
-                  {caffeineStatus.currentLevel}
+                {/* Dual Display: Active vs Consumed */}
+                <div className="grid grid-cols-2 gap-6 mb-6">
+                  {/* Active Caffeine */}
+                  <div className="text-center">
+                    <div className={`text-4xl font-black ${caffeineColor} ${isAnimating ? 'animate-bounce' : ''} tracking-tight mb-2`}>
+                      {caffeineStatus.currentLevel}
+                    </div>
+                    <div className="text-sm font-medium text-gray-600 mb-1">mg active</div>
+                    <div className="text-xs text-gray-500">
+                      {Math.round((caffeineStatus.currentLevel / caffeineStatus.dailyLimit) * 100)}% of limit
+                    </div>
+                  </div>
+                  
+                  {/* Consumed Today */}
+                  <div className="text-center">
+                    <div className="text-4xl font-black text-gray-700 tracking-tight mb-2">
+                      {Math.round(caffeineStatus.dailyProgress * caffeineStatus.dailyLimit / 100)}
+                    </div>
+                    <div className="text-sm font-medium text-gray-600 mb-1">mg consumed</div>
+                    <div className="text-xs text-gray-500">
+                      {Math.round(caffeineStatus.dailyProgress)}% of limit
+                    </div>
+                  </div>
                 </div>
-                <div className="text-lg font-medium text-gray-600 mb-4">milligrams active</div>
+                
                 <div className="text-sm text-gray-500">
                   {guidance.recommendation}
                 </div>
@@ -181,7 +223,7 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                   <span className="text-blue-600 text-lg">📊</span>
                 </div>
-                <h4 className="font-semibold text-gray-900">Daily Progress</h4>
+                <h4 className="font-semibold text-gray-900">Consumed Today</h4>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-2">
                 {Math.round(caffeineStatus.dailyProgress)}%
@@ -213,8 +255,8 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-800">Daily Intake Progress</h3>
             <div className="text-right">
-              <div className="text-2xl font-bold text-gray-900">{caffeineStatus.currentLevel}mg</div>
-              <div className="text-sm text-gray-600">of {caffeineStatus.dailyLimit}mg limit</div>
+              <div className="text-2xl font-bold text-gray-900">{Math.round(caffeineStatus.dailyProgress * caffeineStatus.dailyLimit / 100)}mg</div>
+              <div className="text-sm text-gray-600">consumed of {caffeineStatus.dailyLimit}mg limit</div>
             </div>
           </div>
           
