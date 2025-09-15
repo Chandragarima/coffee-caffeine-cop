@@ -40,10 +40,17 @@ export const CoffeeBrowseSection = ({
   const [showAllItems, setShowAllItems] = useState<boolean>(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [showAutoComplete, setShowAutoComplete] = useState<boolean>(false);
+  const [selectedFromDropdown, setSelectedFromDropdown] = useState<CoffeeItem | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
+    
+    // If a coffee was selected from dropdown, show only that coffee
+    if (selectedFromDropdown) {
+      return [selectedFromDropdown];
+    }
+    
     if (!q) return [] as CoffeeItem[];
     
     // Handle "show-all" special case
@@ -165,18 +172,23 @@ export const CoffeeBrowseSection = ({
     setQuery("");
     setIsDropdownOpen(false);
     setShowAutoComplete(false);
+    setSelectedFromDropdown(null);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
     setShowAutoComplete(value.length >= 2);
+    // Clear selected coffee when user types something new
+    if (selectedFromDropdown) {
+      setSelectedFromDropdown(null);
+    }
   };
 
   const handleAutoCompleteSelect = (coffee: CoffeeItem) => {
     setQuery(coffee.name);
     setShowAutoComplete(false);
-    onSelect(coffee);
+    setSelectedFromDropdown(coffee);
   };
 
   return (
@@ -216,6 +228,11 @@ export const CoffeeBrowseSection = ({
             value={query}
             onChange={handleSearchChange}
             onFocus={() => query.length >= 2 && setShowAutoComplete(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                setShowAutoComplete(false);
+              }
+            }}
             placeholder="Search coffees..."
             className="pl-12 pr-12 h-10 sm:h-14 text-base sm:text-base bg-white border-2 border-gray-200 focus:border-amber-400 focus:ring-amber-400/20 rounded-2xl shadow-sm transition-all duration-200"
           />
@@ -224,6 +241,7 @@ export const CoffeeBrowseSection = ({
               onClick={() => {
                 setQuery("");
                 setShowAutoComplete(false);
+                setSelectedFromDropdown(null);
               }}
               className="absolute inset-y-0 right-0 pr-4 flex items-center"
             >

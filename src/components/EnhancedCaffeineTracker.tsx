@@ -97,41 +97,60 @@ const EnhancedCaffeineTracker: React.FC<EnhancedCaffeineTrackerProps> = ({ class
           {/* Header */}
           <div className="flex items-center justify-between mb-6 sm:mb-8">
             <div className="flex items-center gap-3 sm:gap-4">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 sm:w-10 sm:h-10 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-lg">
                 <Coffee className="h-6 w-6 sm:h-8 sm:w-8 text-primary-foreground" />
               </div>
               <div>
-                <h2 className="text-lg sm:text-2xl font-bold">Smart Tracker</h2>
-                <p className="text-muted-foreground text-sm sm:text-lg">
-                  {insights.coffeePersonality.type}
-                </p>
+                <h2 className="text-lg sm:text-2xl font-bold"> {insights.coffeePersonality.type}</h2>
+                  {/* <p className="text-muted-foreground text-sm sm:text-lg">
+                    {insights.coffeePersonality.type}
+                  </p> */}
               </div>
             </div>
-            <Badge 
+            {/* <Badge 
               variant="secondary" 
               className="text-s sm:text-xl font-semi-bold px-2 py-1.5 sm:px-6 sm:py-3 rounded-xl bg-primary/10 text-primary border-2 border-primary/20"
             >
               {Math.round(caffeineTracker.currentLevel)}mg
-            </Badge>
+            </Badge> */}
           </div>
 
-          {/* Caffeine Level Display */}
+          {/* Caffeine Level Display - Dual View */}
           <div className="text-center mb-6 sm:mb-8">
-            <div className={`text-3xl sm:text-4xl font-black mb-2 sm:mb-3 ${getCaffeineStatusColor(caffeineTracker.currentLevel, caffeineTracker.dailyLimit)} ${isAnimating ? 'animate-pulse' : ''}`}>
-              {Math.round(caffeineTracker.caffeineLevelPercentage)}%
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              {/* Active Caffeine */}
+              <div className="text-center">
+                <div className={`text-2xl sm:text-3xl font-black mb-1 ${getCaffeineStatusColor(caffeineTracker.currentLevel, caffeineTracker.dailyLimit)} ${isAnimating ? 'animate-pulse' : ''}`}>
+                  {Math.round(caffeineTracker.currentLevel)}
+                </div>
+                <div className="text-xs sm:text-sm text-muted-foreground mb-1">mg active</div>
+                {/* <div className="text-xs text-muted-foreground">
+                  {Math.round((caffeineTracker.currentLevel / caffeineTracker.dailyLimit) * 100)}% of limit
+                </div> */}
+              </div>
+              
+              {/* Consumed Today */}
+              <div className="text-center">
+                <div className="text-2xl sm:text-3xl font-black mb-1 text-gray-700">
+                  {Math.round(caffeineTracker.dailyProgress * caffeineTracker.dailyLimit / 100)}
+                </div>
+                <div className="text-xs sm:text-sm text-muted-foreground mb-1">mg consumed</div>
+                {/* <div className="text-xs text-muted-foreground">
+                  {Math.round(caffeineTracker.dailyProgress)}% of limit
+                </div> */}
+              </div>
             </div>
-            <p className="text-muted-foreground text-sm sm:text-lg">Current caffeine level</p>
           </div>
 
           {/* Progress Bar */}
           <div className="mb-6 sm:mb-8">
             <div className="flex justify-between text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
-              <span>0mg</span>
+              <span>{Math.round(caffeineTracker.dailyProgress)}% of daily limit</span>
               <span>{caffeineTracker.dailyLimit}mg</span>
             </div>
             <div className="relative">
               <Progress 
-                value={caffeineTracker.caffeineLevelPercentage} 
+                value={caffeineTracker.dailyProgress} 
                 className="h-3 sm:h-4 bg-muted/50"
               />
               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-40" />
