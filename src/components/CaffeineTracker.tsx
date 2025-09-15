@@ -130,11 +130,11 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
             <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
               <div className="text-center">
                 <div className="text-lg font-semibold text-amber-800">
-                  {timeToNextCoffeeFormatted}
+                  Wait Time: {timeToNextCoffeeFormatted}
                 </div>
-                <div className="text-sm text-amber-700">
-                  until next coffee
-                </div>
+                {/* <div className="text-sm text-amber-700">
+                  Wait until next coffee
+                </div> */}
               </div>
             </div>
           )}

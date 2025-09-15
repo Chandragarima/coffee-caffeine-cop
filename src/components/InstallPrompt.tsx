@@ -223,8 +223,8 @@ export default function InstallPrompt() {
               <div className="text-sm text-gray-700">
                 <p className="font-medium mb-2">Install on your iPhone/iPad:</p>
                 <ol className="list-decimal list-inside space-y-1 text-xs">
-                  <li>Tap the <span className="font-mono">Share</span> button <span className="text-lg">⎋</span></li>
-                  <li>Scroll down and tap <span className="font-mono">Add to Home Screen</span></li>
+                  <li>Tap the <span className="font-mono">Share</span> button <span className="text-lg">📤</span> at the bottom of Safari</li>
+                  <li>Scroll down and tap <span className="font-mono">Add to Home Screen</span> <span className="text-lg">➕</span></li>
                   <li>Tap <span className="font-mono">Add</span> to confirm</li>
                 </ol>
               </div>

@@ -4,7 +4,6 @@ export interface UserPreferences {
   serving_size: number;      // oz (8, 12, 16, 20)
   shots: 1 | 2 | 3;         // espresso shots
   shots_manually_set: boolean; // whether user has manually changed shots
-  theme: 'light' | 'dark';   // UI theme
   notifications: boolean;    // push notifications
   caffeine_limit: number;    // daily caffeine limit (mg)
   timezone: string;          // user's timezone
@@ -16,7 +15,6 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   serving_size: 12,
   shots: 1,
   shots_manually_set: false,
-  theme: 'light',
   notifications: true,
   caffeine_limit: 400,
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -130,7 +128,6 @@ export const validatePreferences = (preferences: Partial<UserPreferences>): bool
     serving_size: (value: number) => [8, 12, 16, 20, 24].includes(value),
     shots: (value: number) => [1, 2, 3].includes(value),
     shots_manually_set: (value: boolean) => typeof value === 'boolean',
-    theme: (value: string) => ['light', 'dark'].includes(value),
     notifications: (value: boolean) => typeof value === 'boolean',
     caffeine_limit: (value: number) => value > 0 && value <= 1000,
     timezone: (value: string) => typeof value === 'string' && value.length > 0

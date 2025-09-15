@@ -88,7 +88,7 @@ const Ask = () => {
   }, []);
 
   useEffect(() => {
-    document.title = "Ask CoffeePolice – Smart coffee picks";
+    document.title = "Your Caffeine Cop";
     const meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute("content", "Browse coffees, see half-life charts, and get time-smart picks.");
   }, []);
@@ -167,7 +167,7 @@ const Ask = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6">
               <div className="relative">
                 <img
-                  src="/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
+                  src="/coffee-caffeine-cop/lovable-uploads/31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png"
                   alt="CoffeePolice mascot logo"
                   className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl shadow-md"
                   loading="lazy"
@@ -451,12 +451,12 @@ const Ask = () => {
                 </p> */}
                 <div className="relative inline-block">
                   <img
-                    src="/lovable-uploads/poster.png"
+                    src="/coffee-caffeine-cop/lovable-uploads/poster.png"
                     alt="Coffee Guide - Different types of coffee drinks and their content"
                     className="w-[95%] sm:w-full max-w-2xl rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-300"
                     onClick={() => {
                       // Open image in new tab for full view
-                      window.open('/lovable-uploads/poster.png', '_blank');
+                      window.open('/coffee-caffeine-cop/lovable-uploads/poster.png', '_blank');
                     }}
                     style={{ cursor: 'pointer' }}
                   />

@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { CoffeeItem, HALF_LIFE_HOURS, CoffeeCategory } from "@/data/coffees";
 import { getSleepVerdict } from "@/lib/sleepVerdict";
@@ -10,25 +10,25 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const getCoffeeCategoryIcon = (category: CoffeeCategory): string => {
   switch (category) {
     case "brewed":
-      return "/icons/brewed.svg";
+      return "/coffee-caffeine-cop/icons/brewed.svg";
     case "espresso":
-      return "/icons/espresso.svg";
+      return "/coffee-caffeine-cop/icons/espresso.svg";
     case "milk":
-      return "/icons/milk-based.svg";
+      return "/coffee-caffeine-cop/icons/milk-based.svg";
     case "instant":
-      return "/icons/brewed.svg"; // Fallback to brewed for instant
+      return "/coffee-caffeine-cop/icons/instant.svg"; // Fallback to brewed for instant
     case "cold":
-      return "/icons/iced.svg";
+      return "/coffee-caffeine-cop/icons/iced.svg";
     case "tea":
-      return "/icons/tea.svg";
+      return "/coffee-caffeine-cop/icons/tea.svg";
     case "specialty":
-      return "/icons/speciality.svg";
+      return "/coffee-caffeine-cop/icons/speciality.svg";
     case "energy":
-      return "/icons/energy.svg";
+      return "/coffee-caffeine-cop/icons/energy.svg";
     case "soda":
-      return "/icons/soda.svg";
+      return "/coffee-caffeine-cop/icons/soda.svg";
     default:
-      return "/icons/brewed.svg"; // Default fallback
+      return "/coffee-caffeine-cop/icons/brewed.svg"; // Default fallback
   }
 };
 
@@ -43,12 +43,21 @@ export const CoffeeDetailDialog = ({
   hoursUntilBed, 
   onClose 
 }: CoffeeDetailDialogProps) => {
-  if (!coffee) return null;
+  const isMobile = useIsMobile();
+  
+  if (!coffee) {
+    return (
+      <Dialog open={false} onOpenChange={() => {}}>
+        <DialogContent>
+          <DialogDescription>No coffee selected</DialogDescription>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
-    const isMobile = useIsMobile();
-    const v = getSleepVerdict(coffee.caffeineMg, hoursUntilBed, HALF_LIFE_HOURS);
-    const milestones = getMilestones(coffee.caffeineMg, HALF_LIFE_HOURS);
-    const remainingAtBedtime = caffeineRemaining(coffee.caffeineMg, hoursUntilBed, HALF_LIFE_HOURS);
+  const v = getSleepVerdict(coffee.caffeineMg, hoursUntilBed, HALF_LIFE_HOURS);
+  const milestones = getMilestones(coffee.caffeineMg, HALF_LIFE_HOURS);
+  const remainingAtBedtime = caffeineRemaining(coffee.caffeineMg, hoursUntilBed, HALF_LIFE_HOURS);
 
   return (
     <Dialog open={!!coffee} onOpenChange={(o) => !o && onClose()}>
@@ -66,7 +75,7 @@ export const CoffeeDetailDialog = ({
                 />
               </div>
               <DialogTitle className="font-bold text-gray-900 text-xl mb-2">{coffee.name}</DialogTitle>
-              <p className="text-gray-600 text-sm leading-relaxed">{coffee.description}</p>
+              <DialogDescription className="text-gray-600 text-sm leading-relaxed">{coffee.description}</DialogDescription>
             </div>
           ) : (
             // Desktop layout - horizontal with icon and text side by side
@@ -80,7 +89,7 @@ export const CoffeeDetailDialog = ({
               </div>
               <div className="flex-1 min-w-0">
                 <DialogTitle className="font-bold text-gray-900 text-2xl mb-1">{coffee.name}</DialogTitle>
-                <p className="text-gray-600 text-sm">{coffee.description}</p>
+                <DialogDescription className="text-gray-600 text-sm">{coffee.description}</DialogDescription>
               </div>
             </div>
           )}

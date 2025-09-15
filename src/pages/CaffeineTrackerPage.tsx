@@ -68,7 +68,7 @@ const CaffeineTrackerPage = () => {
           <div className="flex items-center justify-center gap-4 mb-4">
             <div className="relative">
               <img
-                src="/lovable-uploads/64b50735-018a-49d7-8568-11d380b32163.png"
+                src="/coffee-caffeine-cop/lovable-uploads/64b50735-018a-49d7-8568-11d380b32163.png"
                 alt="CoffeePolice mascot logo"
                 className="h-12 w-12 rounded-xl shadow-lg"
                 loading="lazy"
