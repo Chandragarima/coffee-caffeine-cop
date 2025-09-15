@@ -85,9 +85,9 @@ const Ask = () => {
   }, []);
 
   useEffect(() => {
-    document.title = "Your Caffeine Cop";
+    document.title = "Coffee Police";
     const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute("content", "Browse coffees, see half-life charts, and get time-smart picks.");
+    if (meta) meta.setAttribute("content", "Browse coffees, track caffeine, and get smart recommendations.");
   }, []);
 
   // Install functionality
