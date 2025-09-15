@@ -67,14 +67,6 @@ const PreferencesDemo = () => {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => updatePreference('theme', preferences.theme === 'light' ? 'dark' : 'light')}
-            >
-              Toggle Theme
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
               onClick={() => updatePreference('notifications', !preferences.notifications)}
             >
               Toggle Notifications

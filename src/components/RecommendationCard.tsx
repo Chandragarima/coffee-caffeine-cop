@@ -9,21 +9,21 @@ import QuickLogButton from "@/components/QuickLogButton";
 const CoffeeIcon = ({ iconId, className = "" }: { iconId: string, className?: string }) => {
   // Mapping of icon IDs to SVG paths and emoji fallbacks
   const iconMap = {
-    'espresso': { svg: '/icons/espresso.svg', emoji: '☕' },
-    // 'strong-coffee': { svg: '/icons/strong-coffee.svg', emoji: '☕' },
-    'brewed': { svg: '/icons/brewed.svg', emoji: '☕' },
-    'milk': { svg: '/icons/milk-based.svg', emoji: '🥛' },
-    'instant': { svg: '/icons/brewed.svg', emoji: '☕' },
-    'tea': { svg: '/icons/tea.svg', emoji: '🫖' },
-    'iced': { svg: '/icons/iced.svg', emoji: '🧊' },
-    'specialty': { svg: '/icons/speciality.svg', emoji: '✨' },
-    'energy': { svg: '/icons/energy.svg', emoji: '⚡' },
-    'soda': { svg: '/icons/soda.svg', emoji: '🥤' },
-    'chocolate': { svg: '/icons/speciality.svg', emoji: '🍫' },
-    'boba': { svg: '/icons/boba.svg', emoji: '🌿' },
-    // 'pour-over': { svg: '/icons/brewed.svg', emoji: '💧' },
-    // 'siphon': { svg: '/icons/speciality.svg', emoji: '🧪' },
-    'default': { svg: '/icons/brewed.svg', emoji: '☕' }
+    'espresso': { svg: '/coffee-caffeine-cop/icons/espresso.svg', emoji: '☕' },
+    // 'strong-coffee': { svg: '/coffee-caffeine-cop/icons/strong-coffee.svg', emoji: '☕' },
+    'brewed': { svg: '/coffee-caffeine-cop/icons/brewed.svg', emoji: '☕' },
+    'milk': { svg: '/coffee-caffeine-cop/icons/milk-based.svg', emoji: '🥛' },
+    'instant': { svg: '/coffee-caffeine-cop/icons/instant.svg', emoji: '☕' },
+    'tea': { svg: '/coffee-caffeine-cop/icons/tea.svg', emoji: '🫖' },
+    'iced': { svg: '/coffee-caffeine-cop/icons/iced.svg', emoji: '🧊' },
+    'specialty': { svg: '/coffee-caffeine-cop/icons/speciality.svg', emoji: '✨' },
+    'energy': { svg: '/coffee-caffeine-cop/icons/energy.svg', emoji: '⚡' },
+    'soda': { svg: '/coffee-caffeine-cop/icons/soda.svg', emoji: '🥤' },
+    'chocolate': { svg: '/coffee-caffeine-cop/icons/speciality.svg', emoji: '🍫' },
+    'boba': { svg: '/coffee-caffeine-cop/icons/boba.svg', emoji: '🌿' },
+    // 'pour-over': { svg: '/coffee-caffeine-cop/icons/brewed.svg', emoji: '💧' },
+    // 'siphon': { svg: '/coffee-caffeine-cop/icons/speciality.svg', emoji: '🧪' },
+    'default': { svg: '/coffee-caffeine-cop/icons/brewed.svg', emoji: '☕' }
   };
 
   const icon = iconMap[iconId as keyof typeof iconMap] || iconMap.default;

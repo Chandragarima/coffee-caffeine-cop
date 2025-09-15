@@ -47,6 +47,11 @@ export const useCaffeineTracker = () => {
     };
   }, [refreshLogs]);
 
+  // Force refresh when bedtime changes
+  useEffect(() => {
+    setForceUpdate(prev => prev + 1);
+  }, [bedtime]);
+
   // Calculate caffeine status - always recalculate when logs change
   const caffeineStatus = useMemo((): CaffeineStatus => {
     return getCaffeineStatus(logs, bedtime, caffeineLimit);

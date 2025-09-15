@@ -24,7 +24,7 @@ export const SmartCaffeineTracker = ({ className = "" }: SmartCaffeineTrackerPro
 
   const caffeineStatus = useMemo(() => {
     return getCaffeineStatus(logs, bedtime, 400);
-  }, [logs, bedtime]);
+  }, [logs, bedtime, lastUpdate]);
 
   const progressPercentage = Math.min(100, (caffeineStatus.currentLevel / caffeineStatus.dailyLimit) * 100);
   const sleepRiskColor = caffeineStatus.sleepRisk === 'low' ? 'green' : 
@@ -37,6 +37,11 @@ export const SmartCaffeineTracker = ({ className = "" }: SmartCaffeineTrackerPro
     }, 60000); // Update every minute
     return () => clearInterval(interval);
   }, []);
+
+  // Force refresh when bedtime changes
+  useEffect(() => {
+    setLastUpdate(Date.now());
+  }, [bedtime]);
 
   // Animation trigger when caffeine level changes
   useEffect(() => {

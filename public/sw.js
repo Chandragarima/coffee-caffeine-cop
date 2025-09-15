@@ -8,9 +8,10 @@ const STATIC_FILES = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
+  '/PWA/android/android-launchericon-192-192.png',
+  '/PWA/android/android-launchericon-512-512.png',
   '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
-  '/icons/strong-coffee.svg'
+  '/icons/icon-512x512.png'
 ];
 
 // Install event - cache static files
