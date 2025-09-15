@@ -7,84 +7,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { CoffeeLogEntry } from '@/lib/coffeeLog';
 import { addCoffeeLoggedListener, addCoffeeDeletedListener } from '@/lib/events';
 import { toast } from '@/components/ui/sonner';
-import { CoffeeItem, COFFEES } from '@/data/coffees';
-
-// Helper component to render coffee icons (SVG or emoji fallback)
-const CoffeeIcon = ({ iconId, className = "" }: { iconId: string, className?: string }) => {
-  // Mapping of icon IDs to SVG paths and emoji fallbacks
-  const iconMap = {
-    'espresso': { svg: '/coffee-caffeine-cop/icons/espresso.svg', emoji: '☕' },
-    'brewed': { svg: '/coffee-caffeine-cop/icons/brewed.svg', emoji: '☕' },
-    'milk': { svg: '/coffee-caffeine-cop/icons/milk-based.svg', emoji: '🥛' },
-    'instant': { svg: '/coffee-caffeine-cop/icons/instant.svg', emoji: '☕' },
-    'tea': { svg: '/coffee-caffeine-cop/icons/tea.svg', emoji: '🫖' },
-    'iced': { svg: '/coffee-caffeine-cop/icons/iced.svg', emoji: '🧊' },
-    'specialty': { svg: '/coffee-caffeine-cop/icons/speciality.svg', emoji: '✨' },
-    'energy': { svg: '/coffee-caffeine-cop/icons/energy.svg', emoji: '⚡' },
-    'soda': { svg: '/coffee-caffeine-cop/icons/soda.svg', emoji: '🥤' },
-    'chocolate': { svg: '/coffee-caffeine-cop/icons/speciality.svg', emoji: '🍫' },
-    'boba': { svg: '/coffee-caffeine-cop/icons/boba.svg', emoji: '🌿' },
-    'default': { svg: '/coffee-caffeine-cop/icons/brewed.svg', emoji: '☕' }
-  };
-
-  const icon = iconMap[iconId as keyof typeof iconMap] || iconMap.default;
-  
-  return (
-    <img 
-      src={icon.svg} 
-      alt={iconId}
-      className={`w-full h-full object-contain ${className}`}
-      onError={(e) => {
-        // Fallback to emoji if SVG fails to load
-        const target = e.target as HTMLImageElement;
-        target.style.display = 'none';
-        const emojiSpan = document.createElement('span');
-        emojiSpan.textContent = icon.emoji;
-        emojiSpan.className = className;
-        target.parentNode?.replaceChild(emojiSpan, target);
-      }}
-    />
-  );
-};
-
-// Get coffee-specific icon ID based on category and name
-const getCoffeeIcon = (coffeeName: string, category?: string): string => {
-  const name = coffeeName.toLowerCase();
-  
-  // PRIORITY 1: Category-based icons (primary mapping)
-  let categoryIcon: string;
-  switch (category) {
-    case 'espresso': categoryIcon = 'espresso'; break;
-    case 'milk': categoryIcon = 'milk'; break;
-    case 'instant': categoryIcon = 'instant'; break;
-    case 'tea': categoryIcon = 'tea'; break;
-    case 'cold': categoryIcon = 'iced'; break;
-    case 'specialty': categoryIcon = 'specialty'; break;
-    case 'energy': categoryIcon = 'energy'; break;
-    case 'soda': categoryIcon = 'soda'; break;
-    case 'brewed': categoryIcon = 'brewed'; break;
-    default: categoryIcon = 'default'; break;
-  }
-  
-  // PRIORITY 2: Special name-based overrides (only for specific cases)
-  // High caffeine drinks get special strong-coffee icon regardless of category
-  if (name.includes('red eye') || name.includes('black eye') || name.includes('dead eye') || name.includes('cold brew')) {
-    return 'brewed'; // Use brewed icon for strong coffee
-  }
-  
-  // Iced drinks get iced icon regardless of category (visual priority)
-  if (name.includes('iced') || name.includes('frappé') || name.includes('cold')) {
-    return 'iced';
-  }
-  
-  // Boba tea gets special boba icon
-  if (name.includes('boba') || name.includes('bubble tea')) {
-    return 'boba';
-  }
-  
-  // Default to category-based icon
-  return categoryIcon;
-};
+import { COFFEES, CoffeeItem, CoffeeCategory } from '@/data/coffees';
+import { CoffeeDetailDialog } from '@/components/CoffeeDetailDialog';
 
 interface RecentLogUndoProps {
   className?: string;
@@ -100,7 +24,39 @@ const RecentLogUndo = ({
   const { logs, deleteLog, refreshStats, refreshLogs } = useCoffeeLogs();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedCoffee, setSelectedCoffee] = useState<CoffeeItem | null>(null);
   const isMobile = useIsMobile();
+
+  // Function to get coffee data from coffeeId
+  const getCoffeeFromId = (coffeeId: string): CoffeeItem | null => {
+    return COFFEES.find(coffee => coffee.id === coffeeId) || null;
+  };
+
+  // Function to get the appropriate SVG icon based on coffee category
+  const getCoffeeCategoryIcon = (category: CoffeeCategory): string => {
+    switch (category) {
+      case "brewed":
+        return "/icons/brewed.svg";
+      case "espresso":
+        return "/icons/espresso.svg";
+      case "milk":
+        return "/icons/milk-based.svg";
+      case "instant":
+        return "/icons/instant.svg"; // Temporarily use brewed icon until instant.svg is fixed
+      case "cold":
+        return "/icons/iced.svg";
+      case "tea":
+        return "/icons/tea.svg";
+      case "specialty":
+        return "/icons/speciality.svg";
+      case "energy":
+        return "/icons/energy.svg";
+      case "soda":
+        return "/icons/soda.svg";
+      default:
+        return "/icons/brewed.svg"; // Default fallback
+    }
+  };
 
   // Listen for coffee logged/deleted events to refresh immediately
   useEffect(() => {
@@ -187,15 +143,6 @@ const RecentLogUndo = ({
     });
   };
 
-  const getMoodIcon = (mood?: string) => {
-    switch (mood) {
-      case 'great': return '😍';
-      case 'good': return '😊';
-      case 'ok': return '😐';
-      case 'bad': return '😞';
-      default: return '☕';
-    }
-  };
 
   if (allRecentLogs.length === 0) {
     return null;
@@ -216,57 +163,84 @@ const RecentLogUndo = ({
           </div>
           
           <div className="space-y-1.5 sm:space-y-2">
-            {recentLogs.map((log) => (
-              <div 
-                key={log.id} 
-                className="flex items-center justify-between p-2 sm:p-3 bg-white rounded-lg border border-amber-100 shadow-sm"
-              >
-                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <CoffeeIcon 
-                      iconId={getCoffeeIcon(log.coffeeName, COFFEES.find(c => c.id === log.coffeeId)?.category)} 
-                      className="w-4 h-4 sm:w-5 sm:h-5" 
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1 sm:gap-2">
-                      <span className="font-medium text-gray-900 truncate text-sm sm:text-base">
-                        {log.coffeeName}
-                      </span>
-                      <Badge variant="outline" className="text-xs border-amber-200 text-amber-700 px-1 sm:px-2">
-                        {log.caffeineMg}mg
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-1 sm:gap-2 text-xs text-gray-500">
-                      <span>{formatTime(log.consumedAt)}</span>
-                      {log.notes && (
-                        <>
-                          <span className="hidden sm:inline">•</span>
-                          <span className="truncate hidden sm:inline">{log.notes}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleUndoLog(log)}
-                  disabled={isDeleting === log.id}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-1 sm:ml-2 px-2 sm:px-3 h-7 sm:h-9"
+            {recentLogs.map((log) => {
+              const coffee = getCoffeeFromId(log.coffeeId);
+              const categoryIcon = coffee ? getCoffeeCategoryIcon(coffee.category) : "/icons/brewed.svg";
+              
+              // Debug logging
+              if (coffee?.category === 'instant') {
+                console.log('Instant coffee found:', coffee.name, 'Icon path:', categoryIcon);
+              }
+              
+              return (
+                <div 
+                  key={log.id} 
+                  className="flex items-center justify-between p-2 sm:p-3 bg-white rounded-lg border border-amber-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => {
+                    if (coffee) {
+                      setSelectedCoffee(coffee);
+                    }
+                  }}
                 >
-                  {isDeleting === log.id ? (
-                    <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <>
-                      <span className="text-sm">↶</span>
-                      <span className="ml-0.5 sm:ml-1 text-xs hidden sm:inline">Undo</span>
-                    </>
-                  )}
-                </Button>
-              </div>
-            ))}
+                  <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <img 
+                        src={categoryIcon} 
+                        alt={coffee?.category || 'coffee'} 
+                        className="w-4 h-4 sm:w-5 sm:h-5"
+                        onError={(e) => {
+                          // Fallback to coffee emoji if icon fails to load
+                          const target = e.target as HTMLImageElement;
+                          console.log('Icon failed to load:', target.src, 'for coffee:', log.coffeeName);
+                          target.style.display = 'none';
+                          target.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                      <span className="text-amber-600 text-xs sm:text-sm hidden">☕</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <span className="font-medium text-gray-900 truncate text-sm sm:text-base">
+                          {log.coffeeName}
+                        </span>
+                        <Badge variant="outline" className="text-xs border-amber-200 text-amber-700 px-1 sm:px-2">
+                          {log.caffeineMg}mg
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-1 sm:gap-2 text-xs text-gray-500">
+                        <span>{formatTime(log.consumedAt)}</span>
+                        {log.notes && (
+                          <>
+                            <span className="hidden sm:inline">•</span>
+                            <span className="truncate hidden sm:inline">{log.notes}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent triggering the log click
+                      handleUndoLog(log);
+                    }}
+                    disabled={isDeleting === log.id}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-1 sm:ml-2 px-2 sm:px-3 h-7 sm:h-9"
+                  >
+                    {isDeleting === log.id ? (
+                      <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <>
+                        <span className="text-sm">↶</span>
+                        <span className="ml-0.5 sm:ml-1 text-xs hidden sm:inline">Undo</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              );
+            })}
           </div>
           
           {/* Expandable "Show More" Button */}
@@ -303,6 +277,12 @@ const RecentLogUndo = ({
         </CardContent>
       </Card>
 
+      {/* Coffee Detail Dialog */}
+      <CoffeeDetailDialog
+        coffee={selectedCoffee}
+        hoursUntilBed={8} // Default to 8 hours, could be made configurable
+        onClose={() => setSelectedCoffee(null)}
+      />
     </>
   );
 };
