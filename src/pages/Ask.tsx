@@ -17,7 +17,6 @@ import { CaffeineGuidanceBanner } from "@/components/CaffeineGuidanceBanner";
 import { useCaffeineTracker } from "@/hooks/useCaffeineTracker";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const Ask = () => {
   const isMobile = useIsMobile();

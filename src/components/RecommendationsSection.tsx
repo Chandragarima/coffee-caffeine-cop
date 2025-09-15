@@ -10,6 +10,14 @@ import { TimeOfDay } from "@/hooks/useTimeOfDay";
 import { EnergyLevel } from "@/lib/recommendation";
 import { SizeOz, adjustedMg } from "@/lib/serving";
 import { RecommendationCard } from "@/components/RecommendationCard";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 interface RecommendationsSectionProps {
   currentTime: TimeOfDay;
@@ -35,6 +43,7 @@ export const RecommendationsSection = ({
   onLogSuccess
 }: RecommendationsSectionProps) => {
   const [showExplanation, setShowExplanation] = useState(false);
+  const isMobile = useIsMobile();
   
   const best = useMemo(() => 
     bestPicksForTime(currentTime, currentEnergy, hoursUntilBed, HALF_LIFE_HOURS), 
@@ -95,20 +104,48 @@ export const RecommendationsSection = ({
       )}
 
       {/* Coffee Recommendations */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-        {best.map((coffee, index) => (
-          <RecommendationCard
-            key={coffee.id}
-            coffee={coffee}
-            onSelect={onSelect}
-            onLogSuccess={onLogSuccess}
-            currentTime={currentTime}
-            hoursUntilBed={hoursUntilBed}
-            bedtime={bedtime}
-            index={index}
-          />
-        ))}
-      </div>
+      {isMobile ? (
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          className="w-full mb-6"
+        >
+          <CarouselContent className="-ml-2 md:-ml-4">
+            {best.map((coffee, index) => (
+              <CarouselItem key={coffee.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2">
+                <RecommendationCard
+                  coffee={coffee}
+                  onSelect={onSelect}
+                  onLogSuccess={onLogSuccess}
+                  currentTime={currentTime}
+                  hoursUntilBed={hoursUntilBed}
+                  bedtime={bedtime}
+                  index={index}
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="left-2 h-8 w-8 bg-white/90 shadow-lg border-2 border-amber-200 hover:bg-amber-50" />
+          <CarouselNext className="right-2 h-8 w-8 bg-white/90 shadow-lg border-2 border-amber-200 hover:bg-amber-50" />
+        </Carousel>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          {best.map((coffee, index) => (
+            <RecommendationCard
+              key={coffee.id}
+              coffee={coffee}
+              onSelect={onSelect}
+              onLogSuccess={onLogSuccess}
+              currentTime={currentTime}
+              hoursUntilBed={hoursUntilBed}
+              bedtime={bedtime}
+              index={index}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Subtle Learn More Section - After Recommendations */}
       <div className="flex justify-center mb-6 sm:mb-8">
