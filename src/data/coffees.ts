@@ -124,6 +124,21 @@ export const COFFEES: CoffeeItem[] = [
     defaultSize: "Short"
   },
   { 
+    id: "drip_coffee", 
+    name: "Drip Coffee", 
+    category: "brewed", 
+    caffeineMg: 95, 
+    description: "Regular drip coffee made at home.", 
+    scalingType: "size_only",
+    sizeOptions: [
+      { size: "1 Cup", oz: 8, caffeine: 95 },
+      { size: "2 Cups", oz: 16, caffeine: 190 },
+      { size: "3 Cups", oz: 24, caffeine: 285 },
+      { size: "4 Cups", oz: 32, caffeine: 380 }
+    ],
+    defaultSize: "1 Cup"
+  },
+  { 
     id: "decaf_drip_coffee", 
     name: "Decaf Drip", 
     category: "brewed", 
@@ -155,6 +170,48 @@ export const COFFEES: CoffeeItem[] = [
     defaultShots: 1
   },
   { 
+    id: "espresso_pod_home", 
+    name: "Coffee Pod", 
+    category: "espresso", 
+    caffeineMg: 70, 
+    description: "Coffee brewed at home using a pod machine such as Nespresso, Keurig, or L'OR.", 
+    scalingType: "shots_only",
+    shotOptions: [
+      { shots: 1, caffeine: 70 },
+      { shots: 2, caffeine: 140 },
+      { shots: 3, caffeine: 210 }
+    ],
+    defaultShots: 1
+  },
+  { 
+    id: "traditional_macchiato", 
+    name: "Macchiato", 
+    category: "espresso", 
+    caffeineMg: 75, 
+    description: "Espresso shot with just a small dollop of steamed milk foam on top.", 
+    scalingType: "shots_only",
+    shotOptions: [
+      { shots: 1, caffeine: 75 },
+      { shots: 2, caffeine: 150 },
+      { shots: 3, caffeine: 225 }
+    ],
+    defaultShots: 1
+  },
+  { 
+    id: "lungo", 
+    name: "Lungo", 
+    category: "espresso", 
+    caffeineMg: 85, 
+    description: "Espresso shot extracted with more water for a longer pull, resulting in a larger volume.", 
+    scalingType: "shots_only",
+    shotOptions: [
+      { shots: 1, caffeine: 85 },
+      { shots: 2, caffeine: 170 },
+      { shots: 3, caffeine: 255 }
+    ],
+    defaultShots: 1
+  },
+  { 
     id: "affogato", 
     name: "Affogato", 
     category: "espresso", 
@@ -170,7 +227,7 @@ export const COFFEES: CoffeeItem[] = [
   },
   { 
     id: "ristretto", 
-    name: "Ristretto Shot", 
+    name: "Ristretto", 
     category: "espresso", 
     caffeineMg: 65, 
     description: "Short espresso with less water, more concentrated and sweeter flavor.", 
