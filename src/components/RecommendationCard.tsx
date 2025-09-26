@@ -4,6 +4,7 @@ import { getSleepVerdict } from "@/lib/sleepVerdict";
 import { adjustedMg, SizeOz } from "@/lib/serving";
 import { TimeOfDay } from "@/hooks/useTimeOfDay";
 import QuickLogButton from "@/components/QuickLogButton";
+import { trackCoffeeView } from "@/lib/analytics";
 
 // Helper component to render coffee icons (SVG or emoji fallback)
 const CoffeeIcon = ({ iconId, className = "" }: { iconId: string, className?: string }) => {
@@ -133,7 +134,15 @@ export const RecommendationCard = ({
   return (
     <Card 
       className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer bg-gradient-to-br from-white via-amber-50/20 to-white backdrop-blur-sm flex flex-col h-full" 
-      onClick={() => onSelect(coffee)}
+      onClick={() => {
+        trackCoffeeView('recommendations', {
+          id: coffee.id,
+          name: coffee.name,
+          caffeineMg: mgAdj,
+          category: coffee.category
+        });
+        onSelect(coffee);
+      }}
     >
       {/* Background gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-amber-400/5 via-orange-400/5 to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -205,6 +214,7 @@ export const RecommendationCard = ({
               showDialog={true}
               onLogSuccess={onLogSuccess}
               showUndoAfterLog={true}
+              source="recommendations"
             />
           </div>
         </div>

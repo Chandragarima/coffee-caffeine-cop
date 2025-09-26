@@ -18,6 +18,7 @@ import { useCaffeineTracker } from "@/hooks/useCaffeineTracker";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { trackPageView, trackUserInteraction } from "@/lib/analytics";
 
 const Ask = () => {
   const isMobile = useIsMobile();
@@ -90,6 +91,9 @@ const Ask = () => {
     document.title = "Coffee Police";
     const meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute("content", "Browse coffees, track caffeine, and get smart recommendations.");
+    
+    // Track page view
+    trackPageView("Home", "/");
   }, []);
 
   // Install functionality
@@ -196,7 +200,10 @@ const Ask = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowCoffeeGuide(true)}
+                onClick={() => {
+                  trackUserInteraction('click', 'coffee_guide_button', 'hero_section');
+                  setShowCoffeeGuide(true);
+                }}
                 className="text-amber-600 hover:text-amber-700 hover:bg-amber-50/50 text-sm px-4 py-2 rounded-lg border border-amber-200/50 hover:border-amber-300 transition-all duration-200"
               >
                 📋 Coffee Guide
@@ -216,7 +223,10 @@ const Ask = () => {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => setShowPreferences(!showPreferences)}
+              onClick={() => {
+                trackUserInteraction('click', 'preferences_toggle', 'daily_overview');
+                setShowPreferences(!showPreferences);
+              }}
                   className="text-amber-700 hover:text-amber-800 hover:bg-amber-50 flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3"
                 >
                   <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -311,7 +321,10 @@ const Ask = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowSmartTracker(!showSmartTracker)}
+                onClick={() => {
+                  trackUserInteraction('click', 'smart_tracker_toggle', 'caffeine_tracking');
+                  setShowSmartTracker(!showSmartTracker);
+                }}
                 className="text-blue-700 hover:text-blue-800 hover:bg-blue-50 flex items-center gap-2 px-3 py-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

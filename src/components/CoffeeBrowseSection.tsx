@@ -10,6 +10,7 @@ import { ChevronDown } from "lucide-react";
 import { SearchAutoComplete } from "@/components/SearchAutoComplete";
 import { SmartNoResults } from "@/components/SmartNoResults";
 import { fuzzySearch, getTypoSuggestion, type FuzzyMatch } from "@/lib/fuzzySearch";
+import { trackSearch, trackUserInteraction } from "@/lib/analytics";
 
 const categoryLabels: Record<CoffeeCategory, string> = {
   brewed: "Brewed",
@@ -183,12 +184,21 @@ export const CoffeeBrowseSection = ({
     if (selectedFromDropdown) {
       setSelectedFromDropdown(null);
     }
+    
+    // Track search when user types
+    if (value.length >= 2) {
+      const results = filtered.length;
+      trackSearch(value, results, 'explore');
+    }
   };
 
   const handleAutoCompleteSelect = (coffee: CoffeeItem) => {
     setQuery(coffee.name);
     setShowAutoComplete(false);
     setSelectedFromDropdown(coffee);
+    
+    // Track autocomplete selection
+    trackSearch(coffee.name, 1, 'autocomplete');
   };
 
   return (

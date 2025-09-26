@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useCoffeeLogs } from '@/hooks/useCoffeeLogs';
 import { CoffeeItem } from '@/data/coffees';
 import { toast } from '@/components/ui/sonner';
+import { trackCoffeeLog } from '@/lib/analytics';
 
 interface QuickLogButtonProps {
   coffee: CoffeeItem;
@@ -17,6 +18,7 @@ interface QuickLogButtonProps {
   showDialog?: boolean;
   onLogSuccess?: () => void;
   showUndoAfterLog?: boolean; // Show undo option after logging
+  source?: 'recommendations' | 'explore' | 'quick_log' | 'detail_dialog'; // Track where the log came from
 }
 
 const QuickLogButton = ({ 
@@ -26,7 +28,8 @@ const QuickLogButton = ({
   className = '',
   showDialog = true,
   onLogSuccess,
-  showUndoAfterLog = false
+  showUndoAfterLog = false,
+  source = 'quick_log'
 }: QuickLogButtonProps) => {
   const { quickLog, addLog, logs, deleteLog, refreshStats } = useCoffeeLogs();
   const [isOpen, setIsOpen] = useState(false);
@@ -123,6 +126,14 @@ const QuickLogButton = ({
         );
         
         if (success) {
+          // Track the coffee log event
+          trackCoffeeLog(source, {
+            id: coffee.id,
+            name: coffee.name,
+            caffeineMg: currentCaffeine,
+            category: coffee.category
+          });
+
           // Show success toast
           toast.success(`${coffee.name} logged!`, {
             description: `+${currentCaffeine}mg caffeine added to your daily intake`,
@@ -173,6 +184,14 @@ const QuickLogButton = ({
         });
       
       if (success) {
+        // Track the coffee log event
+        trackCoffeeLog(source, {
+          id: coffee.id,
+          name: coffee.name,
+          caffeineMg: currentCaffeine,
+          category: coffee.category
+        });
+
         // Show success toast
         toast.success(`${coffee.name} logged!`, {
           description: `+${currentCaffeine }mg caffeine added to your daily intake`,

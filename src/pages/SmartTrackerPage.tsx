@@ -195,6 +195,7 @@ const SmartTrackerPage = () => {
                         coffee={coffee}
                         onLogSuccess={handleRefresh}
                         className="h-auto p-4"
+                        source="quick_log"
                       />
                     ))}
                   </div>
