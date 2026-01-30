@@ -45,7 +45,15 @@ export const CoffeeCard = ({
 
   if (viewMode === 'list') {
     return (
-      <Card className="group hover:shadow-md transition-all duration-200 cursor-pointer bg-white border border-gray-200 hover:border-gray-300" onClick={() => onSelect(coffee)}>
+      <Card className="group hover:shadow-md transition-all duration-200 cursor-pointer bg-white border border-gray-200 hover:border-gray-300" onClick={() => {
+        trackCoffeeView('explore', {
+          id: coffee.id,
+          name: coffee.name,
+          caffeineMg: defaultCaffeine,
+          category: coffee.category
+        });
+        onSelect(coffee);
+      }}>
         <CardContent className="p-3 sm:p-5">
           <div className="flex items-start gap-3 sm:gap-6">
             {/* Main content */}
@@ -115,6 +123,7 @@ export const CoffeeCard = ({
                     showDialog={true}
                     onLogSuccess={onLogSuccess}
                     showUndoAfterLog={true}
+                    source="explore"
                   />
                 </div>
               </div>
@@ -127,7 +136,15 @@ export const CoffeeCard = ({
 
   // Grid view (default)
   return (
-    <Card className="group hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col h-full min-h-0" onClick={() => onSelect(coffee)}>
+    <Card className="group hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col h-full min-h-0" onClick={() => {
+      trackCoffeeView('explore', {
+        id: coffee.id,
+        name: coffee.name,
+        caffeineMg: defaultCaffeine,
+        category: coffee.category
+      });
+      onSelect(coffee);
+    }}>
       <CardContent className="p-4 sm:p-6 flex flex-col h-full min-h-0">
         {/* Header with title and safety indicator */}
         <div className="flex items-start justify-between mb-3 sm:mb-4 flex-shrink-0">
@@ -199,6 +216,7 @@ export const CoffeeCard = ({
               showDialog={true}
               onLogSuccess={onLogSuccess}
               showUndoAfterLog={true}
+              source="explore"
             />
           </div>
         </div>

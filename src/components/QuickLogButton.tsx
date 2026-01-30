@@ -176,6 +176,14 @@ const QuickLogButton = ({
         );
         
         if (success) {
+          // Track the coffee log event
+          trackCoffeeLog(source, {
+            id: coffee.id,
+            name: coffee.name,
+            caffeineMg: currentCaffeine,
+            category: coffee.category
+          });
+
           // Show success toast
           toast.success(`${coffee.name} logged!`, {
             description: `+${defaults.caffeine}mg caffeine added`,
@@ -223,6 +231,14 @@ const QuickLogButton = ({
         });
       
       if (success) {
+        // Track the coffee log event
+        trackCoffeeLog(source, {
+          id: coffee.id,
+          name: coffee.name,
+          caffeineMg: currentCaffeine,
+          category: coffee.category
+        });
+
         // Show success toast
         toast.success(`${coffee.name} logged!`, {
           description: `+${currentCaffeine}mg caffeine added`,

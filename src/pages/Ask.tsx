@@ -115,9 +115,12 @@ const Ask = () => {
   }, []);
 
   useEffect(() => {
-    document.title = "Your Caffeine Cop";
+    document.title = "Coffee Police";
     const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute("content", "Browse coffees, see half-life charts, and get time-smart picks.");
+    if (meta) meta.setAttribute("content", "Browse coffees, track caffeine, and get smart recommendations.");
+    
+    // Track page view
+    trackPageView("Home", "/");
   }, []);
 
   // Install functionality
@@ -234,7 +237,10 @@ const Ask = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowCoffeeGuide(true)}
+                onClick={() => {
+                  trackUserInteraction('click', 'coffee_guide_button', 'hero_section');
+                  setShowCoffeeGuide(true);
+                }}
                 className="text-amber-600 hover:text-amber-700 hover:bg-amber-50/50 text-sm px-4 py-2 rounded-lg border border-amber-200/50 hover:border-amber-300 transition-all duration-200"
               >
                 📋 Coffee Guide

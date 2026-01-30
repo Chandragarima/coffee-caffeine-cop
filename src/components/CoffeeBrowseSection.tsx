@@ -202,12 +202,21 @@ export const CoffeeBrowseSection = ({
     if (selectedFromDropdown) {
       setSelectedFromDropdown(null);
     }
+    
+    // Track search when user types
+    if (value.length >= 2) {
+      const results = filtered.length;
+      trackSearch(value, results, 'explore');
+    }
   };
 
   const handleAutoCompleteSelect = (coffee: CoffeeItem) => {
     setQuery(coffee.name);
     setShowAutoComplete(false);
     setSelectedFromDropdown(coffee);
+    
+    // Track autocomplete selection
+    trackSearch(coffee.name, 1, 'autocomplete');
   };
 
   return (

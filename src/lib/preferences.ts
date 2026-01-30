@@ -153,6 +153,25 @@ export const getPreference = <K extends keyof UserPreferences>(
   return preferences[key];
 };
 
+/** Format "HH:mm" (24h) as display string e.g. "11:00 PM". */
+export function formatTimeForDisplay(hhmm: string): string {
+  const [hh = 0, mm = 0] = hhmm.split(':').map(Number);
+  const hour = hh % 24;
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${displayHour}:${String(mm).padStart(2, '0')} ${period}`;
+}
+
+/** Caffeine cutoff time (8h before bedtime) in "HH:mm" 24h. */
+export function getCutoffTime(bedtime: string): string {
+  const [h = 23, m = 0] = bedtime.split(':').map(Number);
+  const cutoffMinutes = (h * 60 + m) - 8 * 60;
+  const normalized = (cutoffMinutes + 24 * 60) % (24 * 60);
+  const ch = Math.floor(normalized / 60);
+  const cm = normalized % 60;
+  return `${String(ch).padStart(2, '0')}:${String(cm).padStart(2, '0')}`;
+}
+
 // Validate preference values
 export const validatePreferences = (preferences: Partial<UserPreferences>): boolean => {
   const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
@@ -190,7 +209,7 @@ export const validatePreferences = (preferences: Partial<UserPreferences>): bool
       return false;
     }
   }
-  
+
   return true;
 };
 
