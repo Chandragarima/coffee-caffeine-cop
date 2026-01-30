@@ -287,7 +287,7 @@ export const RecommendationsSection = ({
               </div>
             </div>
             
-            <div className="grid sm:grid-cols-3 grid-cols-1 gap-3 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
               {decaf && (
                 <div className="group p-3 sm:p-4 rounded-2xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 hover:shadow-lg transition-all duration-300">
                   <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">

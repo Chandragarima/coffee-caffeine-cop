@@ -3,9 +3,11 @@ import { useCoffeeLogs } from './useCoffeeLogs';
 import { usePreferences } from './usePreferences';
 import { 
   CaffeineStatus, 
+  CaffeineGuidance,
   getCaffeineStatus, 
   getCaffeineGuidance,
-  formatDuration 
+  formatDuration,
+  THRESHOLDS
 } from '@/lib/caffeineTracker';
 import { addCoffeeLoggedListener, addCoffeeDeletedListener } from '@/lib/events';
 
@@ -57,21 +59,17 @@ export const useCaffeineTracker = () => {
     return getCaffeineStatus(logs, bedtime, caffeineLimit);
   }, [logs, bedtime, caffeineLimit, currentTime, forceUpdate]);
 
-  // Get guidance for next coffee
-  const guidance = useMemo(() => {
+  // Get guidance for next coffee using NEW 5-state system
+  const guidance = useMemo((): CaffeineGuidance => {
+    const hoursUntilBed = caffeineStatus.timeToBedtime / 60;
     return getCaffeineGuidance(
       caffeineStatus.currentLevel,
-      caffeineStatus.timeToNextCoffee,
+      hoursUntilBed,
+      caffeineStatus.dailyConsumed,
       caffeineStatus.dailyLimit,
-      caffeineStatus.dailyProgress,
-      caffeineStatus.timeToBedtime
+      THRESHOLDS.TYPICAL_COFFEE // Default coffee amount for projection
     );
   }, [caffeineStatus, forceUpdate]);
-
-  // Format time to next coffee
-  const timeToNextCoffeeFormatted = useMemo(() => {
-    return formatDuration(caffeineStatus.timeToNextCoffee);
-  }, [caffeineStatus.timeToNextCoffee, forceUpdate]);
 
   // Format time to bedtime
   const timeToBedtimeFormatted = useMemo(() => {
@@ -123,7 +121,6 @@ export const useCaffeineTracker = () => {
     guidance,
     
     // Formatted values
-    timeToNextCoffeeFormatted,
     timeToBedtimeFormatted,
     caffeineLevelPercentage,
     
@@ -134,12 +131,15 @@ export const useCaffeineTracker = () => {
     
     // State indicators
     isLevelChanging,
-    isSafeForNextCoffee: caffeineStatus.isSafeForNextCoffee,
+    canHaveCoffee: guidance.canHaveCoffee,
+    guidanceState: guidance.state,
     
     // Raw values for custom calculations
     currentLevel: caffeineStatus.currentLevel,
     peakLevel: caffeineStatus.peakLevel,
     dailyProgress: caffeineStatus.dailyProgress,
-    dailyLimit: caffeineStatus.dailyLimit
+    dailyLimit: caffeineStatus.dailyLimit,
+    dailyConsumed: caffeineStatus.dailyConsumed,
+    projectedAtBedtime: caffeineStatus.projectedAtBedtime
   };
 };

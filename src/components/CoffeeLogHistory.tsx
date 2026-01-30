@@ -1,36 +1,42 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useCoffeeLogs } from '@/hooks/useCoffeeLogs';
 import { CoffeeLogEntry } from '@/lib/coffeeLog';
-import { addCoffeeLoggedListener, addCoffeeDeletedListener } from '@/lib/events';
+import { addCoffeeLoggedListener, addCoffeeDeletedListener, addCoffeeUpdatedListener } from '@/lib/events';
+import { LogDetailDialog } from './LogDetailDialog';
+import { CoffeeDetailDialog } from './CoffeeDetailDialog';
+import { CoffeeItem, COFFEES } from '@/data/coffees';
 
 const CoffeeLogHistory = () => {
-  const { logs, stats, isLoading, deleteLog, refreshStats, refreshLogs } = useCoffeeLogs();
+  const { logs, stats, isLoading, refreshStats, refreshLogs } = useCoffeeLogs();
   const [selectedLog, setSelectedLog] = useState<CoffeeLogEntry | null>(null);
+  const [selectedCoffee, setSelectedCoffee] = useState<CoffeeItem | null>(null);
   const [activeTab, setActiveTab] = useState('today');
 
-  // Listen for coffee logged/deleted events to refresh immediately
+  // Listen for coffee logged/deleted/updated events to refresh immediately
   useEffect(() => {
-    const handleCoffeeLogged = async () => {
-      await refreshLogs(); // Refresh logs when coffee is logged
+    const handleRefresh = async () => {
+      await refreshLogs();
     };
 
-    const handleCoffeeDeleted = async () => {
-      await refreshLogs(); // Refresh logs when coffee is deleted
-    };
-
-    const removeLoggedListener = addCoffeeLoggedListener(handleCoffeeLogged);
-    const removeDeletedListener = addCoffeeDeletedListener(handleCoffeeDeleted);
+    const removeLoggedListener = addCoffeeLoggedListener(handleRefresh);
+    const removeDeletedListener = addCoffeeDeletedListener(handleRefresh);
+    const removeUpdatedListener = addCoffeeUpdatedListener(handleRefresh);
 
     return () => {
       removeLoggedListener();
       removeDeletedListener();
+      removeUpdatedListener();
     };
   }, [refreshLogs]);
+
+  // Handle viewing drink info from log detail
+  const handleViewDrinkInfo = (coffee: CoffeeItem) => {
+    setSelectedLog(null); // Close log detail first
+    setSelectedCoffee(coffee);
+  };
 
   // Filter logs based on active tab
   const filteredLogs = useMemo(() => {
@@ -103,14 +109,6 @@ const CoffeeLogHistory = () => {
     }
   };
 
-  const handleDeleteLog = async (id: string) => {
-    if (confirm('Are you sure you want to delete this coffee log?')) {
-      const success = await deleteLog(id);
-      if (success) {
-        await refreshStats();
-      }
-    }
-  };
 
   if (isLoading) {
     return (
@@ -126,131 +124,123 @@ const CoffeeLogHistory = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-1">
       {/* Statistics Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
+      {/* {stats && ( */}
+         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-1 md:gap-2">
+          {/* <Card>
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-500 font-medium">Today's Caffeine</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalCaffeineToday}mg</p>
+                  <p className="text-[10px] sm:text-xs text-gray-500 font-medium">Today's Caffeine</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalCaffeineToday}mg</p>
                 </div>
-                <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                  <span className="text-amber-600 text-sm">⚡</span>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                  <span className="text-amber-600 text-xs sm:text-sm">⚡</span>
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
-          <Card>
-            <CardContent className="p-4">
+          {/* <Card>
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-500 font-medium">Today's Drinks</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalDrinksToday}</p>
+                  <p className="text-[10px] sm:text-xs text-gray-500 font-medium">Today's Drinks</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalDrinksToday}</p>
                 </div>
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <span className="text-blue-600 text-sm">☕</span>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <span className="text-blue-600 text-xs sm:text-sm">☕</span>
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
-          <Card>
-            <CardContent className="p-4">
+          {/* <Card>
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-500 font-medium">Weekly Average</p>
-                  <p className="text-2xl font-bold text-gray-900">{Math.round(stats.averageCaffeinePerDay)}mg</p>
+                  <p className="text-[10px] sm:text-xs text-gray-500 font-medium">Weekly Average</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">{Math.round(stats.averageCaffeinePerDay)}mg</p>
                 </div>
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                  <span className="text-green-600 text-sm">📊</span>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <span className="text-green-600 text-xs sm:text-sm">📊</span>
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
-          <Card>
-            <CardContent className="p-4">
+          {/* <Card>
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-500 font-medium">Favorite</p>
-                  <p className="text-sm font-semibold text-gray-900 truncate">{stats.mostConsumedCoffee}</p>
+                  <p className="text-[10px] sm:text-xs text-gray-500 font-medium">Favorite</p>
+                  <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">{stats.mostConsumedCoffee}</p>
                 </div>
-                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <span className="text-purple-600 text-sm">❤️</span>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <span className="text-purple-600 text-xs sm:text-sm">❤️</span>
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
-      )}
+      {/* )} */}
 
       {/* Log History */}
       <Card>
-        <CardHeader>
-          <CardTitle>Coffee History</CardTitle>
+        <CardHeader className="pb-2 sm:pb-4">
+          <CardTitle className="text-base sm:text-lg">Coffee History</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="today">Today</TabsTrigger>
-              <TabsTrigger value="week">Week</TabsTrigger>
-              <TabsTrigger value="month">Month</TabsTrigger>
-              <TabsTrigger value="all">All Time</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 h-9 sm:h-10">
+              <TabsTrigger value="today" className="text-[10px] sm:text-sm">Today</TabsTrigger>
+              <TabsTrigger value="week" className="text-[10px] sm:text-sm">Week</TabsTrigger>
+              <TabsTrigger value="month" className="text-[10px] sm:text-sm">Month</TabsTrigger>
+              <TabsTrigger value="all" className="text-[10px] sm:text-sm">All Time</TabsTrigger>
             </TabsList>
 
-            <TabsContent value={activeTab} className="mt-6">
+            <TabsContent value={activeTab} className="mt-4 sm:mt-6">
               {filteredLogs.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">☕</div>
-                  <p className="text-gray-600">No coffee logs found for this period.</p>
-                  <p className="text-sm text-gray-500 mt-2">Start logging your coffee consumption!</p>
+                <div className="text-center py-8 sm:py-12">
+                  <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">☕</div>
+                  <p className="text-sm sm:text-base text-gray-600">No coffee logs found for this period.</p>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2">Start logging your coffee consumption!</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {filteredLogs.map((log) => (
                     <div
                       key={log.id}
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                      className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
                       onClick={() => setSelectedLog(log)}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                          <span className="text-amber-600 text-lg">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                          <span className="text-amber-600 text-base sm:text-lg">
                             {getMoodIcon(log.mood)}
                           </span>
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">{log.coffeeName}</h3>
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{log.coffeeName}</h3>
+                          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm text-gray-600">
                             <span>{log.servingSize}oz</span>
                             {log.shots > 1 && <span>• {log.shots} shots</span>}
-                                                         {log.location && log.location !== 'none' && (
-                               <span>• {getLocationIcon(log.location)} {log.location}</span>
-                             )}
+                            {log.location && log.location !== 'none' && (
+                              <span className="hidden sm:inline">• {getLocationIcon(log.location)} {log.location}</span>
+                            )}
                           </div>
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="border-amber-200 text-amber-700">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <Badge variant="outline" className="border-amber-200 text-amber-700 text-[10px] sm:text-xs px-1.5 sm:px-2">
                           {log.caffeineMg}mg
                         </Badge>
-                        <span className="text-xs text-gray-500">{formatTime(log.consumedAt)}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteLog(log.id);
-                          }}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          🗑️
-                        </Button>
+                        <span className="text-[10px] sm:text-xs text-gray-500">{formatTime(log.consumedAt)}</span>
+                        <span className="text-[10px] sm:text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
+                          Tap to edit
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -262,68 +252,19 @@ const CoffeeLogHistory = () => {
       </Card>
 
       {/* Log Detail Dialog */}
-      <Dialog open={!!selectedLog} onOpenChange={(open) => !open && setSelectedLog(null)}>
-        <DialogContent className="sm:max-w-md">
-          {selectedLog && (
-            <>
-              <DialogHeader>
-                <DialogTitle>Coffee Log Details</DialogTitle>
-              </DialogHeader>
-              
-              <div className="space-y-4">
-                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900">{selectedLog.coffeeName}</h3>
-                    <Badge variant="outline" className="border-amber-200 text-amber-700">
-                      {selectedLog.caffeineMg}mg
-                    </Badge>
-                  </div>
-                  <div className="text-sm text-gray-600 space-y-1">
-                    <p>Serving: {selectedLog.servingSize}oz</p>
-                    <p>Shots: {selectedLog.shots}</p>
-                                         {selectedLog.location && selectedLog.location !== 'none' && (
-                       <p>Location: {getLocationIcon(selectedLog.location)} {selectedLog.location}</p>
-                     )}
-                    {selectedLog.mood && (
-                      <p>Mood: {getMoodIcon(selectedLog.mood)} {selectedLog.mood}</p>
-                    )}
-                    <p>Time: {new Date(selectedLog.consumedAt).toLocaleString()}</p>
-                  </div>
-                </div>
+      <LogDetailDialog
+        log={selectedLog}
+        isOpen={!!selectedLog}
+        onClose={() => setSelectedLog(null)}
+        onViewDrinkInfo={handleViewDrinkInfo}
+      />
 
-                {selectedLog.notes && (
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-2">Notes</h4>
-                    <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                      {selectedLog.notes}
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => setSelectedLog(null)}
-                    className="flex-1"
-                  >
-                    Close
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      handleDeleteLog(selectedLog.id);
-                      setSelectedLog(null);
-                    }}
-                    className="flex-1"
-                  >
-                    Delete Log
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Coffee Detail Dialog (for viewing drink info) */}
+      <CoffeeDetailDialog
+        coffee={selectedCoffee}
+        onClose={() => setSelectedCoffee(null)}
+        hoursUntilBed={8}
+      />
     </div>
   );
 };

@@ -5,10 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { useCoffeeLogs } from '@/hooks/useCoffeeLogs';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { CoffeeLogEntry } from '@/lib/coffeeLog';
-import { addCoffeeLoggedListener, addCoffeeDeletedListener } from '@/lib/events';
+import { addCoffeeLoggedListener, addCoffeeDeletedListener, addCoffeeUpdatedListener } from '@/lib/events';
 import { toast } from '@/components/ui/sonner';
 import { COFFEES, CoffeeItem, CoffeeCategory } from '@/data/coffees';
 import { CoffeeDetailDialog } from '@/components/CoffeeDetailDialog';
+import { LogDetailDialog } from '@/components/LogDetailDialog';
+import { Plus, Trash2 } from 'lucide-react';
 
 interface RecentLogUndoProps {
   className?: string;
@@ -21,10 +23,12 @@ const RecentLogUndo = ({
   showCount = 3,
   onUndo 
 }: RecentLogUndoProps) => {
-  const { logs, deleteLog, refreshStats, refreshLogs } = useCoffeeLogs();
+  const { logs, deleteLog, addLog, refreshStats, refreshLogs } = useCoffeeLogs();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isRepeating, setIsRepeating] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedCoffee, setSelectedCoffee] = useState<CoffeeItem | null>(null);
+  const [selectedLog, setSelectedLog] = useState<CoffeeLogEntry | null>(null);
   const isMobile = useIsMobile();
 
   // Function to get coffee data from coffeeId
@@ -58,24 +62,28 @@ const RecentLogUndo = ({
     }
   };
 
-  // Listen for coffee logged/deleted events to refresh immediately
+  // Listen for coffee logged/deleted/updated events to refresh immediately
   useEffect(() => {
-    const handleCoffeeLogged = async () => {
-      await refreshLogs(); // Refresh logs when coffee is logged
+    const handleRefresh = async () => {
+      await refreshLogs();
     };
 
-    const handleCoffeeDeleted = async () => {
-      await refreshLogs(); // Refresh logs when coffee is deleted
-    };
-
-    const removeLoggedListener = addCoffeeLoggedListener(handleCoffeeLogged);
-    const removeDeletedListener = addCoffeeDeletedListener(handleCoffeeDeleted);
+    const removeLoggedListener = addCoffeeLoggedListener(handleRefresh);
+    const removeDeletedListener = addCoffeeDeletedListener(handleRefresh);
+    const removeUpdatedListener = addCoffeeUpdatedListener(handleRefresh);
 
     return () => {
       removeLoggedListener();
       removeDeletedListener();
+      removeUpdatedListener();
     };
   }, [refreshLogs]);
+
+  // Handle viewing drink info from log detail
+  const handleViewDrinkInfo = (coffee: CoffeeItem) => {
+    setSelectedLog(null); // Close log detail first
+    setSelectedCoffee(coffee);
+  };
 
   // Get all recent logs (last 24 hours) for count
   const allRecentLogs = logs.filter(log => {
@@ -115,6 +123,39 @@ const RecentLogUndo = ({
       });
     } finally {
       setIsDeleting(null);
+    }
+  };
+
+  const handleRepeatLog = async (log: CoffeeLogEntry) => {
+    setIsRepeating(log.id);
+    try {
+      const now = Date.now();
+      const id = await addLog({
+        coffeeId: log.coffeeId,
+        coffeeName: log.coffeeName,
+        caffeineMg: log.caffeineMg,
+        servingSize: log.servingSize,
+        shots: log.shots,
+        timestamp: now,
+        consumedAt: now,
+        notes: log.notes,
+        location: log.location,
+        mood: log.mood,
+      });
+      if (id) {
+        toast.success(`${log.coffeeName} logged again`, {
+          description: 'Logged with current time',
+          duration: 3000,
+        });
+        await refreshStats();
+      } else {
+        toast.error('Failed to log drink', { description: 'Please try again.', duration: 3000 });
+      }
+    } catch (error) {
+      console.error('Failed to repeat log:', error);
+      toast.error('Failed to log drink', { description: 'Please try again.', duration: 3000 });
+    } finally {
+      setIsRepeating(null);
     }
   };
 
@@ -176,11 +217,7 @@ const RecentLogUndo = ({
                 <div 
                   key={log.id} 
                   className="flex items-center justify-between p-2 sm:p-3 bg-white rounded-lg border border-amber-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => {
-                    if (coffee) {
-                      setSelectedCoffee(coffee);
-                    }
-                  }}
+                  onClick={() => setSelectedLog(log)}
                 >
                   <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                     <div className="w-6 h-6 sm:w-8 sm:h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -219,25 +256,42 @@ const RecentLogUndo = ({
                     </div>
                   </div>
                   
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent triggering the log click
-                      handleUndoLog(log);
-                    }}
-                    disabled={isDeleting === log.id}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-1 sm:ml-2 px-2 sm:px-3 h-7 sm:h-9"
-                  >
-                    {isDeleting === log.id ? (
-                      <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <>
-                        <span className="text-sm">↶</span>
-                        <span className="ml-0.5 sm:ml-1 text-xs hidden sm:inline">Undo</span>
-                      </>
-                    )}
-                  </Button>
+                  <div className="flex items-center gap-0.5 sm:gap-1 ml-1 sm:ml-2 flex-shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRepeatLog(log);
+                      }}
+                      disabled={isRepeating === log.id}
+                      className="text-gray-400 hover:text-amber-600 hover:bg-amber-50 h-7 w-7 sm:h-8 sm:w-8"
+                      aria-label="Log same drink again now"
+                    >
+                      {isRepeating === log.id ? (
+                        <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleUndoLog(log);
+                      }}
+                      disabled={isDeleting === log.id}
+                      className="text-gray-400 hover:text-red-600 hover:bg-red-50 h-7 w-7 sm:h-8 sm:w-8"
+                      aria-label="Delete log"
+                    >
+                      {isDeleting === log.id ? (
+                        <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               );
             })}
@@ -272,15 +326,23 @@ const RecentLogUndo = ({
           )}
           
           <div className="mt-2 sm:mt-3 text-xs text-gray-500 text-center hidden sm:block">
-            💡 You can undo recent logs if you made a mistake or were just testing
+            Tap a drink to view details or edit
           </div>
         </CardContent>
       </Card>
 
-      {/* Coffee Detail Dialog */}
+      {/* Log Detail Dialog */}
+      <LogDetailDialog
+        log={selectedLog}
+        isOpen={!!selectedLog}
+        onClose={() => setSelectedLog(null)}
+        onViewDrinkInfo={handleViewDrinkInfo}
+      />
+
+      {/* Coffee Detail Dialog (for viewing drink info) */}
       <CoffeeDetailDialog
         coffee={selectedCoffee}
-        hoursUntilBed={8} // Default to 8 hours, could be made configurable
+        hoursUntilBed={8}
         onClose={() => setSelectedCoffee(null)}
       />
     </>

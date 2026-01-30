@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { CoffeeLogEntry, CoffeeLogStats, addCoffeeLog, getCoffeeLogs, getCoffeeLogsForDay, getCoffeeLogsForLastDays, deleteCoffeeLog, updateCoffeeLog, getCoffeeLogStats, initCoffeeLogDB } from '@/lib/coffeeLog';
-import { emitCoffeeLogged, emitCoffeeDeleted } from '@/lib/events';
+import { emitCoffeeLogged, emitCoffeeDeleted, emitCoffeeUpdated } from '@/lib/events';
 
 export const useCoffeeLogs = () => {
   const [logs, setLogs] = useState<CoffeeLogEntry[]>([]);
   const [stats, setStats] = useState<CoffeeLogStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const selfEmitRef = useRef(false);
 
   // Initialize the database
   useEffect(() => {
@@ -20,13 +21,6 @@ export const useCoffeeLogs = () => {
     };
     init();
   }, []);
-
-  // Load logs and stats when initialized
-  useEffect(() => {
-    if (isInitialized) {
-      loadLogsAndStats();
-    }
-  }, [isInitialized]);
 
   const loadLogsAndStats = useCallback(async () => {
     try {
@@ -44,12 +38,40 @@ export const useCoffeeLogs = () => {
     }
   }, []);
 
+  // Load logs and stats when initialized
+  useEffect(() => {
+    if (isInitialized) {
+      loadLogsAndStats();
+    }
+  }, [isInitialized, loadLogsAndStats]);
+
+  // Listen for coffee events to keep all hook instances in sync
+  useEffect(() => {
+    if (!isInitialized) return;
+    const refresh = () => {
+      // Skip if this instance just emitted the event
+      if (selfEmitRef.current) {
+        selfEmitRef.current = false;
+        return;
+      }
+      loadLogsAndStats();
+    };
+    window.addEventListener('coffeeLogged', refresh);
+    window.addEventListener('coffeeDeleted', refresh);
+    window.addEventListener('coffeeUpdated', refresh);
+    return () => {
+      window.removeEventListener('coffeeLogged', refresh);
+      window.removeEventListener('coffeeDeleted', refresh);
+      window.removeEventListener('coffeeUpdated', refresh);
+    };
+  }, [isInitialized, loadLogsAndStats]);
+
   // Add a new coffee log
   const addLog = useCallback(async (entry: Omit<CoffeeLogEntry, 'id'>): Promise<string | null> => {
     try {
       const id = await addCoffeeLog(entry);
-      await loadLogsAndStats(); // Refresh data
-      // Emit event for auto-refresh
+      await loadLogsAndStats();
+      selfEmitRef.current = true;
       emitCoffeeLogged({ id, ...entry });
       return id;
     } catch (error) {
@@ -62,8 +84,8 @@ export const useCoffeeLogs = () => {
   const deleteLog = useCallback(async (id: string): Promise<boolean> => {
     try {
       await deleteCoffeeLog(id);
-      await loadLogsAndStats(); // Refresh data
-      // Emit event for auto-refresh
+      await loadLogsAndStats();
+      selfEmitRef.current = true;
       emitCoffeeDeleted(id);
       return true;
     } catch (error) {
@@ -76,7 +98,9 @@ export const useCoffeeLogs = () => {
   const updateLog = useCallback(async (entry: CoffeeLogEntry): Promise<boolean> => {
     try {
       await updateCoffeeLog(entry);
-      await loadLogsAndStats(); // Refresh data
+      await loadLogsAndStats();
+      selfEmitRef.current = true;
+      emitCoffeeUpdated(entry);
       return true;
     } catch (error) {
       console.error('Failed to update coffee log:', error);

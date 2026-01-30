@@ -1,23 +1,55 @@
 // User preferences management system
 export interface UserPreferences {
+  // Schedule
   bedtime: string;           // HH:mm format (24h)
+  wake_time: string;         // HH:mm format (24h)
+  timezone: string;          // user's timezone
+  
+  // Caffeine limits
+  caffeine_limit: number;    // daily caffeine limit (mg)
+  sensitivity: 'auto' | 'low' | 'moderate' | 'high'; // caffeine sensitivity
+  
+  // Notifications
+  notifications: boolean;           // master toggle for push notifications
+  notification_morning: boolean;    // morning energy reminder
+  notification_cutoff: boolean;     // cutoff warning before bedtime
+  
+  // Logging preferences
   serving_size: number;      // oz (8, 12, 16, 20)
   shots: 1 | 2 | 3;         // espresso shots
   shots_manually_set: boolean; // whether user has manually changed shots
-  notifications: boolean;    // push notifications
-  caffeine_limit: number;    // daily caffeine limit (mg)
-  timezone: string;          // user's timezone
+  quick_log_mode: boolean;   // one-tap quick logging (default: true)
+  favorite_coffees: string[]; // array of coffee IDs for quick access
+  
+  // Peak energy feature
+  show_peak_energy: boolean; // show peak energy countdown after logging
 }
 
 // Default preferences
 export const DEFAULT_PREFERENCES: UserPreferences = {
+  // Schedule - smart defaults
   bedtime: '23:00',
+  wake_time: '07:00',
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  
+  // Caffeine limits - FDA recommended
+  caffeine_limit: 400,
+  sensitivity: 'auto',
+  
+  // Notifications - conservative defaults (cutoff ON, morning OFF)
+  notifications: true,
+  notification_morning: false,
+  notification_cutoff: true,
+  
+  // Logging preferences
   serving_size: 12,
   shots: 1,
   shots_manually_set: false,
-  notifications: true,
-  caffeine_limit: 400,
-  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  quick_log_mode: true,
+  favorite_coffees: [],
+  
+  // Peak energy - OFF by default (feature coming later)
+  show_peak_energy: false
 };
 
 // Storage key
@@ -123,14 +155,32 @@ export const getPreference = <K extends keyof UserPreferences>(
 
 // Validate preference values
 export const validatePreferences = (preferences: Partial<UserPreferences>): boolean => {
+  const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+  
   const validators: Record<keyof UserPreferences, (value: any) => boolean> = {
-    bedtime: (value: string) => /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value),
+    // Schedule
+    bedtime: (value: string) => timeRegex.test(value),
+    wake_time: (value: string) => timeRegex.test(value),
+    timezone: (value: string) => typeof value === 'string' && value.length > 0,
+    
+    // Caffeine limits
+    caffeine_limit: (value: number) => value > 0 && value <= 1000,
+    sensitivity: (value: string) => ['auto', 'low', 'moderate', 'high'].includes(value),
+    
+    // Notifications
+    notifications: (value: boolean) => typeof value === 'boolean',
+    notification_morning: (value: boolean) => typeof value === 'boolean',
+    notification_cutoff: (value: boolean) => typeof value === 'boolean',
+    
+    // Logging preferences
     serving_size: (value: number) => [8, 12, 16, 20, 24].includes(value),
     shots: (value: number) => [1, 2, 3].includes(value),
     shots_manually_set: (value: boolean) => typeof value === 'boolean',
-    notifications: (value: boolean) => typeof value === 'boolean',
-    caffeine_limit: (value: number) => value > 0 && value <= 1000,
-    timezone: (value: string) => typeof value === 'string' && value.length > 0
+    quick_log_mode: (value: boolean) => typeof value === 'boolean',
+    favorite_coffees: (value: any) => Array.isArray(value) && value.every(id => typeof id === 'string'),
+    
+    // Peak energy
+    show_peak_energy: (value: boolean) => typeof value === 'boolean'
   };
 
   for (const [key, value] of Object.entries(preferences)) {
@@ -142,4 +192,19 @@ export const validatePreferences = (preferences: Partial<UserPreferences>): bool
   }
   
   return true;
+};
+
+// Helper: Calculate caffeine cutoff time (bedtime - 8 hours)
+export const getCutoffTime = (bedtime: string): string => {
+  const [hours, minutes] = bedtime.split(':').map(Number);
+  const cutoffHour = (hours - 8 + 24) % 24;
+  return `${cutoffHour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+};
+
+// Helper: Format time for display (e.g., "3:00 PM")
+export const formatTimeForDisplay = (time: string): string => {
+  const [hours, minutes] = time.split(':').map(Number);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHour = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+  return `${displayHour}:${minutes.toString().padStart(2, '0')} ${period}`;
 };

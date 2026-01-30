@@ -1,49 +1,77 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { CoffeeItem, HALF_LIFE_HOURS, CoffeeCategory } from "@/data/coffees";
 import { getSleepVerdict } from "@/lib/sleepVerdict";
 import { getMilestones, caffeineRemaining } from "@/lib/caffeine";
 import DecayChart from "@/components/DecayChart";
+import SleepVerdictBanner from "@/components/SleepVerdictBanner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { usePreferences } from "@/hooks/usePreferences";
+import { getIconPath } from "@/lib/imageUtils";
 
 // Function to get the appropriate SVG icon based on coffee category
 const getCoffeeCategoryIcon = (category: CoffeeCategory): string => {
   switch (category) {
     case "brewed":
-      return "/coffee-caffeine-cop/icons/brewed.svg";
+      return getIconPath("brewed.svg");
     case "espresso":
-      return "/coffee-caffeine-cop/icons/espresso.svg";
+      return getIconPath("espresso.svg");
     case "milk":
-      return "/coffee-caffeine-cop/icons/milk-based.svg";
+      return getIconPath("milk-based.svg");
     case "instant":
-      return "/coffee-caffeine-cop/icons/instant.svg"; // Fallback to brewed for instant
+      return getIconPath("instant.svg");
     case "cold":
-      return "/coffee-caffeine-cop/icons/iced.svg";
+      return getIconPath("iced.svg");
     case "tea":
-      return "/coffee-caffeine-cop/icons/tea.svg";
+      return getIconPath("tea.svg");
     case "specialty":
-      return "/coffee-caffeine-cop/icons/speciality.svg";
+      return getIconPath("speciality.svg");
     case "energy":
-      return "/coffee-caffeine-cop/icons/energy.svg";
+      return getIconPath("energy.svg");
     case "soda":
-      return "/coffee-caffeine-cop/icons/soda.svg";
+      return getIconPath("soda.svg");
     default:
-      return "/coffee-caffeine-cop/icons/brewed.svg"; // Default fallback
+      return getIconPath("brewed.svg"); // Default fallback
   }
 };
 
 interface CoffeeDetailDialogProps {
   coffee: CoffeeItem | null;
-  hoursUntilBed: number;
+  hoursUntilBed?: number; // Optional - will calculate from bedtime if not provided
   onClose: () => void;
 }
 
+// Helper to calculate hours until bedtime from preference
+const calculateHoursUntilBed = (bedtimeStr: string): number => {
+  const now = new Date();
+  const [hours, minutes] = bedtimeStr.split(':').map(Number);
+  
+  const bedtime = new Date();
+  bedtime.setHours(hours, minutes, 0, 0);
+  
+  // If bedtime has already passed today, assume tomorrow
+  if (bedtime <= now) {
+    bedtime.setDate(bedtime.getDate() + 1);
+  }
+  
+  const diffMs = bedtime.getTime() - now.getTime();
+  return diffMs / (1000 * 60 * 60); // Convert to hours
+};
+
+// Format bedtime for display
+const formatBedtime = (bedtimeStr: string): string => {
+  const [hours, minutes] = bedtimeStr.split(':').map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes);
+  return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+};
+
 export const CoffeeDetailDialog = ({ 
   coffee, 
-  hoursUntilBed, 
+  hoursUntilBed: hoursUntilBedProp, 
   onClose 
 }: CoffeeDetailDialogProps) => {
   const isMobile = useIsMobile();
+  const { bedtime } = usePreferences();
   
   if (!coffee) {
     return (
@@ -54,6 +82,10 @@ export const CoffeeDetailDialog = ({
       </Dialog>
     );
   }
+
+  // Use provided hoursUntilBed or calculate from bedtime preference
+  const hoursUntilBed = hoursUntilBedProp ?? calculateHoursUntilBed(bedtime);
+  const bedtimeFormatted = formatBedtime(bedtime);
 
   const v = getSleepVerdict(coffee.caffeineMg, hoursUntilBed, HALF_LIFE_HOURS);
   const milestones = getMilestones(coffee.caffeineMg, HALF_LIFE_HOURS);
@@ -96,38 +128,13 @@ export const CoffeeDetailDialog = ({
         </DialogHeader>
 
         <div className={`${isMobile ? 'space-y-4' : 'space-y-6'}`}>
-          {/* Sleep Verdict - Improved Mobile Layout */}
-          <div className={`rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 ${isMobile ? 'p-3' : 'p-4'}`}>
-            {isMobile ? (
-              /* Mobile Layout - Stacked for better readability */
-              <div className="space-y-2">
-                <div className="flex items-center gap-4">
-                  <Badge variant="outline" className="border-amber-200 text-amber-700 bg-amber-50/50 text-xs px-2 py-0.5">
-                    {v.chip}
-                  </Badge>
-                  <span className="text-xs text-gray-600 font-mono bg-white/60 px-2 py-1 rounded">
-                    {remainingAtBedtime}mg at bedtime
-                  </span>
-                </div>
-                <div className="ml-1 text-sm font-medium text-gray-900 leading-tight">
-                  {v.headline}
-                </div>
-              </div>
-            ) : (
-              /* Desktop Layout - Horizontal */
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <Badge variant="outline" className="border-amber-200 text-amber-700 bg-amber-50/50 text-sm">
-                    {v.chip}
-                  </Badge>
-                  <span className="text-sm font-medium text-gray-900 truncate">{v.headline}</span>
-                </div>
-                <span className="text-xs text-gray-600 font-mono bg-white/60 px-2 py-1 rounded flex-shrink-0">
-                  {remainingAtBedtime}mg at bedtime
-                </span>
-              </div>
-            )}
-          </div>
+          {/* Sleep Verdict Banner */}
+          <SleepVerdictBanner
+            verdict={v}
+            remainingMg={remainingAtBedtime}
+            bedtimeFormatted={bedtimeFormatted}
+            caffeineMg={coffee.caffeineMg}
+          />
 
           {/* Hero: Caffeine Decay Chart - Optimized for Mobile */}
           <div className={`bg-white rounded-2xl border border-gray-200 shadow-lg ${isMobile ? 'p-4' : 'p-6'}`}>
@@ -176,13 +183,7 @@ export const CoffeeDetailDialog = ({
             </div>
           </div>
 
-          {/* Action Suggestion - Compact */}
-          <div className={`bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 ${isMobile ? 'p-3' : 'p-4'}`}>
-            <p className={`text-gray-700 ${isMobile ? 'text-sm' : 'text-sm'}`}>
-              <span className="font-medium">💡 Tip:</span> {v.suggestion}
-            </p>
           </div>
-        </div>
       </DialogContent>
     </Dialog>
   );

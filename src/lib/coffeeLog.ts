@@ -22,8 +22,12 @@ export interface CoffeeLogStats {
   totalDrinksWeek: number;
   totalDrinksMonth: number;
   mostConsumedCoffee: string;
+  mostConsumedCount: number;
+  topFavoriteTied: number; // how many drinks share the top count
   peakConsumptionHour: number;
   lastConsumptionTime: number;
+  trackingStreak: number;
+  totalDaysWithLogs: number; // distinct days (all time) with at least one log
 }
 
 // IndexedDB setup
@@ -203,8 +207,10 @@ class CoffeeLogDB {
       return acc;
     }, {} as Record<string, number>);
     
-    const mostConsumedCoffee = Object.entries(coffeeCounts)
-      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'None';
+    const sortedCoffees = Object.entries(coffeeCounts).sort(([,a], [,b]) => b - a);
+    const mostConsumedCoffee = sortedCoffees[0]?.[0] || 'None';
+    const mostConsumedCount = sortedCoffees[0]?.[1] || 0;
+    const topFavoriteTied = sortedCoffees.filter(([, count]) => count === mostConsumedCount).length;
     
     // Find peak consumption hour
     const hourCounts = monthLogs.reduce((acc, log) => {
@@ -218,6 +224,33 @@ class CoffeeLogDB {
     
     const lastConsumptionTime = monthLogs[0]?.consumedAt || 0;
 
+    // Calculate tracking streak (consecutive days with at least one log, counting back from today)
+    let trackingStreak = 0;
+    if (todayLogs.length > 0) {
+      trackingStreak = 1;
+      for (let i = 1; i <= 365; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        d.setHours(0, 0, 0, 0);
+        const nextD = new Date(d);
+        nextD.setDate(nextD.getDate() + 1);
+        const hasLog = allLogs.some(
+          (log) => log.consumedAt >= d.getTime() && log.consumedAt < nextD.getTime()
+        );
+        if (hasLog) trackingStreak++;
+        else break;
+      }
+    }
+
+    // Total distinct days with at least one log (all time)
+    const dayKeys = new Set<string>();
+    allLogs.forEach((log) => {
+      const d = new Date(log.consumedAt);
+      d.setHours(0, 0, 0, 0);
+      dayKeys.add(d.getTime().toString());
+    });
+    const totalDaysWithLogs = dayKeys.size;
+
     return {
       totalCaffeineToday,
       totalCaffeineWeek,
@@ -227,8 +260,12 @@ class CoffeeLogDB {
       totalDrinksWeek,
       totalDrinksMonth,
       mostConsumedCoffee,
+      mostConsumedCount,
+      topFavoriteTied,
       peakConsumptionHour: Number(peakConsumptionHour),
-      lastConsumptionTime
+      lastConsumptionTime,
+      trackingStreak,
+      totalDaysWithLogs
     };
   }
 

@@ -66,6 +66,13 @@ All colors MUST be HSL.
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
   }
+  
+  /* Safe area for iOS notch/home indicator */
+  @supports (padding: env(safe-area-inset-bottom)) {
+    .safe-area-bottom {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
 }
 
 @layer utilities {

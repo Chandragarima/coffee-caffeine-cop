@@ -1,46 +1,31 @@
 import React from 'react';
-import { getCaffeineGuidance, CaffeineGuidance } from '@/lib/caffeineTracker';
+import { getCaffeineGuidance, CaffeineGuidance, THRESHOLDS } from '@/lib/caffeineTracker';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-
-// Helper component to render guidance icons (SVG or emoji)
-const GuidanceIcon = ({ guidance, className = "" }: { guidance: CaffeineGuidance, className?: string }) => {
-  if (guidance.iconType === 'svg' && guidance.iconPath) {
-    return (
-      <img 
-        src={guidance.iconPath} 
-        alt={guidance.reason}
-        className={`w-full h-full object-contain ${className}`}
-      />
-    );
-  }
-  
-  // Fallback to emoji
-  return <span className={className}>{guidance.icon}</span>;
-};
 
 interface CaffeineGuidanceBannerProps {
   currentCaffeine: number;
   timeToBedtime: number; // minutes until bedtime
-  dailyProgress: number; // percentage of daily limit consumed
-  timeToNextCoffee: number; // actual wait time from caffeine tracker
+  dailyConsumed: number; // total mg consumed today
+  dailyLimit?: number;
   className?: string;
 }
 
 export const CaffeineGuidanceBanner: React.FC<CaffeineGuidanceBannerProps> = ({
   currentCaffeine,
   timeToBedtime,
-  dailyProgress,
-  timeToNextCoffee,
+  dailyConsumed,
+  dailyLimit = 400,
   className = ''
 }) => {
-  // Calculate guidance based on current state
+  // Calculate guidance based on current state using new 5-state system
+  const hoursUntilBed = timeToBedtime / 60;
   const guidance = getCaffeineGuidance(
     currentCaffeine,
-    timeToNextCoffee, // Use actual timeToNextCoffee from tracker
-    400, // dailyLimit
-    dailyProgress,
-    timeToBedtime
+    hoursUntilBed,
+    dailyConsumed,
+    dailyLimit,
+    THRESHOLDS.TYPICAL_COFFEE
   );
 
   // Only show warning/caution messages (yellow/red), not green "safe" messages
@@ -61,28 +46,46 @@ export const CaffeineGuidanceBanner: React.FC<CaffeineGuidanceBannerProps> = ({
               ? 'bg-amber-100 text-amber-600' 
               : 'bg-red-100 text-red-600'
           }`}>
-            <GuidanceIcon guidance={guidance} className="text-2xl" />
+            <span className="text-2xl">{guidance.icon}</span>
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <h3 className={`font-semibold text-lg ${
                 guidance.color === 'yellow' ? 'text-amber-800' : 'text-red-800'
               }`}>
-                {guidance.reason}
+                {guidance.title}
               </h3>
               {guidance.color === 'red' && (
                 <Badge variant="destructive" className="text-xs">
-                  Sleep Risk
+                  {guidance.state === 'daily_limit' ? 'Limit Reached' : 'Sleep Risk'}
                 </Badge>
               )}
             </div>
-            <p className={`text-sm leading-relaxed ${
+            <p className={`text-sm leading-relaxed mb-2 ${
               guidance.color === 'yellow' ? 'text-amber-700' : 'text-red-700'
+            }`}>
+              {guidance.subtitle}
+            </p>
+            <p className={`text-sm leading-relaxed ${
+              guidance.color === 'yellow' ? 'text-amber-600' : 'text-red-600'
             }`}>
               {guidance.recommendation}
             </p>
+            
+            {/* Show wait time for jitter risk */}
+            {guidance.waitTimeFormatted && (guidance.state === 'jitter_risk' || guidance.state === 'both_risks') && (
+              <div className="mt-3 inline-flex items-center gap-2 bg-white/50 px-3 py-1.5 rounded-full">
+                <span>⏳</span>
+                <span className={`text-sm font-medium ${
+                  guidance.color === 'yellow' ? 'text-amber-800' : 'text-red-800'
+                }`}>
+                  Wait {guidance.waitTimeFormatted}
+                </span>
+              </div>
+            )}
+            
             <div className="mt-3 text-xs text-gray-600">
-              Current caffeine: {currentCaffeine}mg • Time to bed: {Math.round(timeToBedtime / 60)}h
+              Current: {currentCaffeine}mg active • ~{guidance.projectedAtBedtime}mg at bedtime • {Math.round(timeToBedtime / 60)}h to bed
             </div>
           </div>
         </div>
