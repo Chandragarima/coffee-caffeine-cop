@@ -3,23 +3,64 @@ import { CoffeeLogEntry } from './coffeeLog';
 import { caffeineRemaining, getMilestones } from './caffeine';
 import { HALF_LIFE_HOURS } from '@/data/coffees';
 
+// Thresholds used by hero, tracker, and guidance
+export const THRESHOLDS = {
+  JITTER: 300,         // mg - peak level where jitters become likely
+  SLEEP_SAFE: 50,      // mg - max caffeine at bedtime for quality sleep
+  SLEEP_CAUTION: 90,   // mg - moderate sleep disruption threshold
+  TYPICAL_COFFEE: 100, // mg - average coffee for projections
+} as const;
+
+// Level bands for status line and "Show details" card. Breakpoints: 50, 100, 200, 300 mg.
+export type LevelBand = 'low' | 'moderate' | 'elevated' | 'high' | 'very_high';
+
+export interface LevelBandInfo {
+  band: LevelBand;
+  label: string;
+  title: string;
+  theme: 'green' | 'amber' | 'orange' | 'red';
+  intro: string;
+  bullets: { char: string; text: string }[];
+}
+
+const LEVEL_BAND_BREAKPOINTS = [50, 100, 200, 300] as const;
+
+const LEVEL_BAND_DETAILS: Record<LevelBand, Omit<LevelBandInfo, 'band'>> = {
+  low: { label: "Low - won't affect sleep", title: 'Low Caffeine', theme: 'green', intro: "You're in the clear zone. At this level:", bullets: [{ char: '✓', text: 'Minimal impact on sleep quality' }, { char: '✓', text: 'Body can wind down naturally' }, { char: '✓', text: 'Deep sleep cycles unaffected' }] },
+  moderate: { label: "Moderate - you're alert", title: 'Moderate Caffeine', theme: 'amber', intro: 'Moderate alertness. At this level you may experience:', bullets: [{ char: '•', text: 'Increased focus and energy' }, { char: '•', text: 'Slight elevation in heart rate' }, { char: '•', text: 'Delayed sleep onset if near bedtime' }] },
+  elevated: { label: 'Elevated - peak alertness', title: 'Elevated Caffeine', theme: 'amber', intro: 'Peak alertness. At this level:', bullets: [{ char: '•', text: 'Strong focus and alertness' }, { char: '•', text: 'Heart rate may be elevated' }, { char: '•', text: 'Avoid more caffeine close to bedtime' }] },
+  high: { label: 'High - avoid more caffeine', title: 'High Caffeine', theme: 'red', intro: 'High levels can lead to:', bullets: [{ char: '!', text: 'Restlessness and anxiety' }, { char: '!', text: 'Racing heart, jitters' }, { char: '!', text: 'Significant sleep disruption' }] },
+  very_high: { label: 'Very high - no more coffee today', title: 'Very High Caffeine', theme: 'red', intro: 'Very high levels. At this level:', bullets: [{ char: '!', text: 'Restlessness and anxiety' }, { char: '!', text: 'Racing heart, jitters' }, { char: '!', text: 'Significant sleep disruption' }, { char: '!', text: 'Best to avoid more caffeine today' }] },
+};
+
+export function getCaffeineLevelBand(level: number): LevelBandInfo {
+  const band: LevelBand = level < LEVEL_BAND_BREAKPOINTS[0] ? 'low' : level < LEVEL_BAND_BREAKPOINTS[1] ? 'moderate' : level < LEVEL_BAND_BREAKPOINTS[2] ? 'elevated' : level < LEVEL_BAND_BREAKPOINTS[3] ? 'high' : 'very_high';
+  return { band, ...LEVEL_BAND_DETAILS[band] };
+}
+
+export type GuidanceState = 'all_clear' | 'sleep_impact' | 'jitter_risk' | 'both_risks' | 'daily_limit';
+
 export interface CaffeineStatus {
-  currentLevel: number;           // Current caffeine in system (mg)
-  peakLevel: number;              // Peak caffeine level today (mg)
-  timeToNextCoffee: number;       // Minutes until safe to have next coffee
-  timeToBedtime: number;          // Minutes until bedtime
-  isSafeForNextCoffee: boolean;   // Whether it's safe to have another coffee
-  nextCoffeeRecommendation: string; // Human-readable recommendation
-  sleepRisk: 'low' | 'medium' | 'high'; // Risk level for sleep
-  sleepRiskMessage: string;       // Sleep risk explanation
-  dailyProgress: number;          // Percentage of daily limit consumed
-  dailyLimit: number;             // Daily caffeine limit (mg)
+  currentLevel: number;
+  peakLevel: number;
+  projectedAtBedtime: number;     // Projected caffeine at bedtime (mg)
+  timeToNextCoffee: number;
+  timeToBedtime: number;
+  isSafeForNextCoffee: boolean;
+  nextCoffeeRecommendation: string;
+  sleepRisk: 'low' | 'medium' | 'high';
+  sleepRiskMessage: string;
+  dailyProgress: number;
+  dailyLimit: number;
 }
 
 export interface CaffeineGuidance {
   canHaveCoffee: boolean;
   reason: string;
+  title: string;                  // Short headline (for hero/tracker)
+  state: GuidanceState;
   waitTime?: string;
+  waitTimeFormatted?: string;
   recommendation: string;
   icon: string;
   iconType: 'emoji' | 'svg';
@@ -224,10 +265,23 @@ export const getCaffeineGuidance = (
     }
   }
   
+  const waitTimeStr = timeToNextCoffee > 0 ? (timeToNextCoffee < 60 ? `${Math.ceil(timeToNextCoffee)} minutes` : `${Math.floor(timeToNextCoffee / 60)}h ${Math.ceil(timeToNextCoffee % 60)}m`) : undefined;
+  const jitterRisk = currentLevel >= THRESHOLDS.JITTER - THRESHOLDS.TYPICAL_COFFEE;
+  const sleepImpact = !canHaveCoffee && (sleepRisk === 'medium' || sleepRisk === 'high');
+  let state: GuidanceState = 'all_clear';
+  if (dailyProgress >= 90 && !canHaveCoffee) state = 'daily_limit';
+  else if (jitterRisk && sleepImpact) state = 'both_risks';
+  else if (jitterRisk) state = 'jitter_risk';
+  else if (sleepImpact || (!canHaveCoffee && sleepRisk === 'high')) state = 'sleep_impact';
+  else if (canHaveCoffee && sleepRisk === 'low') state = 'all_clear';
+
   return {
     canHaveCoffee,
     reason,
-    waitTime: timeToNextCoffee > 0 ? (timeToNextCoffee < 60 ? `${Math.ceil(timeToNextCoffee)} minutes` : `${Math.floor(timeToNextCoffee / 60)}h ${Math.ceil(timeToNextCoffee % 60)}m`) : undefined,
+    title: reason,
+    state,
+    waitTime: waitTimeStr,
+    waitTimeFormatted: waitTimeStr,
     recommendation,
     icon: sleepRisk === 'low' ? '😴' : sleepRisk === 'medium' ? '😐' : '😵',
     iconType: 'svg',
@@ -296,12 +350,17 @@ export const getCaffeineStatus = (
   // Get sleep risk using total caffeine (including previous days) for accuracy
   const sleepRisk = getSleepRisk(totalCaffeineLevel, timeToBedtime);
   
+  // Projected caffeine at bedtime (current level decay)
+  const hoursUntilBed = timeToBedtime / 60;
+  const projectedAtBedtime = caffeineRemaining(currentLevel, hoursUntilBed, HALF_LIFE_HOURS);
+  
   // Generate next coffee recommendation
   const guidance = getCaffeineGuidance(currentLevel, timeToNextCoffee, dailyLimit, dailyProgress, timeToBedtime);
   
   return {
     currentLevel: Math.round(currentLevel),
     peakLevel,
+    projectedAtBedtime: Math.round(projectedAtBedtime),
     timeToNextCoffee: Math.ceil(timeToNextCoffee),
     timeToBedtime: Math.ceil(timeToBedtime),
     isSafeForNextCoffee: timeToNextCoffee === 0,

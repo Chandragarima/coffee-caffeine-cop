@@ -74,9 +74,14 @@ export const usePreferences = () => {
     servingSize: preferences.serving_size,
     shots: preferences.shots,
     shotsManuallySet: preferences.shots_manually_set,
-    theme: preferences.theme,
     notifications: preferences.notifications,
     caffeineLimit: preferences.caffeine_limit,
-    timezone: preferences.timezone
+    timezone: preferences.timezone,
+    favoriteCoffees: preferences.favorite_coffees ?? [],
+    wakeTime: preferences.wake_time ?? '07:00',
+    sensitivity: preferences.sensitivity ?? 'auto',
+    notificationMorning: preferences.notification_morning ?? false,
+    notificationCutoff: preferences.notification_cutoff ?? false,
+    quickLogMode: preferences.quick_log_mode ?? false
   };
 };

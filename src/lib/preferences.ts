@@ -7,6 +7,12 @@ export interface UserPreferences {
   notifications: boolean;    // push notifications
   caffeine_limit: number;    // daily caffeine limit (mg)
   timezone: string;          // user's timezone
+  favorite_coffees: string[]; // coffee IDs the user has favorited
+  wake_time?: string;       // HH:mm for morning reminder
+  sensitivity?: 'low' | 'moderate' | 'high' | 'auto'; // sleep sensitivity
+  notification_morning?: boolean; // morning reminder on/off
+  notification_cutoff?: boolean;  // cutoff warning on/off
+  quick_log_mode?: boolean; // instant log without dialog
 }
 
 // Default preferences
@@ -17,7 +23,13 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   shots_manually_set: false,
   notifications: true,
   caffeine_limit: 400,
-  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  favorite_coffees: [],
+  wake_time: '07:00',
+  sensitivity: 'auto',
+  notification_morning: false,
+  notification_cutoff: false,
+  quick_log_mode: false
 };
 
 // Storage key
@@ -121,6 +133,25 @@ export const getPreference = <K extends keyof UserPreferences>(
   return preferences[key];
 };
 
+/** Format "HH:mm" (24h) as display string e.g. "11:00 PM". */
+export function formatTimeForDisplay(hhmm: string): string {
+  const [hh = 0, mm = 0] = hhmm.split(':').map(Number);
+  const hour = hh % 24;
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${displayHour}:${String(mm).padStart(2, '0')} ${period}`;
+}
+
+/** Caffeine cutoff time (8h before bedtime) in "HH:mm" 24h. */
+export function getCutoffTime(bedtime: string): string {
+  const [h = 23, m = 0] = bedtime.split(':').map(Number);
+  const cutoffMinutes = (h * 60 + m) - 8 * 60;
+  const normalized = (cutoffMinutes + 24 * 60) % (24 * 60);
+  const ch = Math.floor(normalized / 60);
+  const cm = normalized % 60;
+  return `${String(ch).padStart(2, '0')}:${String(cm).padStart(2, '0')}`;
+}
+
 // Validate preference values
 export const validatePreferences = (preferences: Partial<UserPreferences>): boolean => {
   const validators: Record<keyof UserPreferences, (value: any) => boolean> = {
@@ -130,7 +161,13 @@ export const validatePreferences = (preferences: Partial<UserPreferences>): bool
     shots_manually_set: (value: boolean) => typeof value === 'boolean',
     notifications: (value: boolean) => typeof value === 'boolean',
     caffeine_limit: (value: number) => value > 0 && value <= 1000,
-    timezone: (value: string) => typeof value === 'string' && value.length > 0
+    timezone: (value: string) => typeof value === 'string' && value.length > 0,
+    favorite_coffees: (value: unknown) => Array.isArray(value) && value.every((id) => typeof id === 'string'),
+    wake_time: (value: unknown) => value == null || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(String(value)),
+    sensitivity: (value: unknown) => value == null || ['low', 'moderate', 'high', 'auto'].includes(String(value)),
+    notification_morning: (value: unknown) => value == null || typeof value === 'boolean',
+    notification_cutoff: (value: unknown) => value == null || typeof value === 'boolean',
+    quick_log_mode: (value: unknown) => value == null || typeof value === 'boolean'
   };
 
   for (const [key, value] of Object.entries(preferences)) {
@@ -140,6 +177,6 @@ export const validatePreferences = (preferences: Partial<UserPreferences>): bool
       return false;
     }
   }
-  
+
   return true;
 };
