@@ -5,6 +5,7 @@ import { adjustedMg, SizeOz } from "@/lib/serving";
 import { TimeOfDay } from "@/hooks/useTimeOfDay";
 import QuickLogButton from "@/components/QuickLogButton";
 import { getIconPath } from "@/lib/imageUtils";
+import { trackCoffeeView } from "@/lib/analytics";
 
 // Helper component to render coffee icons (SVG or emoji fallback)
 const CoffeeIcon = ({ iconId, className = "" }: { iconId: string, className?: string }) => {

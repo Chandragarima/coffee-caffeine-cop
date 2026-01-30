@@ -10,6 +10,7 @@ import { ChevronDown } from "lucide-react";
 import { SearchAutoComplete } from "@/components/SearchAutoComplete";
 import { SmartNoResults } from "@/components/SmartNoResults";
 import { fuzzySearch, getTypoSuggestion, getBestFuzzySuggestion, type FuzzyMatch } from "@/lib/fuzzySearch";
+import { trackSearch } from "@/lib/analytics";
 
 const categoryLabels: Record<CoffeeCategory, string> = {
   brewed: "Brewed",
