@@ -2,6 +2,7 @@
 export const EVENTS = {
   COFFEE_LOGGED: 'coffeeLogged',
   COFFEE_DELETED: 'coffeeDeleted',
+  COFFEE_UPDATED: 'coffeeUpdated',
   CAFFEINE_TRACKER_REFRESH: 'caffeineTrackerRefresh'
 } as const;
 
@@ -18,6 +19,12 @@ export const emitCoffeeDeleted = (coffeeId?: string) => {
   }));
 };
 
+export const emitCoffeeUpdated = (logData?: any) => {
+  window.dispatchEvent(new CustomEvent(EVENTS.COFFEE_UPDATED, { 
+    detail: logData 
+  }));
+};
+
 export const emitCaffeineTrackerRefresh = () => {
   window.dispatchEvent(new CustomEvent(EVENTS.CAFFEINE_TRACKER_REFRESH));
 };
@@ -31,6 +38,11 @@ export const addCoffeeLoggedListener = (callback: (event: CustomEvent) => void) 
 export const addCoffeeDeletedListener = (callback: (event: CustomEvent) => void) => {
   window.addEventListener(EVENTS.COFFEE_DELETED, callback as EventListener);
   return () => window.removeEventListener(EVENTS.COFFEE_DELETED, callback as EventListener);
+};
+
+export const addCoffeeUpdatedListener = (callback: (event: CustomEvent) => void) => {
+  window.addEventListener(EVENTS.COFFEE_UPDATED, callback as EventListener);
+  return () => window.removeEventListener(EVENTS.COFFEE_UPDATED, callback as EventListener);
 };
 
 export const addCaffeineTrackerRefreshListener = (callback: (event: CustomEvent) => void) => {

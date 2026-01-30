@@ -1,16 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useCaffeineTracker } from '@/hooks/useCaffeineTracker';
-import { getCaffeineColor, getCaffeineBgColor, CaffeineGuidance } from '@/lib/caffeineTracker';
-
-interface CaffeineTrackerProps {
-  className?: string;
-  showDetails?: boolean;
-  compact?: boolean;
-}
+import { usePreferences } from '@/hooks/usePreferences';
+import { getCaffeineColor, getCaffeineBgColor, getCaffeineLevelBand, CaffeineGuidance } from '@/lib/caffeineTracker';
 
 // Helper component to render guidance icons (SVG or emoji)
 const GuidanceIcon = ({ guidance, className = "" }: { guidance: CaffeineGuidance, className?: string }) => {
@@ -18,27 +13,33 @@ const GuidanceIcon = ({ guidance, className = "" }: { guidance: CaffeineGuidance
     return (
       <img 
         src={guidance.iconPath} 
-        alt={guidance.reason}
+        alt={guidance.title}
         className={`w-full h-full object-contain ${className}`}
       />
     );
   }
-  
-  // Fallback to emoji
   return <span className={className}>{guidance.icon}</span>;
 };
 
-const CaffeineTracker = ({ className = '', showDetails = true, compact = false }: CaffeineTrackerProps) => {
+interface CaffeineTrackerProps {
+  className?: string;
+  showDetails?: boolean;
+  compact?: boolean;
+  onOpenSettings?: () => void;
+}
+
+const CaffeineTracker = ({ className = '', showDetails = true, compact = false, onOpenSettings }: CaffeineTrackerProps) => {
   const {
     caffeineStatus,
     guidance,
-    timeToNextCoffeeFormatted,
     timeToBedtimeFormatted,
     caffeineLevelPercentage,
     getSleepRiskColor,
     getSleepRiskIcon,
-    isSafeForNextCoffee
+    canHaveCoffee
   } = useCaffeineTracker();
+  
+  const { bedtime } = usePreferences();
 
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -49,101 +50,113 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
     return () => clearTimeout(timer);
   }, [caffeineStatus.currentLevel]);
 
-  // Use guidance-based colors for consistency with SVG icons
+  // Format bedtime for display (e.g., "11:00 PM")
+  const bedtimeFormatted = useMemo(() => {
+    const [hours, minutes] = bedtime.split(':').map(Number);
+    const date = new Date();
+    date.setHours(hours, minutes);
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }, [bedtime]);
+
+  // Use guidance-based colors for consistency
   const caffeineColor = guidance.color === 'green' ? 'text-green-600' : 
                         guidance.color === 'yellow' ? 'text-yellow-600' : 'text-red-600';
   const caffeineBgColor = guidance.color === 'green' ? 'bg-green-100' : 
                           guidance.color === 'yellow' ? 'bg-yellow-100' : 'bg-red-100';
 
   if (compact) {
-    return (
-      <Card className={`${className} overflow-hidden bg-white border border-gray-200 shadow-sm transition-all duration-300 ${isAnimating ? 'scale-[1.02] shadow-md' : ''}`}>
-        <CardContent className="p-4">
-          {/* Simplified Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${caffeineBgColor} shadow-sm`}>
-                <span className="text-lg">
-                  <GuidanceIcon guidance={guidance} />
-                </span>
-              </div>
-              <div>
-                <div className="text-xl font-bold text-gray-900">
-                  {caffeineStatus.currentLevel}mg
-                </div>
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs font-medium rounded-full ${
-                    guidance.color === 'green' ? 'border-green-200 text-green-700 bg-green-50' : 
-                    guidance.color === 'yellow' ? 'border-yellow-200 text-yellow-700 bg-yellow-50' : 
-                    'border-red-200 text-red-700 bg-red-50'
-                  }`}
-                >
-                  {guidance.reason}
-                </Badge>
-              </div>
-            </div>
-          </div>
-          
-          {/* Dual Progress Section */}
-          <div className="space-y-4">
-            {/* Active Caffeine in System */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Active in System</span>
-                <span className="text-sm font-semibold text-gray-900">{Math.round(caffeineStatus.currentLevel)}mg</span>
-              </div>
-              <Progress 
-                value={(caffeineStatus.currentLevel / caffeineStatus.dailyLimit) * 100} 
-                className={`h-2 transition-all duration-500 ${
-                  caffeineStatus.currentLevel < caffeineStatus.dailyLimit * 0.3 ? 'bg-blue-100' :
-                  caffeineStatus.currentLevel < caffeineStatus.dailyLimit * 0.6 ? 'bg-blue-200' :
-                  caffeineStatus.currentLevel < caffeineStatus.dailyLimit * 0.9 ? 'bg-blue-300' : 'bg-blue-400'
-                }`}
-              />
-            </div>
+    const levelBand = getCaffeineLevelBand(caffeineStatus.currentLevel);
+    const statusLine = caffeineStatus.currentLevel === 0 ? "Your system is clear" : levelBand.label;
 
-            {/* Daily Consumption Progress */}
-            <div className="space-y-2">
+    const isOverLimit = caffeineStatus.dailyConsumed >= caffeineStatus.dailyLimit;
+
+    return (
+      <div className={`${className} space-y-2 sm:space-y-3`}>
+        {/* Main Tracker Card */}
+        <Card className={`overflow-hidden bg-white border border-gray-200 shadow-sm transition-all duration-300 ${isAnimating ? 'scale-[1.02] shadow-md' : ''}`}>
+          <CardContent className="p-3 sm:p-4">
+            {/* Status Header */}
+            <div className="flex items-center gap-2.5 sm:gap-3 mb-3 sm:mb-4">
+              <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center ${caffeineBgColor} shadow-sm p-1.5 sm:p-2`}>
+                <GuidanceIcon guidance={guidance} className="text-base sm:text-lg" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className={`text-xl sm:text-2xl font-bold ${caffeineColor}`}>
+                    {caffeineStatus.currentLevel}mg
+                  </span>
+                  <span className="text-xs sm:text-sm text-gray-400">active</span>
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600">{statusLine}</p>
+              </div>
+            </div>
+            
+            {/* Daily Consumption - Simplified */}
+            <div className="space-y-1.5 sm:space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Consumption</span>
-                <span className="text-sm font-semibold text-gray-900">
-                  {Math.round(caffeineStatus.dailyProgress * caffeineStatus.dailyLimit / 100)}mg / {caffeineStatus.dailyLimit}mg
+                <Progress 
+                  value={Math.min(100, caffeineStatus.dailyProgress)} 
+                  className="h-1.5 sm:h-2 bg-gray-100 flex-1 mr-2 sm:mr-3"
+                  indicatorClassName={
+                    caffeineStatus.dailyProgress < 50 ? 'bg-green-500' :
+                    caffeineStatus.dailyProgress < 75 ? 'bg-yellow-500' :
+                    caffeineStatus.dailyProgress < 100 ? 'bg-orange-500' : 'bg-red-500'
+                  }
+                />
+                <span className={`text-xs sm:text-sm font-medium ${isOverLimit ? 'text-red-600' : 'text-gray-700'}`}>
+                  {caffeineStatus.dailyConsumed} / {caffeineStatus.dailyLimit}mg
                 </span>
               </div>
-              <Progress 
-                value={caffeineStatus.dailyProgress} 
-                className={`h-2 transition-all duration-500 ${
-                  caffeineStatus.dailyProgress < 30 ? 'bg-green-100' :
-                  caffeineStatus.dailyProgress < 60 ? 'bg-yellow-100' :
-                  caffeineStatus.dailyProgress < 90 ? 'bg-orange-100' : 'bg-red-100'
-                }`}
-              />
-              <div className="text-sm text-gray-600">
-                {Math.round(Math.max(0, caffeineStatus.dailyLimit - (caffeineStatus.dailyProgress / 100 * caffeineStatus.dailyLimit)))}mg remaining today
-              </div>
+              {isOverLimit && (
+                <p className="text-[10px] sm:text-xs text-red-500">
+                  {caffeineStatus.dailyConsumed - caffeineStatus.dailyLimit}mg over your daily limit
+                </p>
+              )}
             </div>
+            
+            {/* Guidance Box */}
+            {guidance.recommendation && (
+              <div className={`mt-2.5 sm:mt-3 p-2.5 sm:p-3 rounded-lg ${
+                guidance.color === 'green' 
+                  ? 'bg-green-50 border border-green-200' 
+                  : guidance.color === 'yellow'
+                    ? 'bg-amber-50 border border-amber-200'
+                    : 'bg-red-50 border border-red-200'
+              }`}>
+                <p className={`text-xs sm:text-sm ${
+                  guidance.color === 'green' 
+                    ? 'text-green-700' 
+                    : guidance.color === 'yellow'
+                      ? 'text-amber-700'
+                      : 'text-red-700'
+                }`}>
+                  {guidance.recommendation}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        {/* Bedtime Info - Subtle separate row */}
+        <div className="flex items-center justify-between px-1">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-gray-500">
+            <span>🛏️</span>
+            <span>Bed {bedtimeFormatted}</span>
+            <span>•</span>
+            <span className={caffeineStatus.projectedAtBedtime > 50 ? "text-amber-600 font-medium" : "text-emerald-600 font-medium"}>
+              ~{caffeineStatus.projectedAtBedtime}mg at bed
+            </span>
+            <span className="opacity-40">/</span>
+            <span className="bg-gray-100 px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold tracking-tight">
+              50mg LIMIT
+            </span>
           </div>
-          
-          {/* Simplified Next Coffee Warning */}
-          {!isSafeForNextCoffee && (
-            <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
-              <div className="text-center">
-                <div className="text-lg font-semibold text-amber-800">
-                  Wait Time: {timeToNextCoffeeFormatted}
-                </div>
-                {/* <div className="text-sm text-amber-700">
-                  Wait until next coffee
-                </div> */}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 
-  const remainingCaffeine = Math.max(0, caffeineStatus.dailyLimit - (caffeineStatus.dailyProgress / 100 * caffeineStatus.dailyLimit));
+  const remainingCaffeine = Math.max(0, caffeineStatus.dailyLimit - caffeineStatus.dailyConsumed);
 
   return (
     <Card className={`${className} overflow-hidden bg-white border border-gray-200 shadow-lg transition-all duration-500 ${isAnimating ? 'scale-[1.02] shadow-xl' : ''}`}>
@@ -166,7 +179,7 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
               'border-red-200 text-red-700 bg-red-50'
             }`}
           >
-            {guidance.reason}
+            {guidance.title}
           </Badge>
         </div>
       </CardHeader>
@@ -179,7 +192,7 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
             <div className="bg-gradient-to-br from-gray-50 to-amber-50/30 rounded-2xl p-8 border border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-800">Today's Caffeine Level</h3>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${caffeineBgColor}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${caffeineBgColor} p-1.5`}>
                   <GuidanceIcon guidance={guidance} className="text-lg" />
                 </div>
               </div>
@@ -200,7 +213,7 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
                   {/* Consumed Today */}
                   <div className="text-center">
                     <div className="text-4xl font-black text-gray-700 tracking-tight mb-2">
-                      {Math.round(caffeineStatus.dailyProgress * caffeineStatus.dailyLimit / 100)}
+                      {caffeineStatus.dailyConsumed}
                     </div>
                     <div className="text-sm font-medium text-gray-600 mb-1">mg consumed</div>
                     <div className="text-xs text-gray-500">
@@ -223,13 +236,13 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                   <span className="text-blue-600 text-lg">📊</span>
                 </div>
-                <h4 className="font-semibold text-gray-900">Consumed Today</h4>
+                <h4 className="font-semibold text-gray-900">Remaining</h4>
               </div>
               <div className="text-3xl font-bold text-gray-900 mb-2">
-                {Math.round(caffeineStatus.dailyProgress)}%
+                {remainingCaffeine}mg
               </div>
               <div className="text-sm text-gray-600">
-                {Math.round(remainingCaffeine)}mg remaining today
+                of your {caffeineStatus.dailyLimit}mg daily limit
               </div>
             </div>
 
@@ -244,7 +257,7 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
                 {timeToBedtimeFormatted}
               </div>
               <div className="text-sm text-gray-600">
-                {caffeineStatus.sleepRiskMessage}
+                ~{caffeineStatus.projectedAtBedtime}mg at bedtime
               </div>
             </div>
           </div>
@@ -255,7 +268,7 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-800">Daily Intake Progress</h3>
             <div className="text-right">
-              <div className="text-2xl font-bold text-gray-900">{Math.round(caffeineStatus.dailyProgress * caffeineStatus.dailyLimit / 100)}mg</div>
+              <div className="text-2xl font-bold text-gray-900">{caffeineStatus.dailyConsumed}mg</div>
               <div className="text-sm text-gray-600">consumed of {caffeineStatus.dailyLimit}mg limit</div>
             </div>
           </div>
@@ -280,23 +293,45 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
           </div>
         </div>
 
-        {/* Next Coffee Timer */}
-        {!isSafeForNextCoffee && (
-          <div className="mb-8 p-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border border-amber-200">
+        {/* Guidance Banner */}
+        {!canHaveCoffee && (
+          <div className={`mb-8 p-6 rounded-2xl border ${
+            guidance.color === 'yellow' 
+              ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200' 
+              : 'bg-gradient-to-r from-red-50 to-rose-50 border-red-200'
+          }`}>
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
-                <span className="text-amber-600 text-xl">⏰</span>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center p-2 ${
+                guidance.color === 'yellow' ? 'bg-amber-100' : 'bg-red-100'
+              }`}>
+                <GuidanceIcon guidance={guidance} className="text-xl" />
               </div>
               <div className="flex-1">
-                <h4 className="text-lg font-semibold text-amber-800 mb-1">Wait Before Next Coffee</h4>
-                <p className="text-sm text-amber-700">
-                  For optimal sleep quality, wait <span className="font-bold text-amber-800">{timeToNextCoffeeFormatted}</span> before your next caffeine intake.
+                <h4 className={`text-lg font-semibold mb-1 ${
+                  guidance.color === 'yellow' ? 'text-amber-800' : 'text-red-800'
+                }`}>
+                  {guidance.title}
+                </h4>
+                <p className={`text-sm ${
+                  guidance.color === 'yellow' ? 'text-amber-700' : 'text-red-700'
+                }`}>
+                  {guidance.subtitle}
                 </p>
               </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold text-amber-800">{timeToNextCoffeeFormatted}</div>
-                <div className="text-sm text-amber-600">remaining</div>
-              </div>
+              {guidance.waitTimeFormatted && (
+                <div className="text-right">
+                  <div className={`text-3xl font-bold ${
+                    guidance.color === 'yellow' ? 'text-amber-800' : 'text-red-800'
+                  }`}>
+                    {guidance.waitTimeFormatted}
+                  </div>
+                  <div className={`text-sm ${
+                    guidance.color === 'yellow' ? 'text-amber-600' : 'text-red-600'
+                  }`}>
+                    wait time
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -364,7 +399,7 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false }
               variant="outline" 
               size="lg"
               className="flex-1 h-14 rounded-xl border-2 border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all duration-300"
-              onClick={() => window.location.href = '/coffee-log-demo'}
+              onClick={() => window.location.href = '/'}
             >
               <span className="mr-2">📊</span>
               View History

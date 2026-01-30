@@ -1,7 +1,6 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Progress } from './ui/progress';
-import { useCaffeineProfile } from '../hooks/useCaffeineProfile';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { useCaffeineProfile } from '@/hooks/useCaffeineProfile';
 
 const SENSITIVITY_COLORS: Record<string, string> = {
   low: 'text-green-700 bg-green-50',

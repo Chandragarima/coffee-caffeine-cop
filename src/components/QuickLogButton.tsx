@@ -3,22 +3,22 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-
 import { Badge } from '@/components/ui/badge';
 import { useCoffeeLogs } from '@/hooks/useCoffeeLogs';
+import { usePreferences } from '@/hooks/usePreferences';
 import { CoffeeItem } from '@/data/coffees';
 import { toast } from '@/components/ui/sonner';
-import { trackCoffeeLog } from '@/lib/analytics';
+import { getLocalDateString, parseLocalDateString } from '@/lib/timeUtils';
 
 interface QuickLogButtonProps {
   coffee: CoffeeItem;
   variant?: 'default' | 'outline' | 'ghost';
   size?: 'sm' | 'default' | 'lg';
   className?: string;
-  showDialog?: boolean;
+  showDialog?: boolean; // If undefined, uses quick_log_mode preference
   onLogSuccess?: () => void;
   showUndoAfterLog?: boolean; // Show undo option after logging
-  source?: 'recommendations' | 'explore' | 'quick_log' | 'detail_dialog'; // Track where the log came from
+  instantLog?: boolean; // Force instant logging (no dialog, no customization)
 }
 
 const QuickLogButton = ({ 
@@ -26,12 +26,17 @@ const QuickLogButton = ({
   variant = 'default', 
   size = 'default',
   className = '',
-  showDialog = true,
+  showDialog, // undefined means use preference
   onLogSuccess,
   showUndoAfterLog = false,
-  source = 'quick_log'
+  instantLog = false // Force instant logging
 }: QuickLogButtonProps) => {
   const { quickLog, addLog, logs, deleteLog, refreshStats } = useCoffeeLogs();
+  const { quickLogMode } = usePreferences();
+  
+  // Determine if we should show dialog
+  // instantLog takes precedence, then showDialog prop, then preference
+  const shouldShowDialog = instantLog ? false : (showDialog !== undefined ? showDialog : !quickLogMode);
   const [isOpen, setIsOpen] = useState(false);
   const [isLogging, setIsLogging] = useState(false);
   const [consumedAt, setConsumedAt] = useState<number>(Date.now());
@@ -110,19 +115,64 @@ const QuickLogButton = ({
   // Calculate current caffeine based on selections - automatically recalculates when selections change
   const currentCaffeine = useMemo(() => getCurrentCaffeine(), [selectedSize, selectedShots, selectedTeaspoons, coffee]);
 
-  const handleQuickLog = async () => {
-    if (!showDialog) {
-      // Direct log without dialog
-      setIsLogging(true);
+  // Helper function to calculate default caffeine for instant logging
+  const getDefaultCaffeine = (): { caffeine: number; size: number; shots: 1 | 2 | 3 } => {
+    const defaultSize = coffee.sizeOptions?.[0]?.oz || 8;
+    const defaultShots = (coffee.shotOptions?.[0]?.shots || 1) as 1 | 2 | 3;
+    const defaultTeaspoons = coffee.teaspoonOptions?.[0]?.teaspoons || 1;
+    
+    let defaultCaffeine = coffee.caffeineMg;
+    
+    switch (coffee.scalingType) {
+      case 'size_only':
+        const sizeOption = coffee.sizeOptions?.find(opt => opt.oz === defaultSize);
+        defaultCaffeine = sizeOption?.caffeine || coffee.caffeineMg;
+        break;
+      case 'shots_only':
+        const shotOption = coffee.shotOptions?.find(opt => opt.shots === defaultShots);
+        defaultCaffeine = shotOption?.caffeine || coffee.caffeineMg;
+        break;
+      case 'both_size_shots':
+        if (coffee.sizeAndShotOptions) {
+          const sizeOption = coffee.sizeAndShotOptions.find(opt => opt.oz === defaultSize);
+          if (sizeOption) {
+            const caffeinePerShot = sizeOption.baseCaffeine / sizeOption.defaultShots;
+            defaultCaffeine = caffeinePerShot * defaultShots;
+          }
+        }
+        break;
+      case 'teaspoon':
+        const tspOption = coffee.teaspoonOptions?.find(opt => opt.teaspoons === defaultTeaspoons);
+        defaultCaffeine = tspOption?.caffeine || coffee.caffeineMg;
+        break;
+      case 'fixed_size':
+      default:
+        defaultCaffeine = coffee.caffeineMg;
+    }
+    
+    return { caffeine: defaultCaffeine, size: defaultSize, shots: defaultShots };
+  };
+
+  const handleQuickLog = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    e?.preventDefault();
+    if (shouldShowDialog) {
+      setIsOpen(true);
+      return;
+    }
+    // Direct log without dialog - use defaults
+    setIsLogging(true);
       try {
+        const defaults = getDefaultCaffeine();
+        
         const success = await quickLog(
           coffee.id,
           coffee.name,
-          currentCaffeine,
-          selectedSize,
-          selectedShots as 1 | 2 | 3,
+          defaults.caffeine,
+          defaults.size,
+          defaults.shots,
           undefined, // notes
-          consumedAt
+          Date.now() // Use current time for instant log
         );
         
         if (success) {
@@ -136,8 +186,8 @@ const QuickLogButton = ({
 
           // Show success toast
           toast.success(`${coffee.name} logged!`, {
-            description: `+${currentCaffeine}mg caffeine added to your daily intake`,
-            duration: 4000,
+            description: `+${defaults.caffeine}mg caffeine added`,
+            duration: 3000,
           });
           
           // Find the most recent log for this coffee
@@ -164,10 +214,7 @@ const QuickLogButton = ({
       } finally {
         setIsLogging(false);
       }
-      return;
-    }
-
-    setIsOpen(true);
+    return;
   };
 
   const handleLogWithDetails = async () => {
@@ -194,7 +241,7 @@ const QuickLogButton = ({
 
         // Show success toast
         toast.success(`${coffee.name} logged!`, {
-          description: `+${currentCaffeine }mg caffeine added to your daily intake`,
+          description: `+${currentCaffeine}mg caffeine added`,
           duration: 4000,
         });
         
@@ -264,7 +311,7 @@ const QuickLogButton = ({
         <Button
           variant={variant}
           size={size}
-          onClick={handleQuickLog}
+          onClick={(e) => handleQuickLog(e)}
           disabled={isLogging}
           className={`${className} ${isLogging ? 'opacity-50' : ''}`}
         >
@@ -274,10 +321,7 @@ const QuickLogButton = ({
               Logging...
             </>
           ) : (
-            <>
-              {/* <span className="mr-2">☕</span> */}
-              {showDialog ? 'Log' : 'Log'}
-            </>
+            instantLog ? 'Log' : 'Customize'
           )}
         </Button>
         
@@ -297,7 +341,7 @@ const QuickLogButton = ({
 
 
 
-      {showDialog && (
+      {shouldShowDialog && (
                  <Dialog open={isOpen} onOpenChange={setIsOpen}>
            <DialogContent className="w-[95%] max-w-sm mx-auto max-h-[90vh] overflow-y-auto !p-6">
              <DialogHeader className="pb-3">
@@ -424,71 +468,50 @@ const QuickLogButton = ({
 
                {/* Time Selection */}
                <div className="space-y-3">
-                 <div className="grid grid-cols-2 gap-2">
+                 <Label className="text-xs text-gray-600">When did you have it?</Label>
+                 <div className="flex flex-wrap gap-2">
                    {(() => {
-                     const now = new Date();
-                     const morning = new Date(now);
-                     morning.setHours(8, 0, 0, 0);
-                     const afternoon = new Date(now);
-                     afternoon.setHours(14, 0, 0, 0);
-                     
+                     const now = Date.now();
+                     const MINUTE = 60 * 1000;
+                     const HOUR = 60 * MINUTE;
                      return [
-                       { label: 'This morning', time: morning.getTime() },
-                       { label: 'This afternoon', time: afternoon.getTime() },
-                       { label: 'Just now', time: now.getTime() },
-                       { label: '1 hour ago', time: now.getTime() - 60 * 60 * 1000 },
-                     ];
-                   })().map((option) => (
-                     <Button
-                       key={option.label}
-                       variant={(() => {
-                         if (option.label === 'Just now') {
-                           return Math.abs(consumedAt - Date.now()) < 60000 ? 'default' : 'outline';
-                         } else if (option.label === '1 hour ago') {
-                           return Math.abs(consumedAt - (Date.now() - 60 * 60 * 1000)) < 60000 ? 'default' : 'outline';
-                         } else {
-                           return consumedAt === option.time ? 'default' : 'outline';
-                         }
-                       })()}
-                       size="sm"
-                       onClick={() => setConsumedAt(option.time)}
-                       className={`h-12 relative ${(() => {
-                         if (option.label === 'Just now') {
-                           return Math.abs(consumedAt - Date.now()) < 60000 ? 'ring-2 ring-amber-500' : '';
-                         } else if (option.label === '1 hour ago') {
-                           return Math.abs(consumedAt - (Date.now() - 60 * 60 * 1000)) < 60000 ? 'ring-2 ring-amber-500' : '';
-                         } else {
-                           return consumedAt === option.time ? 'ring-2 ring-amber-500' : '';
-                         }
-                       })()}`}
-                     >
-                       {option.label}
-                       {(() => {
-                         if (option.label === 'Just now') {
-                           return Math.abs(consumedAt - Date.now()) < 60000;
-                         } else if (option.label === '1 hour ago') {
-                           return Math.abs(consumedAt - (Date.now() - 60 * 60 * 1000)) < 60000;
-                         } else {
-                           return consumedAt === option.time;
-                         }
-                       })() && (
-                         <span className="absolute -top-1 -right-1 bg-amber-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                           ✓
-                         </span>
-                       )}
-                     </Button>
-                   ))}
+                       { label: 'Just now', offset: 0 },
+                       { label: '30m ago', offset: 30 * MINUTE },
+                       { label: '1h ago', offset: 1 * HOUR },
+                       { label: '2h ago', offset: 2 * HOUR },
+                       { label: '3h ago', offset: 3 * HOUR },
+                     ].map((option) => {
+                       const time = now - option.offset;
+                       const isSelected = Math.abs(consumedAt - time) < 2 * MINUTE;
+                       return (
+                         <button
+                           key={option.label}
+                           onClick={() => setConsumedAt(time)}
+                           className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
+                             isSelected
+                               ? 'bg-amber-100 border-amber-300 text-amber-800'
+                               : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                           }`}
+                         >
+                           {option.label}
+                         </button>
+                       );
+                     });
+                   })()}
                  </div>
-                 
-                 {/* Custom time - only show if needed */}
-                 <div className="border-t pt-3">
-                   <div className="flex gap-2">
+
+                 {/* Custom time - collapsible */}
+                 <details className="group">
+                   <summary className="text-xs text-amber-600 cursor-pointer hover:text-amber-700">
+                     Pick exact time
+                   </summary>
+                   <div className="flex gap-2 mt-2">
                      <input
                        type="time"
-                       value={new Date(consumedAt).toLocaleTimeString('en-US', { 
-                         hour12: false, 
-                         hour: '2-digit', 
-                         minute: '2-digit' 
+                       value={new Date(consumedAt).toLocaleTimeString('en-US', {
+                         hour12: false,
+                         hour: '2-digit',
+                         minute: '2-digit'
                        })}
                        onChange={(e) => {
                          const [hours, minutes] = e.target.value.split(':');
@@ -500,19 +523,19 @@ const QuickLogButton = ({
                      />
                      <input
                        type="date"
-                       value={new Date(consumedAt).toISOString().split('T')[0]}
+                       value={getLocalDateString(consumedAt)}
                        onChange={(e) => {
-                         const selectedDate = new Date(e.target.value);
+                         const selectedDate = parseLocalDateString(e.target.value);
                          const currentTime = new Date(consumedAt);
                          selectedDate.setHours(currentTime.getHours(), currentTime.getMinutes(), 0, 0);
                          setConsumedAt(selectedDate.getTime());
                        }}
-                       max={new Date().toISOString().split('T')[0]}
+                       max={getLocalDateString(Date.now())}
                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                      />
                    </div>
-                 </div>
-                 
+                 </details>
+
                  {/* Selected time - compact */}
                  <p className="text-xs text-gray-500 text-center">
                    {new Date(consumedAt).toLocaleString()}

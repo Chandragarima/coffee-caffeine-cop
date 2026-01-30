@@ -1,43 +1,25 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetDescription,
-} from './ui/sheet';
-import { Label } from './ui/label';
-import { Switch } from './ui/switch';
+} from '@/components/ui/sheet';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from './ui/select';
-import { Slider } from './ui/slider';
-import { Button } from './ui/button';
-import { usePreferences } from '../hooks/usePreferences';
-import { toast } from './ui/sonner';
-
-/** Format "HH:mm" (24h) as display string e.g. "11:00 PM". */
-function formatTimeForDisplay(hhmm: string): string {
-  const [hh = 0, mm = 0] = hhmm.split(':').map(Number);
-  const hour = hh % 24;
-  const period = hour >= 12 ? 'PM' : 'AM';
-  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-  return `${displayHour}:${String(mm).padStart(2, '0')} ${period}`;
-}
-
-/** Caffeine cutoff time (8h before bedtime) in "HH:mm" 24h. */
-function getCutoffTime(bedtime: string): string {
-  const [h = 23, m = 0] = bedtime.split(':').map(Number);
-  const cutoffMinutes = (h * 60 + m) - 8 * 60;
-  const normalized = (cutoffMinutes + 24 * 60) % (24 * 60);
-  const ch = Math.floor(normalized / 60);
-  const cm = normalized % 60;
-  return `${String(ch).padStart(2, '0')}:${String(cm).padStart(2, '0')}`;
-}
+} from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
+import { usePreferences } from '@/hooks/usePreferences';
+import { formatTimeForDisplay, getCutoffTime } from '@/lib/preferences';
+import { toast } from '@/components/ui/sonner';
 import { Moon, Sun, Bell, Coffee, Zap, RotateCcw } from 'lucide-react';
 
 interface SettingsSheetProps {
@@ -67,20 +49,17 @@ const CAFFEINE_LIMITS = [
 
 const SettingsSheet = ({ open, onOpenChange }: SettingsSheetProps) => {
   const {
-    preferences,
     updatePreference,
-    updatePreferences,
     resetPreferences,
     bedtime,
+    wakeTime,
     caffeineLimit,
+    sensitivity,
     notifications,
+    notificationMorning,
+    notificationCutoff,
+    quickLogMode,
   } = usePreferences();
-
-  const wakeTime = preferences.wake_time ?? '07:00';
-  const sensitivity = (preferences.sensitivity ?? 'auto') as 'auto' | 'low' | 'moderate' | 'high';
-  const notificationMorning = preferences.notification_morning === true;
-  const notificationCutoff = preferences.notification_cutoff === true;
-  const quickLogMode = preferences.quick_log_mode ?? false;
 
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -119,7 +98,7 @@ const SettingsSheet = ({ open, onOpenChange }: SettingsSheetProps) => {
                 </Label>
                 <Select
                   value={wakeTime}
-                  onValueChange={(value) => updatePreferences({ wake_time: value })}
+                  onValueChange={(value) => updatePreference('wake_time', value)}
                 >
                   <SelectTrigger id="wake-time" className="h-11">
                     <SelectValue />
@@ -203,7 +182,7 @@ const SettingsSheet = ({ open, onOpenChange }: SettingsSheetProps) => {
               <Select
                 value={sensitivity}
                 onValueChange={(value: 'auto' | 'low' | 'moderate' | 'high') => 
-                  updatePreferences({ sensitivity: value })
+                  updatePreference('sensitivity', value)
                 }
               >
                 <SelectTrigger id="sensitivity" className="h-11">
@@ -274,7 +253,7 @@ const SettingsSheet = ({ open, onOpenChange }: SettingsSheetProps) => {
                 <Switch
                   id="notification-morning"
                   checked={notificationMorning}
-                  onCheckedChange={(checked) => updatePreferences({ notification_morning: checked })}
+                  onCheckedChange={(checked) => updatePreference('notification_morning', checked)}
                   disabled={!notifications}
                 />
               </div>
@@ -290,7 +269,7 @@ const SettingsSheet = ({ open, onOpenChange }: SettingsSheetProps) => {
                 <Switch
                   id="notification-cutoff"
                   checked={notificationCutoff}
-                  onCheckedChange={(checked) => updatePreferences({ notification_cutoff: checked })}
+                  onCheckedChange={(checked) => updatePreference('notification_cutoff', checked)}
                   disabled={!notifications}
                 />
               </div>
@@ -314,7 +293,7 @@ const SettingsSheet = ({ open, onOpenChange }: SettingsSheetProps) => {
               <Switch
                 id="quick-log"
                 checked={quickLogMode}
-                onCheckedChange={(checked) => updatePreferences({ quick_log_mode: checked })}
+                onCheckedChange={(checked) => updatePreference('quick_log_mode', checked)}
               />
             </div>
 

@@ -23,7 +23,7 @@ function levenshteinDistance(str1: string, str2: string): number {
   return matrix[str2.length][str1.length];
 }
 
-// Common phonetic/typo patterns
+// Common phonetic/typo patterns (query -> correct spelling)
 const PHONETIC_CORRECTIONS: Record<string, string> = {
   'expresso': 'espresso',
   'capucino': 'cappuccino',
@@ -35,8 +35,14 @@ const PHONETIC_CORRECTIONS: Record<string, string> = {
   'frappuccino': 'frappuccino',
   'frappe': 'frappe',
   'macchiatto': 'macchiato',
+  'machiato': 'macchiato',
+  'machiatto': 'macchiato',
   'expreso': 'espresso',
-  'capuchinno': 'cappuccino'
+  'capuchinno': 'cappuccino',
+  'cappucino': 'cappuccino',
+  'espresso': 'espresso',
+  'latté': 'latte',
+  'latte': 'latte',
 };
 
 // Calculate fuzzy match score (0-1, higher is better)
@@ -69,6 +75,8 @@ export interface FuzzyMatch {
   item: any;
   score: number;
   correctedQuery?: string;
+  /** The searchable text (word or name) that achieved the best score — for "Did you mean X?" */
+  matchedText?: string;
 }
 
 export function fuzzySearch<T>(
@@ -90,24 +98,33 @@ export function fuzzySearch<T>(
   items.forEach(item => {
     const searchableTexts = getSearchableText(item);
     let bestScore = 0;
-    
+    let bestMatchedText: string | undefined;
+
     searchableTexts.forEach(text => {
+      const normalized = (text || '').trim();
+      if (!normalized) return;
       // Try original query
-      const originalScore = fuzzyScore(query, text);
-      bestScore = Math.max(bestScore, originalScore);
-      
+      const originalScore = fuzzyScore(query, normalized);
+      if (originalScore > bestScore) {
+        bestScore = originalScore;
+        bestMatchedText = normalized;
+      }
       // Try corrected query if different
       if (useCorrection) {
-        const correctedScore = fuzzyScore(correctedQuery, text);
-        bestScore = Math.max(bestScore, correctedScore);
+        const correctedScore = fuzzyScore(correctedQuery, normalized);
+        if (correctedScore > bestScore) {
+          bestScore = correctedScore;
+          bestMatchedText = normalized;
+        }
       }
     });
-    
+
     if (bestScore >= minScore) {
       matches.push({
         item,
         score: bestScore,
-        correctedQuery: useCorrection ? correctedQuery : undefined
+        correctedQuery: useCorrection ? correctedQuery : undefined,
+        matchedText: bestMatchedText,
       });
     }
   });
@@ -119,4 +136,26 @@ export function fuzzySearch<T>(
 export function getTypoSuggestion(searchTerm: string): string | null {
   const query = searchTerm.toLowerCase().trim();
   return PHONETIC_CORRECTIONS[query] || null;
+}
+
+/**
+ * When there are 0 results, find the best fuzzy match (lenient threshold) and return
+ * a "Did you mean X?" suggestion with the items to show.
+ */
+export function getBestFuzzySuggestion<T>(
+  items: T[],
+  searchTerm: string,
+  getSearchableText: (item: T) => string[],
+  minScore: number = 0.2
+): { suggestedText: string; items: T[] } | null {
+  const query = searchTerm.toLowerCase().trim();
+  if (!query) return null;
+  const matches = fuzzySearch(items, searchTerm, getSearchableText, minScore);
+  if (matches.length === 0) return null;
+  const top = matches[0];
+  const suggestedText = top.matchedText ?? (top.item?.name ?? String(top.item));
+  return {
+    suggestedText,
+    items: matches.map((m) => m.item),
+  };
 }

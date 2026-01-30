@@ -4,27 +4,24 @@ import { getSleepVerdict } from "@/lib/sleepVerdict";
 import { adjustedMg, SizeOz } from "@/lib/serving";
 import { TimeOfDay } from "@/hooks/useTimeOfDay";
 import QuickLogButton from "@/components/QuickLogButton";
-import { trackCoffeeView } from "@/lib/analytics";
+import { getIconPath } from "@/lib/imageUtils";
 
 // Helper component to render coffee icons (SVG or emoji fallback)
 const CoffeeIcon = ({ iconId, className = "" }: { iconId: string, className?: string }) => {
   // Mapping of icon IDs to SVG paths and emoji fallbacks
   const iconMap = {
-    'espresso': { svg: '/coffee-caffeine-cop/icons/espresso.svg', emoji: '☕' },
-    // 'strong-coffee': { svg: '/coffee-caffeine-cop/icons/strong-coffee.svg', emoji: '☕' },
-    'brewed': { svg: '/coffee-caffeine-cop/icons/brewed.svg', emoji: '☕' },
-    'milk': { svg: '/coffee-caffeine-cop/icons/milk-based.svg', emoji: '🥛' },
-    'instant': { svg: '/coffee-caffeine-cop/icons/instant.svg', emoji: '☕' },
-    'tea': { svg: '/coffee-caffeine-cop/icons/tea.svg', emoji: '🫖' },
-    'iced': { svg: '/coffee-caffeine-cop/icons/iced.svg', emoji: '🧊' },
-    'specialty': { svg: '/coffee-caffeine-cop/icons/speciality.svg', emoji: '✨' },
-    'energy': { svg: '/coffee-caffeine-cop/icons/energy.svg', emoji: '⚡' },
-    'soda': { svg: '/coffee-caffeine-cop/icons/soda.svg', emoji: '🥤' },
-    'chocolate': { svg: '/coffee-caffeine-cop/icons/speciality.svg', emoji: '🍫' },
-    'boba': { svg: '/coffee-caffeine-cop/icons/boba.svg', emoji: '🌿' },
-    // 'pour-over': { svg: '/coffee-caffeine-cop/icons/brewed.svg', emoji: '💧' },
-    // 'siphon': { svg: '/coffee-caffeine-cop/icons/speciality.svg', emoji: '🧪' },
-    'default': { svg: '/coffee-caffeine-cop/icons/brewed.svg', emoji: '☕' }
+    'espresso': { svg: getIconPath('espresso.svg'), emoji: '☕' },
+    'brewed': { svg: getIconPath('brewed.svg'), emoji: '☕' },
+    'milk': { svg: getIconPath('milk-based.svg'), emoji: '🥛' },
+    'instant': { svg: getIconPath('instant.svg'), emoji: '☕' },
+    'tea': { svg: getIconPath('tea.svg'), emoji: '🫖' },
+    'iced': { svg: getIconPath('iced.svg'), emoji: '🧊' },
+    'specialty': { svg: getIconPath('speciality.svg'), emoji: '✨' },
+    'energy': { svg: getIconPath('energy.svg'), emoji: '⚡' },
+    'soda': { svg: getIconPath('soda.svg'), emoji: '🥤' },
+    'chocolate': { svg: getIconPath('speciality.svg'), emoji: '🍫' },
+    'boba': { svg: getIconPath('boba.svg'), emoji: '🌿' },
+    'default': { svg: getIconPath('brewed.svg'), emoji: '☕' }
   };
 
   const icon = iconMap[iconId as keyof typeof iconMap] || iconMap.default;
@@ -202,21 +199,31 @@ export const RecommendationCard = ({
           </div>
         </div>
         
-        {/* Bottom section - always at bottom */}
-        <div className="mt-auto space-y-3">
-          {/* Quick Log Button */}
-          <div onClick={(e) => e.stopPropagation()}>
-            <QuickLogButton 
-              coffee={coffee} 
-              variant="outline" 
-              size="sm" 
-              className="w-full text-xs sm:text-sm h-8 sm:h-9"
-              showDialog={true}
-              onLogSuccess={onLogSuccess}
-              showUndoAfterLog={true}
-              source="recommendations"
-            />
-          </div>
+        {/* Bottom section — Log (primary) + Customize (secondary) */}
+        <div
+          className="mt-auto space-y-2"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          role="presentation"
+        >
+          <QuickLogButton
+            coffee={coffee}
+            variant="default"
+            size="sm"
+            className="w-full text-xs sm:text-sm h-8 sm:h-9 bg-amber-500 hover:bg-amber-600 text-white border-0"
+            instantLog={true}
+            onLogSuccess={onLogSuccess}
+            showUndoAfterLog={true}
+          />
+          <QuickLogButton
+            coffee={coffee}
+            variant="outline"
+            size="sm"
+            className="w-full text-xs sm:text-sm h-8 sm:h-9"
+            showDialog={true}
+            onLogSuccess={onLogSuccess}
+            showUndoAfterLog={true}
+          />
         </div>
       </CardContent>
       

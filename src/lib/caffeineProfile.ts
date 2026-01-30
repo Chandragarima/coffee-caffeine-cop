@@ -166,8 +166,8 @@ function computeBadges(
     : 0;
   badges.push({ ...BADGE_DEFS['morning-ritual'], id: 'morning-ritual', earned: morningPct >= 0.9 && weekLogs.length >= 5 });
 
-  // Streak Master: 7+ day tracking streak (computed from logs)
-  badges.push({ ...BADGE_DEFS['streak-master'], id: 'streak-master', earned: getTrackingStreak(logs) >= 7 });
+  // Streak Master: 7+ day streak
+  badges.push({ ...BADGE_DEFS['streak-master'], id: 'streak-master', earned: (stats?.trackingStreak ?? 0) >= 7 });
 
   // Mindful Sipper: 5+ sleep check-ins
   badges.push({ ...BADGE_DEFS['mindful-sipper'], id: 'mindful-sipper', earned: checkins.length >= 5 });
@@ -177,30 +177,6 @@ function computeBadges(
   badges.push({ ...BADGE_DEFS['custom-blend'], id: 'custom-blend', earned: hasCustom });
 
   return badges;
-}
-
-/** Consecutive days with at least one log, ending at today (or most recent day with a log). */
-function getTrackingStreak(logs: CoffeeLogEntry[]): number {
-  const days = new Set<string>();
-  for (const log of logs) {
-    const date = new Date(log.consumedAt);
-    const localDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    days.add(localDate);
-  }
-  if (days.size === 0) return 0;
-  const sorted = Array.from(days).sort();
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  // Streak counts back from today (or from most recent day if no log today)
-  const endDay = sorted.includes(todayStr) ? todayStr : sorted[sorted.length - 1];
-  let streak = 0;
-  const endDate = new Date(endDay + 'T12:00:00');
-  for (let d = new Date(endDate); ; d.setDate(d.getDate() - 1)) {
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    if (!days.has(key)) break;
-    streak++;
-  }
-  return streak;
 }
 
 function countDaysTracked(logs: CoffeeLogEntry[]): number {

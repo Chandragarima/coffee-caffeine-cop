@@ -9,8 +9,7 @@ import { toast } from "@/components/ui/sonner";
 import { ChevronDown } from "lucide-react";
 import { SearchAutoComplete } from "@/components/SearchAutoComplete";
 import { SmartNoResults } from "@/components/SmartNoResults";
-import { fuzzySearch, getTypoSuggestion, type FuzzyMatch } from "@/lib/fuzzySearch";
-import { trackSearch, trackUserInteraction } from "@/lib/analytics";
+import { fuzzySearch, getTypoSuggestion, getBestFuzzySuggestion, type FuzzyMatch } from "@/lib/fuzzySearch";
 
 const categoryLabels: Record<CoffeeCategory, string> = {
   brewed: "Brewed",
@@ -96,19 +95,33 @@ export const CoffeeBrowseSection = ({
       return exactMatches;
     }
 
-    // Fall back to fuzzy matching for typos
+    // Fall back to fuzzy matching for typos (include words so "machiato" matches "Macchiato")
+    const getSearchableText = (coffee: CoffeeItem) => [
+      coffee.name,
+      ...coffee.name.split(/\s+/),
+      ...(coffee.tags || []),
+    ];
     const fuzzyMatches = fuzzySearch(
       COFFEES,
       q,
-      (coffee) => [
-        coffee.name,
-        ...(coffee.tags || [])
-      ],
+      getSearchableText,
       0.4 // Lower threshold for fuzzy matching
     );
 
     return fuzzyMatches.map(match => match.item);
   }, [query]);
+
+  // When 0 results, try a lenient fuzzy match for "Did you mean X?" and show those results
+  const didYouMean = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q || filtered.length > 0) return null;
+    const getSearchableText = (coffee: CoffeeItem) => [
+      coffee.name,
+      ...coffee.name.split(/\s+/),
+      ...(coffee.tags || []),
+    ];
+    return getBestFuzzySuggestion(COFFEES, q, getSearchableText, 0.2);
+  }, [query, filtered.length]);
 
   // Auto-complete suggestions with fuzzy matching and typo correction
   const autoCompleteSuggestions = useMemo(() => {
@@ -128,11 +141,16 @@ export const CoffeeBrowseSection = ({
       return exactMatches.slice(0, 8);
     }
 
-    // Otherwise, add fuzzy matches
+    // Otherwise, add fuzzy matches (word-level so "machiato" suggests Macchiato)
+    const getSearchableText = (coffee: CoffeeItem) => [
+      coffee.name,
+      ...coffee.name.split(/\s+/),
+      ...(coffee.tags || []),
+    ];
     const fuzzyMatches = fuzzySearch(
       COFFEES,
       q,
-      (coffee) => [coffee.name, ...(coffee.tags || [])],
+      getSearchableText,
       0.5 // Higher threshold for autocomplete
     );
 
@@ -323,20 +341,29 @@ export const CoffeeBrowseSection = ({
 
       {query ? (
         <>
+          {didYouMean && filtered.length === 0 && (
+            <div className="mb-4 p-3 sm:p-4 rounded-xl bg-amber-50 border border-amber-200">
+              <p className="text-sm sm:text-base text-amber-900">
+                Did you mean <strong className="font-semibold">{didYouMean.suggestedText}</strong>?
+              </p>
+            </div>
+          )}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-6 gap-2 sm:gap-4">
             <h4 className="text-base sm:text-lg font-semibold text-gray-900">
               {showAllItems ? (
-                `All ${filtered.length} options`
+                `All ${(didYouMean && filtered.length === 0 ? didYouMean.items : filtered).length} options`
               ) : (
-                `${filtered.length} result${filtered.length !== 1 ? 's' : ''}`
+                `${(didYouMean && filtered.length === 0 ? didYouMean.items : filtered).length} result${(didYouMean && filtered.length === 0 ? didYouMean.items : filtered).length !== 1 ? 's' : ''}`
               )}
             </h4>
             <div className="flex items-center justify-between sm:gap-4">
               <span className="text-xs sm:text-sm text-gray-500">
-                {showAllItems ? 
-                  `Showing all ${filtered.length}` : 
-                  `Showing ${Math.min(filtered.length, 12)} of ${filtered.length}`
-                }
+                {(() => {
+                  const list = didYouMean && filtered.length === 0 ? didYouMean.items : filtered;
+                  return showAllItems ?
+                    `Showing all ${list.length}` :
+                    `Showing ${Math.min(list.length, 12)} of ${list.length}`;
+                })()}
               </span>
               <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
                 <button 
@@ -358,10 +385,10 @@ export const CoffeeBrowseSection = ({
               </div>
             </div>
           </div>
-          {filtered.length > 0 ? (
+          {(filtered.length > 0 || didYouMean) ? (
             viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 items-stretch">
-                {(showAllItems ? filtered : filtered.slice(0, 12)).map(coffee => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5 items-stretch">
+                {((filtered.length > 0 ? (showAllItems ? filtered : filtered.slice(0, 12)) : (didYouMean?.items ?? []).slice(0, 12))).map(coffee => (
                   <CoffeeCard
                     key={coffee.id}
                     coffee={coffee}
@@ -374,7 +401,7 @@ export const CoffeeBrowseSection = ({
               </div>
             ) : (
               <div className="space-y-2 sm:space-y-4">
-                {(showAllItems ? filtered : filtered.slice(0, 12)).map(coffee => (
+                {(filtered.length > 0 ? (showAllItems ? filtered : filtered.slice(0, 12)) : (didYouMean?.items ?? []).slice(0, 12)).map(coffee => (
                   <CoffeeCard
                     key={coffee.id}
                     coffee={coffee}
@@ -456,7 +483,7 @@ export const CoffeeBrowseSection = ({
 
           {/* Dynamic Layout based on view mode */}
           {viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 items-stretch">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5 items-stretch">
               {(activeTab === "all" ? COFFEES : byCategory(activeTab as CoffeeCategory))
                 .slice(0, 12)
                 .map(coffee => (

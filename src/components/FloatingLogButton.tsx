@@ -1,16 +1,16 @@
-import React, { useState, useMemo } from 'react';
-import { Button } from './ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { Input } from './ui/input';
-import { Badge } from './ui/badge';
+import { useState, useMemo } from 'react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Plus, Search, X } from 'lucide-react';
-import { COFFEES, CoffeeItem } from '../data/coffees';
-import { useCoffeeLogs } from '../hooks/useCoffeeLogs';
-import { usePreferences } from '../hooks/usePreferences';
-import QuickLogButton from './QuickLogButton';
-import { fuzzySearch } from '../lib/fuzzySearch';
-import { useIsMobile } from '../hooks/use-mobile';
-import CustomDrinkDialog from './CustomDrinkDialog';
+import { COFFEES, CoffeeItem } from '@/data/coffees';
+import { useCoffeeLogs } from '@/hooks/useCoffeeLogs';
+import { usePreferences } from '@/hooks/usePreferences';
+import QuickLogButton from '@/components/QuickLogButton';
+import { fuzzySearch } from '@/lib/fuzzySearch';
+import { useIsMobile } from '@/hooks/use-mobile';
+import CustomDrinkDialog from '@/components/CustomDrinkDialog';
 
 interface FloatingLogButtonProps {
   onLogSuccess?: () => void;
@@ -185,7 +185,7 @@ export const FloatingLogButton = ({ onLogSuccess }: FloatingLogButtonProps) => {
                             variant="default"
                             size="sm"
                             className="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold"
-                            showDialog={false}
+                            instantLog={true}
                             onLogSuccess={() => {
                               handleQuickLog(coffee);
                               onLogSuccess?.();
@@ -226,7 +226,7 @@ export const FloatingLogButton = ({ onLogSuccess }: FloatingLogButtonProps) => {
                           variant="default"
                           size="sm"
                           className="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold"
-                          showDialog={false}
+                          instantLog={true}
                           onLogSuccess={() => {
                             handleQuickLog(coffee);
                             onLogSuccess?.();
@@ -262,7 +262,7 @@ export const FloatingLogButton = ({ onLogSuccess }: FloatingLogButtonProps) => {
                           variant="default"
                           size="sm"
                           className="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold"
-                          showDialog={false}
+                          instantLog={true}
                           onLogSuccess={() => {
                             handleQuickLog(coffee);
                             onLogSuccess?.();
@@ -298,7 +298,7 @@ export const FloatingLogButton = ({ onLogSuccess }: FloatingLogButtonProps) => {
                           variant="default"
                           size="sm"
                           className="w-full bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold"
-                          showDialog={false}
+                          instantLog={true}
                           onLogSuccess={() => {
                             handleQuickLog(coffee);
                             onLogSuccess?.();

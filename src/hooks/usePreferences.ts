@@ -69,19 +69,29 @@ export const usePreferences = () => {
     updatePreference: updatePref,
     updatePreferences: updatePrefs,
     resetPreferences: resetPrefs,
-    // Convenience getters
+    
+    // Convenience getters - Schedule
     bedtime: preferences.bedtime,
+    wakeTime: preferences.wake_time,
+    timezone: preferences.timezone,
+    
+    // Caffeine limits
+    caffeineLimit: preferences.caffeine_limit,
+    sensitivity: preferences.sensitivity,
+    
+    // Notifications
+    notifications: preferences.notifications,
+    notificationMorning: preferences.notification_morning,
+    notificationCutoff: preferences.notification_cutoff,
+    
+    // Logging preferences
     servingSize: preferences.serving_size,
     shots: preferences.shots,
     shotsManuallySet: preferences.shots_manually_set,
-    notifications: preferences.notifications,
-    caffeineLimit: preferences.caffeine_limit,
-    timezone: preferences.timezone,
-    favoriteCoffees: preferences.favorite_coffees ?? [],
-    wakeTime: preferences.wake_time ?? '07:00',
-    sensitivity: preferences.sensitivity ?? 'auto',
-    notificationMorning: preferences.notification_morning ?? false,
-    notificationCutoff: preferences.notification_cutoff ?? false,
-    quickLogMode: preferences.quick_log_mode ?? false
+    quickLogMode: preferences.quick_log_mode,
+    favoriteCoffees: preferences.favorite_coffees,
+    
+    // Peak energy
+    showPeakEnergy: preferences.show_peak_energy
   };
 };
