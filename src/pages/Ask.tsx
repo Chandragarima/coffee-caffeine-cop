@@ -469,13 +469,15 @@ const Ask = () => {
                     </div>
                     <div className="text-center p-3 sm:p-4 bg-blue-50 rounded-lg">
                       <div className="text-xl sm:text-2xl font-bold text-blue-700">
-                        {coffeeStats.peakConsumptionHour > 12
-                          ? `${coffeeStats.peakConsumptionHour - 12} PM`
-                          : coffeeStats.peakConsumptionHour === 0
-                            ? '12 AM'
-                            : coffeeStats.peakConsumptionHour === 12
-                              ? '12 PM'
-                              : `${coffeeStats.peakConsumptionHour} AM`}
+                        {coffeeStats.peakConsumptionHour < 0
+                          ? '—'
+                          : coffeeStats.peakConsumptionHour > 12
+                            ? `${coffeeStats.peakConsumptionHour - 12} PM`
+                            : coffeeStats.peakConsumptionHour === 0
+                              ? '12 AM'
+                              : coffeeStats.peakConsumptionHour === 12
+                                ? '12 PM'
+                                : `${coffeeStats.peakConsumptionHour} AM`}
                       </div>
                       <div className="text-xs sm:text-sm text-gray-600">Peak consumption</div>
                     </div>

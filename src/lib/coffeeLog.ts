@@ -219,8 +219,10 @@ class CoffeeLogDB {
       return acc;
     }, {} as Record<number, number>);
     
-    const peakConsumptionHour = Object.entries(hourCounts)
-      .sort(([,a], [,b]) => b - a)[0]?.[0] || 9;
+    // -1 means no data (no logs in period); otherwise 0–23
+    const peakConsumptionHour = Object.keys(hourCounts).length === 0
+      ? -1
+      : Number(Object.entries(hourCounts).sort(([,a], [,b]) => b - a)[0]?.[0]);
     
     const lastConsumptionTime = monthLogs[0]?.consumedAt || 0;
 
@@ -262,7 +264,7 @@ class CoffeeLogDB {
       mostConsumedCoffee,
       mostConsumedCount,
       topFavoriteTied,
-      peakConsumptionHour: Number(peakConsumptionHour),
+      peakConsumptionHour: peakConsumptionHour,
       lastConsumptionTime,
       trackingStreak,
       totalDaysWithLogs
