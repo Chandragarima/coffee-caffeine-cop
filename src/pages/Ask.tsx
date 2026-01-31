@@ -17,6 +17,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getLovableUploadPath } from "@/lib/imageUtils";
+import { trackPageView, trackUserInteraction } from "@/lib/analytics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import CoffeeLogHistory from "@/components/CoffeeLogHistory";

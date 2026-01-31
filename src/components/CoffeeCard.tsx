@@ -7,6 +7,7 @@ import QuickLogButton from "@/components/QuickLogButton";
 import { usePreferences } from "@/hooks/usePreferences";
 import { Star, StarOff } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
+import { trackCoffeeView } from "@/lib/analytics";
 
 interface CoffeeCardProps {
   coffee: CoffeeItem;

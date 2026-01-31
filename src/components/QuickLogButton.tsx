@@ -9,6 +9,7 @@ import { usePreferences } from '@/hooks/usePreferences';
 import { CoffeeItem } from '@/data/coffees';
 import { toast } from '@/components/ui/sonner';
 import { getLocalDateString, parseLocalDateString } from '@/lib/timeUtils';
+import { trackCoffeeLog } from '@/lib/analytics';
 
 interface QuickLogButtonProps {
   coffee: CoffeeItem;
@@ -19,6 +20,7 @@ interface QuickLogButtonProps {
   onLogSuccess?: () => void;
   showUndoAfterLog?: boolean; // Show undo option after logging
   instantLog?: boolean; // Force instant logging (no dialog, no customization)
+  source?: 'recommendations' | 'explore' | 'quick_log' | 'detail_dialog'; // For analytics
 }
 
 const QuickLogButton = ({ 
@@ -29,7 +31,8 @@ const QuickLogButton = ({
   showDialog, // undefined means use preference
   onLogSuccess,
   showUndoAfterLog = false,
-  instantLog = false // Force instant logging
+  instantLog = false, // Force instant logging
+  source = 'explore' // For analytics
 }: QuickLogButtonProps) => {
   const { quickLog, addLog, logs, deleteLog, refreshStats } = useCoffeeLogs();
   const { quickLogMode } = usePreferences();

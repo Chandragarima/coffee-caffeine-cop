@@ -212,18 +212,3 @@ export const validatePreferences = (preferences: Partial<UserPreferences>): bool
 
   return true;
 };
-
-// Helper: Calculate caffeine cutoff time (bedtime - 8 hours)
-export const getCutoffTime = (bedtime: string): string => {
-  const [hours, minutes] = bedtime.split(':').map(Number);
-  const cutoffHour = (hours - 8 + 24) % 24;
-  return `${cutoffHour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-};
-
-// Helper: Format time for display (e.g., "3:00 PM")
-export const formatTimeForDisplay = (time: string): string => {
-  const [hours, minutes] = time.split(':').map(Number);
-  const period = hours >= 12 ? 'PM' : 'AM';
-  const displayHour = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
-  return `${displayHour}:${minutes.toString().padStart(2, '0')} ${period}`;
-};
