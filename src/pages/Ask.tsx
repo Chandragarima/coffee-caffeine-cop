@@ -202,11 +202,11 @@ const Ask = () => {
             )}
           </div>
 
-          {/* Hero section */}
-          <div className="text-center space-y-4 sm:space-y-6">
+          {/* Hero section — mobile: one cohesive card; desktop: same layout, no card */}
+          <div className="text-center space-y-3 sm:space-y-6 rounded-2xl p-4 sm:p-0 bg-white/70 sm:bg-transparent border border-amber-100/60 sm:border-0 shadow-sm sm:shadow-none">
             {/* Logo and branding */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6">
-              <div className="relative">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6">
+              <div className="relative flex-shrink-0">
                 <img
                   src={getLovableUploadPath("31c42cd4-bee4-40d8-ba66-0438b1c8dc85.png")}
                   alt="CoffeePolice mascot logo"
@@ -217,24 +217,22 @@ const Ask = () => {
                   <span className="text-white text-xs">⚡</span>
                 </div>
               </div>
-              
-              <div className="text-center sm:text-left space-y-1 sm:space-y-2">
-                <h1 className="text-2xl sm:text-5xl font-black tracking-tight text-gray-900">
+              <div className="text-center sm:text-left">
+                <h1 className="text-xl sm:text-5xl font-black tracking-tight text-gray-900">
                   Coffee Police
                 </h1>
-                {/* <p className="text-gray-600 text-sm sm:text-lg text-center font-medium">
-                  Smart caffeine tracking
-                </p> */}
               </div>
             </div>
 
-            {/* Tagline and CTA */}
-            <div className="max-w-2xl mx-auto space-y-3 sm:space-y-4">
-              <p className="hidden sm:block text-gray-600 text-sm sm:text-base leading-relaxed">
-                Policing your caffeine intake with{" "}
-                <span className="text-amber-600 font-semibold">time-smart picks</span> and personalized recommendations
+            {/* Tagline and CTA — tighter on mobile, single visual unit */}
+            <div className="max-w-2xl mx-auto space-y-2 sm:space-y-4">
+              <p className="text-gray-600 text-xs sm:text-base leading-snug sm:leading-relaxed">
+                <span className="sm:hidden">Track caffeine. Get </span>
+                <span className="hidden sm:inline">Track your caffeine intake and get personalized </span>
+                <span className="text-amber-600 font-semibold">time-based</span>
+                <span className="sm:hidden"> picks.</span>
+                <span className="hidden sm:inline"> recommendations</span>
               </p>
-              
               <Button
                 variant="ghost"
                 size="sm"
@@ -242,9 +240,9 @@ const Ask = () => {
                   trackUserInteraction('click', 'coffee_guide_button', 'hero_section');
                   setShowCoffeeGuide(true);
                 }}
-                className="text-amber-600 hover:text-amber-700 hover:bg-amber-50/50 text-sm px-4 py-2 rounded-lg border border-amber-200/50 hover:border-amber-300 transition-all duration-200"
+                className="w-full sm:w-auto text-amber-600 hover:text-amber-700 hover:bg-amber-50/50 text-xs sm:text-sm px-4 py-2 rounded-lg border border-amber-200/50 hover:border-amber-300 transition-all duration-200"
               >
-                📋 Coffee Guide
+                📋 Guide
               </Button>
             </div>
           </div>
