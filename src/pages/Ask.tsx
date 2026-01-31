@@ -30,6 +30,7 @@ import EnergyPeakCard from "@/components/EnergyPeakCard";
 import { usePeakEnergy } from "@/hooks/usePeakEnergy";
 import { Settings, ChevronDown, ChevronUp } from "lucide-react";
 import SleepHistoryCard from "@/components/SleepHistoryCard";
+import SleepAnalysisCard from "@/components/SleepAnalysisCard";
 
 const Ask = () => {
   const isMobile = useIsMobile();
@@ -359,6 +360,9 @@ const Ask = () => {
 
             {/* Caffeine Profile — patterns & badges */}
             <CaffeineProfileCard />
+
+            {/* Sleep Analysis — caffeine vs sleep correlation */}
+            <SleepAnalysisCard />
 
             {/* Caffeine Science & Smart Tips - Collapsible */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-5">

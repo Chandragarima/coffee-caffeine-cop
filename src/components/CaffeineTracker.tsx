@@ -94,8 +94,8 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false, 
             {/* Daily Consumption - Simplified */}
             <div className="space-y-1.5 sm:space-y-2">
               <div className="flex items-center justify-between">
-                <Progress 
-                  value={Math.min(100, caffeineStatus.dailyProgress)} 
+                <Progress
+                  value={Math.min(100, caffeineStatus.dailyProgress)}
                   className="h-1.5 sm:h-2 bg-gray-100 flex-1 mr-2 sm:mr-3"
                   indicatorClassName={
                     caffeineStatus.dailyProgress < 50 ? 'bg-green-500' :
@@ -104,7 +104,7 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false, 
                   }
                 />
                 <span className={`text-xs sm:text-sm font-medium ${isOverLimit ? 'text-red-600' : 'text-gray-700'}`}>
-                  {caffeineStatus.dailyConsumed} / {caffeineStatus.dailyLimit}mg
+                  {caffeineStatus.dailyConsumed} / {caffeineStatus.dailyLimit}mg today
                 </span>
               </div>
               {isOverLimit && (

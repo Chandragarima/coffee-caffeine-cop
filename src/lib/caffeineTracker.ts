@@ -496,7 +496,6 @@ export const getCaffeineStatus = (
   dailyLimit: number = 400
 ): CaffeineStatus => {
   const currentLevel = calculateCurrentCaffeine(logs);
-  const totalCaffeineLevel = calculateTotalCaffeine(logs);
   const peakLevel = calculatePeakCaffeine(logs);
   
   // Calculate time to bedtime
@@ -520,15 +519,15 @@ export const getCaffeineStatus = (
   const dailyConsumed = todayLogs.reduce((sum, log) => sum + log.caffeineMg, 0);
   const dailyProgress = (dailyConsumed / dailyLimit) * 100;
   
-  // Get sleep risk with current caffeine only (not adding new coffee)
-  const sleepRisk = getSleepRisk(totalCaffeineLevel, hoursUntilBed);
-  
-  // Calculate projected at bedtime with current level only
-  const projectedAtBedtime = caffeineRemaining(totalCaffeineLevel, hoursUntilBed, HALF_LIFE_HOURS);
-  
+  // Use today-only caffeine for display and projections
+  const sleepRisk = getSleepRisk(currentLevel, hoursUntilBed);
+
+  // Calculate projected at bedtime using today's caffeine only
+  const projectedAtBedtime = caffeineRemaining(currentLevel, hoursUntilBed, HALF_LIFE_HOURS);
+
   // Calculate what peak would be if drinking now
   const projectedPeakIfDrink = currentLevel + THRESHOLDS.TYPICAL_COFFEE;
-  
+
   return {
     currentLevel: Math.round(currentLevel),
     peakLevel,

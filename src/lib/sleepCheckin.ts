@@ -52,14 +52,12 @@ export function getTodayCheckin(): SleepCheckin | null {
 }
 
 /** Returns true if we should prompt for a sleep check-in */
-export function needsSleepCheckin(todayLogCount: number, yesterdayLogCount: number): boolean {
+export function needsSleepCheckin(_todayLogCount: number, yesterdayLogCount: number): boolean {
   // Must be before 2pm
   if (new Date().getHours() >= 14) return false;
   // Must not already have a checkin today
   if (getTodayCheckin()) return false;
   // Must have logs from yesterday
   if (yesterdayLogCount === 0) return false;
-  // Must be the first log today (this was just logged, so count is 1)
-  if (todayLogCount > 1) return false;
   return true;
 }
