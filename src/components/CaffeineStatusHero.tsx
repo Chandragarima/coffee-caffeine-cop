@@ -135,7 +135,7 @@ export const CaffeineStatusHero = ({
         
         {showDetails && (
           <div className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 border-t border-gray-100 animate-in slide-in-from-top-2 duration-300">
-            {/* <h4 className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">
+            {/* <h4 className="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-widest px-1">
               Why This Matters
             </h4> */}
             
@@ -181,15 +181,15 @@ export const CaffeineStatusHero = ({
                       <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center ${t.iconBg}`}>
                         <span className="text-xs sm:text-sm">⚡</span>
                       </div>
-                      <h5 className={`text-[11px] sm:text-xs font-bold ${t.title}`}>
+                      <h5 className={`text-xs sm:text-sm font-bold ${t.title}`}>
                         {band.title}
                       </h5>
                     </div>
                     <div className="space-y-1.5 sm:space-y-2">
-                      <p className={`text-[10px] sm:text-[11px] ${t.intro} leading-relaxed`}>
+                      <p className={`text-xs sm:text-sm ${t.intro} leading-relaxed`}>
                         {band.intro}
                       </p>
-                      <ul className={`text-[9px] sm:text-[10px] ${t.list} space-y-0.5 sm:space-y-1`}>
+                      <ul className={`text-xs sm:text-sm ${t.list} space-y-0.5 sm:space-y-1`}>
                         {band.bullets.map((b, i) => (
                           <li key={i} className="flex items-start gap-1.5">
                             <span className="mt-0.5">{b.char}</span>
@@ -206,24 +206,24 @@ export const CaffeineStatusHero = ({
             {/* The Science of 50mg Section */}
             <div className="bg-gray-900 text-white rounded-xl sm:rounded-2xl p-4 sm:p-5 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-24 sm:w-32 h-24 sm:h-32 bg-amber-500/10 rounded-full -mr-12 sm:-mr-16 -mt-12 sm:-mt-16 blur-3xl"></div>
-              <h4 className="text-[10px] sm:text-xs font-bold text-amber-400 uppercase tracking-widest mb-2 sm:mb-3 flex items-center gap-2">
+              <h4 className="text-xs sm:text-sm font-bold text-amber-400 uppercase tracking-widest mb-2 sm:mb-3 flex items-center gap-2">
                 <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> The Science of 50mg
               </h4>
               <div className="space-y-2 sm:space-y-3 relative z-10">
-                <p className="text-[10px] sm:text-xs text-gray-300 leading-relaxed">
+                <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
                   Caffeine works by blocking <span className="text-white font-medium">Adenosine</span>—the chemical that builds "sleep pressure" throughout your day.
                 </p>
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   <div className="space-y-0.5 sm:space-y-1">
-                    <p className="text-[9px] sm:text-[10px] font-bold text-amber-200">Deep Sleep Impact</p>
-                    <p className="text-[8px] sm:text-[9px] text-gray-400">Levels above 50mg reduce NREM (deep) sleep by up to 20%.</p>
+                    <p className="text-xs sm:text-sm font-bold text-amber-200">Deep Sleep Impact</p>
+                    <p className="text-xs sm:text-sm text-gray-400">Levels above 50mg reduce NREM (deep) sleep by up to 20%.</p>
                   </div>
                   <div className="space-y-0.5 sm:space-y-1">
-                    <p className="text-[9px] sm:text-[10px] font-bold text-amber-200">Sleep Latency</p>
-                    <p className="text-[8px] sm:text-[9px] text-gray-400">50mg+ in your system can double the time it takes to fall asleep.</p>
+                    <p className="text-xs sm:text-sm font-bold text-amber-200">Sleep Latency</p>
+                    <p className="text-xs sm:text-sm text-gray-400">50mg+ in your system can double the time it takes to fall asleep.</p>
                   </div>
                 </div>
-                <p className="text-[8px] sm:text-[9px] text-gray-500 italic pt-1 border-t border-white/10">
+                <p className="text-xs sm:text-sm text-gray-500 italic pt-1 border-t border-white/10">
                   Data based on Sleep Medicine Reviews & clinical half-life studies.
                 </p>
               </div>

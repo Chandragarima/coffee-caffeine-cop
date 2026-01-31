@@ -383,19 +383,19 @@ const Ask = () => {
                   <CardContent className="space-y-2 sm:space-y-3 pt-0 px-3 sm:px-4 pb-3 sm:pb-4 animate-in slide-in-from-top-2 duration-200">
                     <div className="p-2.5 sm:p-3 bg-white/60 rounded-lg border border-blue-100">
                       <div className="font-medium text-blue-900 mb-0.5 sm:mb-1 text-xs sm:text-sm">⚡ Absorption</div>
-                      <div className="text-gray-600 text-[10px] sm:text-xs">Caffeine enters your bloodstream in 15 min, peaks at 30-60 min, then gradually declines</div>
+                      <div className="text-gray-600 text-xs sm:text-sm">Caffeine enters your bloodstream in 15 min, peaks at 30-60 min, then gradually declines</div>
                     </div>
                     <div className="p-2.5 sm:p-3 bg-white/60 rounded-lg border border-green-100">
                       <div className="font-medium text-green-900 mb-0.5 sm:mb-1 text-xs sm:text-sm">🔄 Decay Rate</div>
-                      <div className="text-gray-600 text-[10px] sm:text-xs">Every 5 hours, half is eliminated. 200mg → 100mg (5h) → 50mg (10h) → 25mg (15h)</div>
+                      <div className="text-gray-600 text-xs sm:text-sm">Every 5 hours, half is eliminated. 200mg → 100mg (5h) → 50mg (10h) → 25mg (15h)</div>
                     </div>
                     <div className="p-2.5 sm:p-3 bg-white/60 rounded-lg border border-purple-100">
                       <div className="font-medium text-purple-900 mb-0.5 sm:mb-1 text-xs sm:text-sm">🧠 Brain Chemistry</div>
-                      <div className="text-gray-600 text-[10px] sm:text-xs">Caffeine blocks adenosine receptors, preventing the "sleepy" signal from reaching your brain</div>
+                      <div className="text-gray-600 text-xs sm:text-sm">Caffeine blocks adenosine receptors, preventing the "sleepy" signal from reaching your brain</div>
                     </div>
                     <div className="p-2.5 sm:p-3 bg-white/60 rounded-lg border border-indigo-100">
                       <div className="font-medium text-indigo-900 mb-0.5 sm:mb-1 text-xs sm:text-sm">👤 Individual Variation</div>
-                      <div className="text-gray-600 text-[10px] sm:text-xs">Genetics affect how fast you metabolize caffeine — some people are "slow metabolizers"</div>
+                      <div className="text-gray-600 text-xs sm:text-sm">Genetics affect how fast you metabolize caffeine — some people are "slow metabolizers"</div>
                     </div>
                   </CardContent>
                 )}
@@ -422,11 +422,11 @@ const Ask = () => {
                   <CardContent className="space-y-2 sm:space-y-3 pt-0 px-3 sm:px-4 pb-3 sm:pb-4 animate-in slide-in-from-top-2 duration-200">
                     <div className="p-2.5 sm:p-3 bg-white/60 rounded-lg border border-amber-100">
                       <div className="font-medium text-amber-900 mb-0.5 sm:mb-1 text-xs sm:text-sm">🌅 Morning Routine</div>
-                      <div className="text-gray-600 text-[10px] sm:text-xs">Wait 90 min after waking — let cortisol peak naturally first, then caffeine works better</div>
+                      <div className="text-gray-600 text-xs sm:text-sm">Wait 90 min after waking — let cortisol peak naturally first, then caffeine works better</div>
                     </div>
                     <div className="p-2.5 sm:p-3 bg-amber-100/70 rounded-lg border border-amber-300">
                       <div className="font-medium text-amber-900 mb-0.5 sm:mb-1 text-xs sm:text-sm">⏰ Your Cutoff Time</div>
-                      <div className="text-gray-700 text-[10px] sm:text-xs font-medium">
+                      <div className="text-gray-700 text-xs sm:text-sm font-medium">
                         Based on your {localBedtime} bedtime → Last coffee by{' '}
                         {(() => {
                           const [h, m] = localBedtime.split(':').map(Number);
@@ -439,11 +439,11 @@ const Ask = () => {
                     </div>
                     <div className="p-2.5 sm:p-3 bg-white/60 rounded-lg border border-orange-100">
                       <div className="font-medium text-orange-900 mb-0.5 sm:mb-1 text-xs sm:text-sm">🍎 Pair with Food</div>
-                      <div className="text-gray-600 text-[10px] sm:text-xs">Eating slows caffeine absorption, giving you a smoother, longer-lasting energy boost</div>
+                      <div className="text-gray-600 text-xs sm:text-sm">Eating slows caffeine absorption, giving you a smoother, longer-lasting energy boost</div>
                     </div>
                     <div className="p-2.5 sm:p-3 bg-white/60 rounded-lg border border-blue-100">
                       <div className="font-medium text-blue-900 mb-0.5 sm:mb-1 text-xs sm:text-sm">💧 Stay Hydrated</div>
-                      <div className="text-gray-600 text-[10px] sm:text-xs">Coffee is a mild diuretic — drink a glass of water for every cup of coffee</div>
+                      <div className="text-gray-600 text-xs sm:text-sm">Coffee is a mild diuretic — drink a glass of water for every cup of coffee</div>
                     </div>
                   </CardContent>
                 )}

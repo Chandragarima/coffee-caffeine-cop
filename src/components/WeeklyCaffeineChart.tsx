@@ -72,7 +72,7 @@ const WeeklyCaffeineChart = () => {
     <Card>
       <CardHeader className="pb-1 sm:pb-2">
         <CardTitle className="text-base sm:text-lg">Weekly Trends</CardTitle>
-        <p className="text-[10px] sm:text-xs text-muted-foreground">Daily caffeine intake over the last 7 days</p>
+        <p className="text-xs sm:text-sm text-muted-foreground">Daily caffeine intake over the last 7 days</p>
       </CardHeader>
       <CardContent className="px-2 sm:px-4">
         <div className="h-44 sm:h-52 md:h-64">
@@ -80,12 +80,12 @@ const WeeklyCaffeineChart = () => {
             <BarChart data={data} margin={{ top: 8, right: 4, left: -20, bottom: 0 }}>
               <XAxis
                 dataKey="day"
-                tick={{ fontSize: 10, fill: '#6b7280' }}
+                tick={{ fontSize: 12, fill: '#6b7280' }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 9, fill: '#9ca3af' }}
+                tick={{ fontSize: 11, fill: '#9ca3af' }}
                 axisLine={false}
                 tickLine={false}
                 domain={[0, Math.ceil(maxCaffeine / 100) * 100]}
@@ -112,7 +112,7 @@ const WeeklyCaffeineChart = () => {
                 label={{
                   value: `${caffeineLimit}mg`,
                   position: 'right',
-                  fontSize: 8,
+                  fontSize: 11,
                   fill: '#ef4444',
                 }}
               />

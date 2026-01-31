@@ -38,7 +38,7 @@ const SleepHistoryCard = () => {
             <div key={q} className={`flex-1 text-center p-2 sm:p-3 rounded-lg ${QUALITY_CONFIG[q].bg}`}>
               <div className="text-lg sm:text-xl">{QUALITY_CONFIG[q].icon}</div>
               <div className={`text-sm sm:text-base font-bold ${QUALITY_CONFIG[q].color}`}>{qualityCounts[q]}</div>
-              <div className="text-[10px] sm:text-xs text-gray-500">{QUALITY_CONFIG[q].label}</div>
+              <div className="text-xs sm:text-sm text-gray-500">{QUALITY_CONFIG[q].label}</div>
             </div>
           ))}
         </div>
@@ -54,16 +54,16 @@ const SleepHistoryCard = () => {
                   <span className="text-sm sm:text-base">{cfg.icon}</span>
                   <div>
                     <div className="text-xs sm:text-sm font-medium text-gray-900">{cfg.label}</div>
-                    <div className="text-[10px] sm:text-xs text-gray-500">
+                    <div className="text-xs sm:text-sm text-gray-500">
                       {date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[10px] sm:text-xs text-gray-500">
+                  <div className="text-xs sm:text-sm text-gray-500">
                     {c.yesterdayCaffeineMg}mg caffeine
                   </div>
-                  <div className="text-[10px] sm:text-xs text-gray-400">
+                  <div className="text-xs sm:text-sm text-gray-400">
                     Last at {c.yesterdayLastCoffeeHour > 12
                       ? `${c.yesterdayLastCoffeeHour - 12} PM`
                       : c.yesterdayLastCoffeeHour === 0

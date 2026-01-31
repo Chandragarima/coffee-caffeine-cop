@@ -132,7 +132,7 @@ const CoffeeLogHistory = () => {
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] sm:text-xs text-gray-500 font-medium">Today's Caffeine</p>
+                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Today's Caffeine</p>
                   <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalCaffeineToday}mg</p>
                 </div>
                 <div className="w-7 h-7 sm:w-8 sm:h-8 bg-amber-100 rounded-lg flex items-center justify-center">
@@ -146,7 +146,7 @@ const CoffeeLogHistory = () => {
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] sm:text-xs text-gray-500 font-medium">Today's Drinks</p>
+                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Today's Drinks</p>
                   <p className="text-xl sm:text-2xl font-bold text-gray-900">{stats.totalDrinksToday}</p>
                 </div>
                 <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -160,7 +160,7 @@ const CoffeeLogHistory = () => {
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] sm:text-xs text-gray-500 font-medium">Weekly Average</p>
+                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Weekly Average</p>
                   <p className="text-xl sm:text-2xl font-bold text-gray-900">{Math.round(stats.averageCaffeinePerDay)}mg</p>
                 </div>
                 <div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-100 rounded-lg flex items-center justify-center">
@@ -174,7 +174,7 @@ const CoffeeLogHistory = () => {
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] sm:text-xs text-gray-500 font-medium">Favorite</p>
+                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Favorite</p>
                   <p className="text-xs sm:text-sm font-semibold text-gray-900 truncate">{stats.mostConsumedCoffee}</p>
                 </div>
                 <div className="w-7 h-7 sm:w-8 sm:h-8 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -194,10 +194,10 @@ const CoffeeLogHistory = () => {
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-4 h-9 sm:h-10">
-              <TabsTrigger value="today" className="text-[10px] sm:text-sm">Today</TabsTrigger>
-              <TabsTrigger value="week" className="text-[10px] sm:text-sm">Week</TabsTrigger>
-              <TabsTrigger value="month" className="text-[10px] sm:text-sm">Month</TabsTrigger>
-              <TabsTrigger value="all" className="text-[10px] sm:text-sm">All Time</TabsTrigger>
+              <TabsTrigger value="today" className="text-xs sm:text-sm">Today</TabsTrigger>
+              <TabsTrigger value="week" className="text-xs sm:text-sm">Week</TabsTrigger>
+              <TabsTrigger value="month" className="text-xs sm:text-sm">Month</TabsTrigger>
+              <TabsTrigger value="all" className="text-xs sm:text-sm">All Time</TabsTrigger>
             </TabsList>
 
             <TabsContent value={activeTab} className="mt-4 sm:mt-6">
@@ -223,7 +223,7 @@ const CoffeeLogHistory = () => {
                         </div>
                         <div>
                           <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{log.coffeeName}</h3>
-                          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm text-gray-600">
+                          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600">
                             <span>{log.servingSize}oz</span>
                             {log.shots > 1 && <span>• {log.shots} shots</span>}
                             {log.location && log.location !== 'none' && (
@@ -234,11 +234,11 @@ const CoffeeLogHistory = () => {
                       </div>
                       
                       <div className="flex items-center gap-2 sm:gap-3">
-                        <Badge variant="outline" className="border-amber-200 text-amber-700 text-[10px] sm:text-xs px-1.5 sm:px-2">
+                        <Badge variant="outline" className="border-amber-200 text-amber-700 text-xs sm:text-sm px-1.5 sm:px-2">
                           {log.caffeineMg}mg
                         </Badge>
-                        <span className="text-[10px] sm:text-xs text-gray-500">{formatTime(log.consumedAt)}</span>
-                        <span className="text-[10px] sm:text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
+                        <span className="text-xs sm:text-sm text-gray-500">{formatTime(log.consumedAt)}</span>
+                        <span className="text-xs sm:text-sm text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
                           Tap to edit
                         </span>
                       </div>

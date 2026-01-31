@@ -42,7 +42,7 @@ const CaffeineProfileCard = () => {
             <div className="mt-2 sm:mt-3 max-w-[180px] sm:max-w-[200px] mx-auto">
               <Progress value={progress} className="h-1.5 sm:h-2" />
             </div>
-            <p className="text-[10px] sm:text-xs text-gray-400 mt-1.5 sm:mt-2">
+            <p className="text-xs sm:text-sm text-gray-400 mt-1.5 sm:mt-2">
               {profile.daysTracked}/7 days tracked
             </p>
           </div>
@@ -51,7 +51,7 @@ const CaffeineProfileCard = () => {
           <div className="mt-3 sm:mt-4 space-y-2 sm:space-y-3 select-none pointer-events-none">
             <div className="blur-[3px] opacity-50">
               <div className="space-y-1">
-                <div className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Sensitivity</div>
+                <div className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wide">Sensitivity</div>
                 <div className="inline-block px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-semibold text-green-700 bg-green-50">
                   Moderate
                 </div>
@@ -61,20 +61,20 @@ const CaffeineProfileCard = () => {
               <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 <div className="p-2.5 sm:p-3 bg-gray-50 rounded-lg">
                   <div className="text-xs sm:text-sm font-semibold text-gray-900">Early Bird</div>
-                  <div className="text-[10px] sm:text-xs text-gray-500">Morning drinker</div>
+                  <div className="text-xs sm:text-sm text-gray-500">Morning drinker</div>
                 </div>
                 <div className="p-2.5 sm:p-3 bg-gray-50 rounded-lg">
                   <div className="text-xs sm:text-sm font-semibold text-gray-900">Moderate</div>
-                  <div className="text-[10px] sm:text-xs text-gray-500">Balanced intake</div>
+                  <div className="text-xs sm:text-sm text-gray-500">Balanced intake</div>
                 </div>
               </div>
             </div>
             <div className="blur-[3px] opacity-50">
               <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                <div className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[10px] sm:text-xs font-semibold">
+                <div className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs sm:text-sm font-semibold">
                   Streak Master
                 </div>
-                <div className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-gray-100 border border-gray-200 text-gray-400 text-[10px] sm:text-xs font-medium">
+                <div className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-gray-100 border border-gray-200 text-gray-400 text-xs sm:text-sm font-medium">
                   Sleep Guardian
                 </div>
               </div>
@@ -96,11 +96,11 @@ const CaffeineProfileCard = () => {
       <CardContent className="space-y-4 sm:space-y-5">
         {/* Sensitivity */}
         <div className="space-y-1">
-          <div className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Sensitivity</div>
+          <div className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wide">Sensitivity</div>
           <div className={`inline-block px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-semibold ${SENSITIVITY_COLORS[profile.sensitivityLevel]}`}>
             {profile.sensitivityLevel === 'unknown' ? 'Unknown' : profile.sensitivityLevel.charAt(0).toUpperCase() + profile.sensitivityLevel.slice(1)}
           </div>
-          <p className="text-[10px] sm:text-xs text-gray-600">{profile.sensitivityDescription}</p>
+          <p className="text-xs sm:text-sm text-gray-600">{profile.sensitivityDescription}</p>
         </div>
 
         {/* Timing Pattern & Consumption Level */}
@@ -111,7 +111,7 @@ const CaffeineProfileCard = () => {
               {profile.timingPattern === 'unknown' ? 'Unknown' :
                 profile.timingPattern.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
             </div>
-            <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5">{profile.timingDescription}</div>
+            <div className="text-xs sm:text-sm text-gray-500 mt-0.5">{profile.timingDescription}</div>
           </div>
           <div className="p-2.5 sm:p-3 bg-gray-50 rounded-lg">
             <div className="text-base sm:text-lg mb-0.5 sm:mb-1">{CONSUMPTION_ICONS[profile.consumptionLevel]}</div>
@@ -119,13 +119,13 @@ const CaffeineProfileCard = () => {
               {profile.consumptionLevel === 'unknown' ? 'Unknown' :
                 profile.consumptionLevel.charAt(0).toUpperCase() + profile.consumptionLevel.slice(1)}
             </div>
-            <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5">{profile.consumptionDescription}</div>
+            <div className="text-xs sm:text-sm text-gray-500 mt-0.5">{profile.consumptionDescription}</div>
           </div>
         </div>
 
         {/* Badges */}
         <div className="space-y-1.5 sm:space-y-2">
-          <div className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <div className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wide">
             Badges ({earnedBadges.length}/{profile.badges.length})
           </div>
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
@@ -136,7 +136,7 @@ const CaffeineProfileCard = () => {
                 title={badge.description}
               >
                 <span className="text-xs sm:text-sm">{badge.icon}</span>
-                <span className="text-[10px] sm:text-xs font-semibold">{badge.name}</span>
+                <span className="text-xs sm:text-sm font-semibold">{badge.name}</span>
               </div>
             ))}
             {unearnedBadges.map((badge) => (
@@ -146,7 +146,7 @@ const CaffeineProfileCard = () => {
                 title={badge.description}
               >
                 <span className="grayscale opacity-50 text-xs sm:text-sm">{badge.icon}</span>
-                <span className="text-[10px] sm:text-xs font-medium">{badge.name}</span>
+                <span className="text-xs sm:text-sm font-medium">{badge.name}</span>
               </div>
             ))}
           </div>

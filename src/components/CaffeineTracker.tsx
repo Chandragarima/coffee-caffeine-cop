@@ -108,7 +108,7 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false, 
                 </span>
               </div>
               {isOverLimit && (
-                <p className="text-[10px] sm:text-xs text-red-500">
+                <p className="text-xs sm:text-sm text-red-500">
                   {caffeineStatus.dailyConsumed - caffeineStatus.dailyLimit}mg over your daily limit
                 </p>
               )}
@@ -139,7 +139,7 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false, 
         
         {/* Bedtime Info - Subtle separate row */}
         <div className="flex items-center justify-between px-1">
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-gray-500">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-500">
             <span>🛏️</span>
             <span>Bed {bedtimeFormatted}</span>
             <span>•</span>
@@ -147,7 +147,7 @@ const CaffeineTracker = ({ className = '', showDetails = true, compact = false, 
               ~{caffeineStatus.projectedAtBedtime}mg at bed
             </span>
             <span className="opacity-40">/</span>
-            <span className="bg-gray-100 px-1 sm:px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold tracking-tight">
+            <span className="bg-gray-100 px-1.5 sm:px-2 py-0.5 rounded text-xs sm:text-sm font-bold tracking-tight">
               50mg LIMIT
             </span>
           </div>
