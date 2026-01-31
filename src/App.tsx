@@ -14,9 +14,8 @@ import NotificationManager from "./components/NotificationManager";
 
 const queryClient = new QueryClient();
 
-// Determine basename based on environment
-// In production, use the GitHub Pages path, in development use root
-const basename = import.meta.env.PROD ? '/coffee-caffeine-cop' : '/';
+// Basename must match Vite's base (e.g. '/' for Netlify root, '/coffee-caffeine-cop' for GitHub Pages subpath)
+const basename = (import.meta.env.BASE_URL || '/').replace(/\/$/, '') || '/';
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

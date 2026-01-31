@@ -5,8 +5,12 @@ import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  base: mode === 'production' ? '/coffee-caffeine-cop/' : '/',
+// On Netlify we deploy at domain root, so use base '/'. For GitHub Pages subpath use '/coffee-caffeine-cop/'.
+export default defineConfig(({ mode }) => {
+  const base = process.env.NETLIFY ? '/' : (mode === 'production' ? '/coffee-caffeine-cop/' : '/');
+  const baseNoTrailing = base.replace(/\/$/, '') || '/';
+  return {
+  base,
   server: {
     host: "::",
     port: 8080,
@@ -26,12 +30,12 @@ export default defineConfig(({ mode }) => ({
         name: 'CoffeePolice',
         short_name: 'CoffeePolice',
         description: 'Smart coffee recommendations with caffeine guidance',
-        start_url: '/coffee-caffeine-cop/',
+        start_url: base,
         display: 'standalone',
         background_color: '#fef3c7',
         theme_color: '#f59e0b',
         orientation: 'portrait-primary',
-        scope: '/coffee-caffeine-cop/',
+        scope: base,
         lang: 'en',
         categories: ['lifestyle', 'health', 'productivity'],
         icons: [
@@ -89,7 +93,7 @@ export default defineConfig(({ mode }) => ({
             name: 'Get Coffee Recommendations',
             short_name: 'Recommendations',
             description: 'Get personalized coffee picks based on time and preferences',
-            url: '/coffee-caffeine-cop/ask',
+            url: `${baseNoTrailing}/ask`,
             icons: [
               {
                 src: './PWA/android/android-launchericon-96-96.png',
@@ -101,7 +105,7 @@ export default defineConfig(({ mode }) => ({
             name: 'Caffeine Calculator',
             short_name: 'Calculator',
             description: 'Calculate caffeine half-life and sleep impact',
-            url: '/coffee-caffeine-cop/calculator',
+            url: `${baseNoTrailing}/calculator`,
             icons: [
               {
                 src: './PWA/android/android-launchericon-96-96.png',
@@ -140,4 +144,5 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-}));
+};
+});
